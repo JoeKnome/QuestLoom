@@ -74,7 +74,7 @@ npm run format # Optional: format code
 
 ### 1.1 Types and Dexie schema
 
-- Add **TypeScript types** for entities from `docs/data-models.md`: `Game`, `Playthrough`, `Quest`, `Insight`, `Item`, `Person`, `Place`, `Map`, `Thread`. Use a single `src/types/` module (or one file per entity) and shared types for IDs and enums.
+- Add **TypeScript types** for entities from `docs/data-models.md`: `Game`, `Playthrough`, `Quest`, `Insight`, `Item`, `Person`, `Place`, `Map`, `Thread`. Use a one file per entity and shared types for IDs and enums.
 - Define **Dexie database**: one `Dexie` instance with tables that mirror entities. Every table that is playthrough-scoped has `playthroughId` (and usually `gameId`); game-scoped tables have `gameId` only. Index `gameId` and `playthroughId` for queries.
 - **Game vs playthrough tables** (conceptual):
   - **Game-scoped (intrinsic):** `games`, `quests`, `insights`, `items`, `persons`, `places`, `maps`, `threads` — each row has `gameId`; survives "clear progress."
