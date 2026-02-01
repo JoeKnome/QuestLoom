@@ -15,30 +15,30 @@ A companion app for mystery and adventure games that lets users track quests, in
 
 ## Core Entities
 
-| Entity  | Description                                                                 |
-| ------- | --------------------------------------------------------------------------- |
-| Quest   | Objectives, goals, and progress tracking                                    |
-| Insight | Key information, lore, and understanding that helps solve or advance       |
-| Item    | Inventory and key objects                                                   |
-| Map     | Spatial context and location tracking                                       |
-| Person  | Characters and NPCs                                                         |
-| Place   | Locations and rooms                                                         |
+| Entity  | Description                                                                   |
+| ------- | ----------------------------------------------------------------------------- |
+| Quest   | Objectives, goals, and progress tracking                                      |
+| Insight | Key information, lore, and understanding that helps solve or advance          |
+| Item    | Inventory and key objects                                                     |
+| Map     | Spatial context and location tracking                                         |
+| Person  | Characters and NPCs                                                           |
+| Place   | Locations and rooms                                                           |
 | Thread  | Links between entities (e.g., Person ↔ Place); the **loom** is the graph view |
 
 ## Documentation
 
 Design and specification docs live in `docs/`:
 
-| Doc | Description |
-| --- | ----------- |
-| [design-spec.md](docs/design-spec.md) | Vision, differentiators, principles, scope, core entities |
-| [features.md](docs/features.md) | Feature list and user stories |
-| [data-models.md](docs/data-models.md) | Entity schemas and relationships |
-| [architecture.md](docs/architecture.md) | Tech stack and project structure |
+| Doc                                  | Description                                               |
+| ------------------------------------ | --------------------------------------------------------- |
+| [Design Spec](docs/design-spec.md)   | Vision, differentiators, principles, scope, core entities |
+| [Features](docs/features.md)         | Feature list and user stories                             |
+| [Data Models](docs/data-models.md)   | Entity schemas and relationships                          |
+| [Architecture](docs/architecture.md) | Tech stack and project structure                          |
 
 ## Project Structure (Proposed)
 
-```
+```text
 QuestLoom/
 ├── docs/                 # Design and spec
 ├── src/
@@ -55,7 +55,7 @@ QuestLoom/
 
 ## Getting Started
 
-*Setup and run instructions will be added once the app is implemented. Tech stack: TypeScript, web-first, responsive; local-first persistence preferred for v1.*
+_Setup and run instructions will be added once the app is implemented. Tech stack: TypeScript, web-first, responsive; local-first persistence preferred for v1._
 
 ## License
 
