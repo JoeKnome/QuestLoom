@@ -25,6 +25,7 @@ Choices are aimed at: commercialization readiness, modern standards, strong supp
 ### Data & Persistence
 
 - **Local-first (v1)**: **Dexie.js** (IndexedDB wrapper) — Simple API, TypeScript-friendly, indexes for querying threads and entities by `gameId` / `playthroughId`. Schema and store design must explicitly separate game tables (intrinsic) from playthrough tables (user); Dexie makes this straightforward.
+- **Redirectable to hosted**: Feature code must not call Dexie directly. Use a **repository layer** (e.g. `src/lib/repositories/` or `src/data/`): components and stores call repository methods (e.g. `questRepository.getAllByGame(gameId)`). The current implementation uses Dexie; a future implementation can use an API client with the same interface. See [Implementation Plan](implementation-plan.md#redirectability-data-access-layer).
 - **Backend (commercialization)**: Add when needed for auth, sync, or multi-device.
   - **Runtime**: **Node.js** with **TypeScript**; same language as frontend.
   - **API**: **Hono** or **Fastify** — Lightweight, fast, great TypeScript support; suitable for a small team or solo dev (avoid enterprise-oriented frameworks).
@@ -77,17 +78,17 @@ These elements have no off-the-shelf equivalent and must be implemented for Ques
 
 ## Key Decisions
 
-| Decision           | Status    | Notes                                                                 |
-| ------------------ | --------- | --------------------------------------------------------------------- |
-| Language           | Proposed  | TypeScript for frontend and backend                                   |
-| Framework          | Proposed  | React 18+ with Vite                                                   |
-| Styling            | Proposed  | Tailwind CSS; consider shadcn/ui for components                       |
-| Loom / graph       | Proposed  | React Flow as primary; Cytoscape.js as alternative                    |
-| State              | Proposed  | Zustand; TanStack Query when backend exists                           |
-| Data (v1)          | Proposed  | Dexie (IndexedDB), schema enforces game vs playthrough separation     |
-| Backend            | Proposed  | Node + TypeScript, Hono or Fastify, PostgreSQL when needed            |
-| Auth               | Proposed  | Not in v1; add Clerk, Supabase Auth, or Lucia for commercialization   |
-| Hosting (v1)       | Proposed  | Static deploy (Vercel, Netlify, or similar)                           |
+| Decision     | Status   | Notes                                                               |
+| ------------ | -------- | ------------------------------------------------------------------- |
+| Language     | Proposed | TypeScript for frontend and backend                                 |
+| Framework    | Proposed | React 18+ with Vite                                                 |
+| Styling      | Proposed | Tailwind CSS; consider shadcn/ui for components                     |
+| Loom / graph | Proposed | React Flow as primary; Cytoscape.js as alternative                  |
+| State        | Proposed | Zustand; TanStack Query when backend exists                         |
+| Data (v1)    | Proposed | Dexie (IndexedDB), schema enforces game vs playthrough separation   |
+| Backend      | Proposed | Node + TypeScript, Hono or Fastify, PostgreSQL when needed          |
+| Auth         | Proposed | Not in v1; add Clerk, Supabase Auth, or Lucia for commercialization |
+| Hosting (v1) | Proposed | Static deploy (Vercel, Netlify, or similar)                         |
 
 ## Data Separation (Game vs Playthrough)
 

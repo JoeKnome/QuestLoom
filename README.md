@@ -29,12 +29,13 @@ A companion app for mystery and adventure games that lets users track quests, in
 
 Design and specification docs live in `docs/`:
 
-| Doc                                  | Description                                               |
-| ------------------------------------ | --------------------------------------------------------- |
-| [Design Spec](docs/design-spec.md)   | Vision, differentiators, principles, scope, core entities |
-| [Features](docs/features.md)         | Feature list and user stories                             |
-| [Data Models](docs/data-models.md)   | Entity schemas and relationships                          |
-| [Architecture](docs/architecture.md) | Tech stack and project structure                          |
+| Doc                                                | Description                                               |
+| -------------------------------------------------- | --------------------------------------------------------- |
+| [Design Spec](docs/design-spec.md)                 | Vision, differentiators, principles, scope, core entities |
+| [Features](docs/features.md)                       | Feature list and user stories                             |
+| [Data Models](docs/data-models.md)                 | Entity schemas and relationships                          |
+| [Architecture](docs/architecture.md)               | Tech stack and project structure                          |
+| [Implementation Plan](docs/implementation-plan.md) | Phased plan for local-first build and redirectability     |
 
 ## Project Structure (Proposed)
 

@@ -1,0 +1,175 @@
+# QuestLoom Implementation Plan
+
+## Goals
+
+1. **Fully operational locally** — App runs and persists data with no backend; usable as a personal tool during development.
+2. **Local functionality as soon as possible** — Bootstrap the app and core flows first; iterate on polish and advanced features.
+3. **Redirectable to hosted** — Data access is behind an abstraction so the same app can later use a hosted API without rewriting feature code.
+
+## Redirectability: Data Access Layer
+
+To keep the early local solution redirectable:
+
+- **Repositories / services** — Feature code (components, stores) calls repository functions (e.g. `questRepository.getAllByGame(gameId)`), not Dexie directly.
+- **Single implementation for now** — Repositories use Dexie (IndexedDB) as the only backend. Same interfaces can later be implemented by API clients (e.g. `questRepository = createQuestApiClient(baseUrl)`).
+- **Shared types** — Entity and DTO types live in `src/types/` and are used by both local and (future) remote implementations.
+
+No backend, auth, or sync in the initial implementation; add them when moving toward commercialization.
+
+---
+
+## Phase 0: Project Bootstrap (Immediate)
+
+**Goal:** Run the app locally with a minimal shell; establish tooling and structure.
+
+### 0.1 Create Vite + React + TypeScript app
+
+- In repo root: `npm create vite@latest . -- --template react-ts` (use `.` to create in current directory; accept overwrite for existing files if prompted, or create in a temp dir and merge).
+- Install dependencies: `npm install`.
+- Verify: `npm run dev` — default Vite React page loads.
+
+### 0.2 Add tooling and styling
+
+- **Tailwind CSS**: `npm install -D tailwindcss postcss autoprefixer` then `npx tailwindcss init -p`; configure `tailwind.config.js` content for `./index.html` and `./src/**/*.{js,ts,jsx,tsx}`; add Tailwind directives to `src/index.css`.
+- **ESLint + Prettier**: Extend ESLint for TypeScript and React (e.g. `@typescript-eslint`, `eslint-plugin-react`); add Prettier and avoid conflicts (e.g. `eslint-config-prettier`).
+- **Zustand**: `npm install zustand`.
+- **Dexie**: `npm install dexie` (and `dexie-react-hooks` if you want reactive queries in React).
+
+### 0.3 Project structure
+
+- Create folders under `src/`: `components/`, `features/`, `hooks/`, `stores/`, `types/`, `utils/`, and optionally `lib/` (for shared data layer).
+- Replace the default Vite page with a minimal **app shell**: one layout with a simple header/title (e.g. "QuestLoom") and a placeholder main area. No routing yet if you prefer a single view; add a simple router (e.g. React Router) when you add multiple views.
+
+### 0.4 Definition of done (Phase 0)
+
+- [ ] `npm run dev` runs and shows a QuestLoom shell (header + main area).
+- [ ] `npm run build` succeeds.
+- [ ] Tailwind is applied; one styled element confirms it.
+- [ ] ESLint and Prettier run (e.g. via `npm run lint` / format script).
+
+**Immediate next steps (in order):**
+
+1. Scaffold Vite + React + TS in the repo (or merge from a temp `vite` run).
+2. Install Tailwind, configure it, add a minimal global layout in `App.tsx`.
+3. Install Zustand and Dexie; add `src/types/` and `src/lib/` (or `src/data/`) for future repositories.
+4. Add ESLint + Prettier and a single script to run lint.
+
+---
+
+## Phase 1: Local Data Foundation
+
+**Goal:** Persist one entity type in IndexedDB with a clear game/playthrough boundary; app reads and writes via a repository, not Dexie directly.
+
+### 1.1 Types and Dexie schema
+
+- Add **TypeScript types** for entities from `docs/data-models.md`: `Game`, `Playthrough`, `Quest`, `Insight`, `Item`, `Person`, `Place`, `Map`, `Thread`. Use a single `src/types/` module (or one file per entity) and shared types for IDs and enums.
+- Define **Dexie database**: one `Dexie` instance with tables that mirror entities. Every table that is playthrough-scoped has `playthroughId` (and usually `gameId`); game-scoped tables have `gameId` only. Index `gameId` and `playthroughId` for queries.
+- **Game vs playthrough tables** (conceptual):
+  - **Game-scoped (intrinsic):** `games`, `quests`, `insights`, `items`, `persons`, `places`, `maps`, `threads` — each row has `gameId`; survives "clear progress."
+  - **Playthrough-scoped (user):** e.g. `playthroughs`, `questProgress`, `itemState`, `notes`, or similar — each row has `playthroughId`; cleared or replaced on new playthrough. (Exact table split can follow a first cut: e.g. store "progress" and "notes" in playthrough tables; entity definitions in game tables.)
+
+### 1.2 Repository layer (redirectable)
+
+- Implement **one repository** first (e.g. `GameRepository`): `getAll()`, `getById(id)`, `create(game)`, `update(game)`, `delete(id)`. Implementation uses Dexie; interface lives in `src/lib/repositories/` or `src/data/` so a future `GameApiClient` can implement the same interface.
+- **Current game / current playthrough** — Use Zustand (e.g. `useAppStore`) to hold `currentGameId` and `currentPlaythroughId`; optional persistence of "last selected" in `localStorage` for convenience. No auth; single user on this device.
+
+### 1.3 Minimal UI for Phase 1
+
+- **Game list / create game** — Single screen: list existing games (from Dexie via repository); button "New game" that creates a game and optionally a default playthrough, then sets it as current. Data flows: UI → repository → Dexie; UI reads from repository (or from a Zustand store that the repository updates).
+
+### 1.4 Definition of done (Phase 1)
+
+- [ ] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
+- [ ] At least one repository (games) implemented and used by the UI; no direct Dexie calls in components/stores.
+- [ ] User can create a game and see it in a list; selection persists in memory (and optionally in localStorage).
+- [ ] App runs fully locally; no network required.
+
+---
+
+## Phase 2: Core Entities and CRUD
+
+**Goal:** All core entities (Quest, Insight, Item, Person, Place, Map, Thread) can be created, read, updated, and deleted in the app; data is scoped by game or playthrough as per data-models.
+
+### 2.1 Repositories and scoping
+
+- Add repositories for: **Quest**, **Insight**, **Item**, **Person**, **Place**, **Map**, **Thread**. Each method is scoped by `gameId` (and `playthroughId` where the entity is playthrough-scoped). Follow the same interface pattern as Phase 1 so swapping to an API later only replaces the implementation.
+- **Playthrough-scoped data** — Decide which fields are "progress" (e.g. quest status, item status, notes) and store them in playthrough tables or in columns keyed by `playthroughId`; game tables hold only intrinsic definitions. Implement "clear progress" / "new playthrough" by deleting or resetting playthrough-scoped rows for that playthrough.
+
+### 2.2 Feature modules and UI
+
+- **One feature per entity** (or group): e.g. `features/quests/`, `features/insights/`, `features/items/`, `features/people-places/`, `features/maps/`, `features/threads/`. Each feature uses repositories and shared components.
+- **Simple CRUD UI** — List + create/edit forms for each entity, scoped to the current game (and playthrough where relevant). Navigation: sidebar or tabs to switch between Quest list, Insight list, Items, People & Places, Maps, Threads. No loom yet; focus on data entry and list/detail views.
+
+### 2.3 Definition of done (Phase 2)
+
+- [ ] All entity types have repository APIs and Dexie persistence; game vs playthrough scoping is enforced.
+- [ ] User can create and edit quests, insights, items, people, places, maps, and threads for the current game.
+- [ ] "New playthrough" (or "clear progress") clears only playthrough data; game data remains.
+- [ ] App remains fully local and redirectable (repositories are the only data access).
+
+---
+
+## Phase 3: Threads and Loom View
+
+**Goal:** Users can create and view threads between entities; a loom (graph) view shows the network and supports "follow a thread" exploration.
+
+### 3.1 Thread creation and listing
+
+- **Thread repository** — Create/update/delete threads; list by `gameId`, by source/target entity, or by "threads from entity X." Used by both list UI and loom.
+- **UI** — Create thread (pick source entity, target entity, optional label); list threads for the game; optionally list "threads from this entity" on entity detail.
+
+### 3.2 Loom (graph) view
+
+- **React Flow** (or chosen library) — Integrate; nodes = entities (quest, insight, item, person, place), edges = threads. Load current game’s entities and threads via repositories; map to nodes/edges. Custom node component(s) to show entity type and key info.
+- **Interactions** — "Follow a thread": e.g. select a node and highlight its edges; or click an edge to focus source/target. Layout: auto-layout (e.g. React Flow layout lib or simple force-directed) so the graph is readable.
+
+### 3.3 Definition of done (Phase 3)
+
+- [ ] Threads are created and stored; thread list and per-entity thread views work.
+- [ ] Loom view renders the graph for the current game; user can explore by following threads.
+- [ ] Still local-only; repositories unchanged for future redirect.
+
+---
+
+## Phase 4: Contextual Progression and Spoiler Safety
+
+**Goal:** Surface "what you can do next" from current items/insights; hide information until the user has the right progression (spoiler-friendly).
+
+### 4.1 Contextual progression
+
+- **Logic** — Implement in `utils/` or `lib/`: given current playthrough state (items possessed, insights resolved, quest progress), compute "actionable" threads or next steps. Consume from a hook or store; display in a dedicated section or in the loom (e.g. highlight actionable edges).
+
+### 4.2 Spoiler visibility
+
+- **Rules** — Define which entities/insights/threads are visible only after certain conditions (e.g. insight resolved, item acquired). Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the loom (hide or grey out not-yet-visible nodes/edges).
+
+### 4.3 Definition of done (Phase 4)
+
+- [ ] "What I can do next" (or similar) is visible and driven by current items/insights.
+- [ ] Spoiler gating hides or softens content until progression conditions are met.
+- [ ] Data and logic remain local; repository interface unchanged.
+
+---
+
+## Phase 5: Polish and Redirectability Checklist
+
+**Goal:** App is stable for daily use; codebase is ready to plug in a hosted backend when needed.
+
+- **Maps** — Upload/store map images (e.g. as blobs or base64 in IndexedDB; or file references); markers linked to places; optional full-screen map view.
+- **Responsive and a11y** — Touch-friendly controls, basic keyboard navigation, and semantic markup so the app works on tablet/phone during play.
+- **Redirectability** — Document repository interfaces; add a thin "data source" abstraction if helpful (e.g. `createLocalDataSource()` vs future `createRemoteDataSource(baseUrl)` that return the same repository interface). No backend code required yet; just a clear boundary so adding API clients later is a contained change.
+
+---
+
+## Summary: Immediate Steps
+
+| Order | Action                                                                                                                     |
+| ----- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Create Vite + React + TypeScript app in repo (e.g. `npm create vite@latest . -- --template react-ts`).                     |
+| 2     | Install and configure Tailwind CSS; replace default page with minimal QuestLoom shell (header + main).                     |
+| 3     | Install Zustand, Dexie (and optionally dexie-react-hooks).                                                                 |
+| 4     | Add `src/types/`, `src/lib/` (or `src/data/`); add entity types and one Dexie schema + Game repository.                    |
+| 5     | Add ESLint + Prettier; ensure `npm run dev` and `npm run build` succeed.                                                   |
+| 6     | Implement "game list" + "create game" using Game repository and Zustand for current game; verify persistence in IndexedDB. |
+
+After that, proceed to Phase 2 (all entity repositories and CRUD UI), then Phase 3 (threads + loom), then Phase 4 (progression + spoilers). Keep all data access behind repositories so that when you add a hosted backend, you implement the same interfaces against the API and swap the data source.
