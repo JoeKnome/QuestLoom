@@ -37,26 +37,58 @@ Design and specification docs live in `docs/`:
 | [Architecture](docs/architecture.md)               | Tech stack and project structure                          |
 | [Implementation Plan](docs/implementation-plan.md) | Phased plan for local-first build and redirectability     |
 
-## Project Structure (Proposed)
+## Project Structure
 
 ```text
 QuestLoom/
 ├── docs/                 # Design and spec
+├── public/               # Static assets
 ├── src/
 │   ├── components/       # UI components
 │   ├── features/         # Feature modules (quests, insights, items, etc.)
 │   ├── hooks/            # Shared hooks
-│   ├── stores/           # State management
+│   ├── lib/              # Data layer (repositories, Dexie)
+│   ├── stores/           # State management (Zustand)
 │   ├── types/            # TypeScript types / data models
 │   ├── utils/            # Utilities
-│   └── App.tsx           # Root component
-├── public/
-└── [config files]
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css
+├── index.html
+├── package.json
+├── vite.config.ts
+├── tailwind.config.js
+├── tsconfig.json
+└── eslint.config.js
 ```
 
 ## Getting Started
 
-_Setup and run instructions will be added once the app is implemented. Tech stack: TypeScript, web-first, responsive; local-first persistence preferred for v1._
+**Prerequisites:** Node.js 18+ and npm.
+
+1. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+2. **Run the app**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open the URL shown. You should see the QuestLoom shell (header + main area).
+
+3. **Validate build and lint**
+
+   ```bash
+   npm run build
+   npm run lint
+   npm run format
+   ```
+
+Phase 0 (bootstrap) is complete: Vite + React + TypeScript, Tailwind, Zustand, Dexie, ESLint, Prettier, and folder structure. Next: [Phase 1](docs/implementation-plan.md#phase-1-local-data-foundation) (local data foundation).
 
 ## License
 

@@ -18,9 +18,11 @@ No backend, auth, or sync in the initial implementation; add them when moving to
 
 ---
 
-## Phase 0: Project Bootstrap (Immediate)
+## Phase 0: Project Bootstrap (Immediate) ✅ Complete
 
 **Goal:** Run the app locally with a minimal shell; establish tooling and structure.
+
+**Status:** Validation steps succeeded; node/npm are available for subsequent phases.
 
 ### 0.1 Create Vite + React + TypeScript app
 
@@ -42,10 +44,20 @@ No backend, auth, or sync in the initial implementation; add them when moving to
 
 ### 0.4 Definition of done (Phase 0)
 
-- [ ] `npm run dev` runs and shows a QuestLoom shell (header + main area).
-- [ ] `npm run build` succeeds.
-- [ ] Tailwind is applied; one styled element confirms it.
-- [ ] ESLint and Prettier run (e.g. via `npm run lint` / format script).
+- [x] `npm run dev` runs and shows a QuestLoom shell (header + main area).
+- [x] `npm run build` succeeds.
+- [x] Tailwind is applied; one styled element confirms it.
+- [x] ESLint and Prettier run (e.g. via `npm run lint` / format script).
+
+**Validate Phase 0** (run in project root when node/npm are available):
+
+```bash
+npm install
+npm run dev    # Open http://localhost:5173 — should see QuestLoom header and main area
+npm run build  # Should complete without errors
+npm run lint   # Should pass
+npm run format # Optional: format code
+```
 
 **Immediate next steps (in order):**
 
