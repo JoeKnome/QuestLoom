@@ -46,6 +46,16 @@ A companion app for mystery and adventure games that lets users track quests, in
 - AI-assisted deduction or hints
 - Mobile native apps (web-first; responsive design)
 
+## Data Separation (Game vs Playthrough)
+
+**Critical for architecture.** Data falls into two tiers; persistence and storage must respect this.
+
+- **Game data (intrinsic)** — Data that defines the game world: the same across users and playthroughs (e.g. quest definitions, places, people, map structure, threads as world connections, insight/item definitions). Persisted with the game. When a user clears progress to start a new playthrough, this data **remains**; it is not tied to a single playthrough.
+
+- **Playthrough data (user)** — Data that tracks a specific user’s progress and input for one playthrough: quest progress, inventory state, personal notes, and running investigations. Constrained to that playthrough and that user. **Never** persisted across playthroughs; when the user starts a new playthrough, this data is cleared or replaced. It must not leak between playthroughs.
+
+Architectural decisions (storage, APIs, schemas) must separate game-level and playthrough-level data and ensure playthrough data is never shared or retained across playthroughs.
+
 ## Core Entities
 
 | Entity  | Description                                                                                       |

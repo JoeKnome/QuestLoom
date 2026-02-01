@@ -2,6 +2,20 @@
 
 Data models must support the product differentiators: **thread-oriented** (threads and targets), **contextual progression** (what the user can follow based on current items/insights), **spoiler-friendly** (visibility gated by progression), and **user-driven logging** (user-owned content).
 
+## Data Separation: Game vs Playthrough
+
+**Architecture must separate two tiers of data.** Persistence and APIs must reflect this; playthrough data must never be persisted or shared across playthroughs.
+
+| Tier                        | Description                                                                                                                                                                                           | Persistence                                | On "Clear progress / New playthrough"                         |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------- |
+| **Game data (intrinsic)**   | Data that defines the game world: same across users and playthroughs. Quest definitions, places, people, map structure, threads (world connections), insight/item definitions — the authored "world." | Persisted with the game.                   | **Remains.** Not tied to a single playthrough.                |
+| **Playthrough data (user)** | Data that tracks one user’s progress and input for one playthrough: quest progress (status, completed steps), inventory state (possessed, used), personal notes, running investigations.              | Scoped to a specific playthrough and user. | **Cleared or replaced.** Never persisted across playthroughs. |
+
+- **Game data** survives when a user clears progress to start a new playthrough; it is the shared definition of the game.
+- **Playthrough data** is constrained to that playthrough only; it must never leak between playthroughs or be retained when the user starts over.
+
+Entity and schema design must distinguish which fields (or which entities) belong to game level vs playthrough level so storage and APIs can enforce this separation.
+
 ## Entity Overview
 
 ```text
@@ -116,9 +130,12 @@ Threads link entities. When viewed as a network or graph, this view is called th
 - **Item ↔ Place** — Items may be found at places
 - **Map ↔ Place** — Places can have map positions (markers or regions)
 
-## Session / Game Container (Optional)
+## Session / Game Container
 
-For multiple game support:
+For multiple games and playthroughs:
+
+- **Game** — The intrinsic game world (definitions, places, people, map, threads). Persisted with the game; survives "clear progress."
+- **Playthrough** — One user’s run of a game. Holds playthrough-only data (progress, inventory state, notes, investigations). Scoped to that playthrough; cleared or replaced when the user starts a new playthrough. Never persisted across playthroughs.
 
 | Field     | Type     | Description           |
 | --------- | -------- | --------------------- |
@@ -127,4 +144,4 @@ For multiple game support:
 | createdAt | datetime | Creation timestamp    |
 | updatedAt | datetime | Last update timestamp |
 
-All entities can optionally reference a `sessionId` to group them.
+Entities must be scoped to either the game (intrinsic) or a playthrough (user). Design schemas and references (e.g. `gameId`, `playthroughId`) so storage can enforce the separation.

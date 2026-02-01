@@ -60,6 +60,7 @@
 
 - Save all data locally (or to backend)
 - Resume previous sessions
+- **Game vs playthrough:** Game (intrinsic) data is persisted with the game and remains when the user clears progress. Playthrough data (progress, inventory, notes, investigations) is scoped to that playthrough only and is cleared or replaced when the user starts a new playthrough; it must never persist across playthroughs.
 
 ---
 

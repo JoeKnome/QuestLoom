@@ -39,6 +39,15 @@ QuestLoom/
 | Auth             | Pending | Not needed for v1, mandatory for target use |
 | Hosting          | Pending | Static deploy possible                      |
 
+## Data Separation (Game vs Playthrough)
+
+Persistence and storage **must** separate two tiers:
+
+- **Game data (intrinsic)** — Same across users and playthroughs; persisted with the game. Survives when a user clears progress to start a new playthrough. Store and version with the game; do not key by playthrough.
+- **Playthrough data (user)** — Quest progress, inventory state, personal notes, running investigations. Scoped to a specific playthrough and user. **Never** persisted across playthroughs; cleared or replaced on "start new playthrough." Storage and APIs must not allow playthrough data to leak between playthroughs.
+
+Schema design, storage keys, and any APIs must distinguish game-level vs playthrough-level data and enforce that playthrough data is constrained to a single playthrough.
+
 ## Constraints
 
 - Web-first; must work in modern browsers
