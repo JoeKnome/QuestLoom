@@ -18,7 +18,7 @@ No backend, auth, or sync in the initial implementation; add them when moving to
 
 ---
 
-## Phase 0: Project Bootstrap (Immediate) ✅ Complete
+## Phase 0: Project Bootstrap ✅ Complete
 
 **Goal:** Run the app locally with a minimal shell; establish tooling and structure.
 
@@ -72,7 +72,7 @@ npm run format # Optional: format code
 
 **Goal:** Persist one entity type in IndexedDB with a clear game/playthrough boundary; app reads and writes via a repository, not Dexie directly.
 
-### 1.1 Types and Dexie schema
+### 1.1 Types and Dexie schema ✅ Complete
 
 - Add **TypeScript types** for entities from `docs/data-models.md`: `Game`, `Playthrough`, `Quest`, `Insight`, `Item`, `Person`, `Place`, `Map`, `Thread`. Use a one file per entity and shared types for IDs and enums.
 - Define **Dexie database**: one `Dexie` instance with tables that mirror entities. Every table that is playthrough-scoped has `playthroughId` (and usually `gameId`); game-scoped tables have `gameId` only. Index `gameId` and `playthroughId` for queries.
