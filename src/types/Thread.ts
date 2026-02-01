@@ -1,5 +1,5 @@
 import type { GameId, PlaythroughId, ThreadId } from './ids'
-import type { EntityType } from './enums'
+import type { EntityType } from './EntityType'
 
 /**
  * Thread: a link between two entities (game-scoped or playthrough-scoped).

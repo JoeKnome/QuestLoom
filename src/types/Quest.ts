@@ -1,5 +1,5 @@
 import type { GameId, QuestId } from './ids'
-import type { QuestObjective } from './enums'
+import type { QuestObjective } from './QuestObjective'
 
 /**
  * Quest definition (game-scoped).

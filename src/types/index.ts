@@ -4,7 +4,12 @@
  */
 
 export * from './ids'
-export * from './enums'
+export * from './QuestStatus'
+export * from './InsightStatus'
+export * from './ItemStatus'
+export * from './EntityType'
+export * from './DiscoveryEntityType'
+export type { QuestObjective } from './QuestObjective'
 export type { Game } from './Game'
 export type { Playthrough } from './Playthrough'
 export type { Quest } from './Quest'

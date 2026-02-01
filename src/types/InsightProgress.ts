@@ -1,5 +1,5 @@
 import type { InsightId, PlaythroughId } from './ids'
-import type { InsightStatus } from './enums'
+import type { InsightStatus } from './InsightStatus'
 
 /**
  * Insight progress (playthrough-scoped).

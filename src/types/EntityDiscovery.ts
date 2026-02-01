@@ -1,5 +1,5 @@
 import type { PlaythroughId } from './ids'
-import type { DiscoveryEntityType } from './enums'
+import type { DiscoveryEntityType } from './DiscoveryEntityType'
 
 /**
  * Entity discovery state (playthrough-scoped).

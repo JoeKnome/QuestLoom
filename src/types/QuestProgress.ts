@@ -1,5 +1,5 @@
 import type { PlaythroughId, QuestId } from './ids'
-import type { QuestStatus } from './enums'
+import type { QuestStatus } from './QuestStatus'
 
 /**
  * Quest progress (playthrough-scoped).

@@ -1,5 +1,5 @@
 import type { ItemId, PlaythroughId } from './ids'
-import type { ItemStatus } from './enums'
+import type { ItemStatus } from './ItemStatus'
 
 /**
  * Item state (playthrough-scoped).
