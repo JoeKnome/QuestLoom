@@ -1,9 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { purgeDatabase, purgeLocalStorageSelection } from '../../lib/debug'
 import { gameRepository, playthroughRepository } from '../../lib/repositories'
 import { useAppStore } from '../../stores/appStore'
 import type { Game } from '../../types/Game'
 import { CreateGameForm } from './CreateGameForm'
+
+type ConfirmKind = 'delete-game' | 'purge-db' | 'purge-storage'
+interface ConfirmState {
+  kind: ConfirmKind
+  game?: Game
+}
 
 /**
  * Single screen: list of games and "New game" form.
@@ -13,6 +20,7 @@ import { CreateGameForm } from './CreateGameForm'
 export function GameListScreen(): JSX.Element {
   const [games, setGames] = useState<Game[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const currentGameId = useAppStore((s) => s.currentGameId)
   const setCurrentGameAndPlaythrough = useAppStore(
     (s) => s.setCurrentGameAndPlaythrough
@@ -51,79 +59,105 @@ export function GameListScreen(): JSX.Element {
   )
 
   /**
-   * Deletes a game and all its playthroughs.
-   * Prompts for confirmation before deleting.
-   * If the game is the current game, sets the current game and playthrough to null.
-   * Reloads the games list.
+   * Opens the confirmation dialog to delete a game.
    *
    * @param e - The mouse event
    * @param game - The game to delete
    */
-  const handleDeleteGame = useCallback(
-    async (e: React.MouseEvent, game: Game) => {
+  const handleDeleteGameClick = useCallback(
+    (e: React.MouseEvent, game: Game) => {
       e.stopPropagation()
-      if (
-        !window.confirm(
-          'Delete this game and all its playthroughs? This cannot be undone.'
-        )
-      ) {
-        return
-      }
-      await gameRepository.delete(game.id)
-      if (game.id === currentGameId) {
-        setCurrentGameAndPlaythrough(null, null)
-      }
-      loadGames()
+      setConfirm({ kind: 'delete-game', game })
     },
-    [currentGameId, setCurrentGameAndPlaythrough, loadGames]
+    []
   )
 
   /**
-   * Purges the local database.
-   * Prompts for confirmation before purging.
-   * Reloads the games list.
+   * Opens the confirmation dialog to purge the database.
    *
    * @param e - The mouse event
    */
-  const handlePurgeDatabase = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation()
-      if (
-        !window.confirm(
-          'Clear all data in the local database? This cannot be undone.'
-        )
-      ) {
-        return
-      }
-      await purgeDatabase()
-      setCurrentGameAndPlaythrough(null, null)
-      loadGames()
-    },
-    [setCurrentGameAndPlaythrough, loadGames]
-  )
-
-  /**
-   * Purges the local storage values for the current game and playthrough.
-   * Prompts for confirmation before purging.
-   * Reloads the games list.
-   *
-   * @param e - The mouse event
-   */
-  const handlePurgeLocalStorage = useCallback(async (e: React.MouseEvent) => {
+  const handlePurgeDatabaseClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    if (
-      !window.confirm(
-        'Clear current game/playthrough selection from localStorage?'
-      )
-    ) {
-      return
+    setConfirm({ kind: 'purge-db' })
+  }, [])
+
+  /**
+   * Opens the confirmation dialog to purge localStorage selection.
+   *
+   * @param e - The mouse event
+   */
+  const handlePurgeLocalStorageClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    setConfirm({ kind: 'purge-storage' })
+  }, [])
+
+  /**
+   * Runs the confirmed destructive action and closes the dialog.
+   */
+  const handleConfirmationDialogConfirm = useCallback(async () => {
+    if (!confirm) return
+    try {
+      if (confirm.kind === 'delete-game' && confirm.game) {
+        await gameRepository.delete(confirm.game.id)
+        if (confirm.game.id === currentGameId) {
+          setCurrentGameAndPlaythrough(null, null)
+        }
+        loadGames()
+      } else if (confirm.kind === 'purge-db') {
+        await purgeDatabase()
+        setCurrentGameAndPlaythrough(null, null)
+        loadGames()
+      } else if (confirm.kind === 'purge-storage') {
+        purgeLocalStorageSelection()
+        loadGames()
+      }
+    } finally {
+      setConfirm(null)
     }
-    purgeLocalStorageSelection()
-    loadGames()
-  }, [loadGames])
+  }, [confirm, currentGameId, setCurrentGameAndPlaythrough, loadGames])
+
+  const handleConfirmationDialogCancel = useCallback(() => {
+    setConfirm(null)
+  }, [])
+
+  const confirmConfig =
+    confirm?.kind === 'delete-game'
+      ? {
+          message:
+            'Delete this game and all its playthroughs? This cannot be undone.',
+          confirmLabel: 'Delete',
+          variant: 'danger' as const,
+        }
+      : confirm?.kind === 'purge-db'
+        ? {
+            message:
+              'Clear all data in the local database? This cannot be undone.',
+            confirmLabel: 'Purge database',
+            variant: 'danger' as const,
+          }
+        : confirm?.kind === 'purge-storage'
+          ? {
+              message:
+                'Clear current game/playthrough selection from localStorage?',
+              confirmLabel: 'Purge localStorage',
+              variant: 'default' as const,
+            }
+          : null
 
   return (
     <div className="space-y-6">
+      {confirm && confirmConfig ? (
+        <ConfirmDialog
+          isOpen
+          message={confirmConfig.message}
+          confirmLabel={confirmConfig.confirmLabel}
+          cancelLabel="Cancel"
+          onConfirm={handleConfirmationDialogConfirm}
+          onCancel={handleConfirmationDialogCancel}
+          variant={confirmConfig.variant}
+        />
+      ) : null}
       <section>
         <h2 className="mb-2 text-lg font-medium text-slate-800">Games</h2>
         <CreateGameForm onCreated={loadGames} />
@@ -160,7 +194,7 @@ export function GameListScreen(): JSX.Element {
                   </button>
                   <button
                     type="button"
-                    onClick={(e) => handleDeleteGame(e, game)}
+                    onClick={(e) => handleDeleteGameClick(e, game)}
                     className="rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700"
                     aria-label={`Delete game ${game.name}`}
                   >
@@ -178,14 +212,14 @@ export function GameListScreen(): JSX.Element {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={handlePurgeDatabase}
+            onClick={handlePurgeDatabaseClick}
             className="rounded border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200"
           >
             Purge database
           </button>
           <button
             type="button"
-            onClick={handlePurgeLocalStorage}
+            onClick={handlePurgeLocalStorageClick}
             className="rounded border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200"
           >
             Purge localStorage
