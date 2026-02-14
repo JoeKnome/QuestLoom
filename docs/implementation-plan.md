@@ -80,10 +80,20 @@ npm run format # Optional: format code
   - **Game-scoped (intrinsic):** `games`, `quests`, `insights`, `items`, `persons`, `places`, `maps`, `threads` — each row has `gameId`; survives "clear progress."
   - **Playthrough-scoped (user):** e.g. `playthroughs`, `questProgress`, `itemState`, `notes`, or similar — each row has `playthroughId`; cleared or replaced on new playthrough. (Exact table split can follow a first cut: e.g. store "progress" and "notes" in playthrough tables; entity definitions in game tables.)
 
-### 1.2 Repository layer (redirectable)
+### 1.2 Repository layer (redirectable) ✅ Complete
 
 - Implement **one repository** first (e.g. `GameRepository`): `getAll()`, `getById(id)`, `create(game)`, `update(game)`, `delete(id)`. Implementation uses Dexie; interface lives in `src/lib/repositories/` or `src/data/` so a future `GameApiClient` can implement the same interface.
 - **Current game / current playthrough** — Use Zustand (e.g. `useAppStore`) to hold `currentGameId` and `currentPlaythroughId`; optional persistence of "last selected" in `localStorage` for convenience. No auth; single user on this device.
+
+**Definition of done (Phase 1.2):**
+
+- [x] `IGameRepository` is defined and implemented by a Dexie-based implementation; `getAll`, `getById`, `create`, `update`, `delete` work against `db.games`.
+- [x] Singleton `gameRepository` is exported from `src/lib/repositories` and is the only way feature code should access game data.
+- [x] Zustand app store (`useAppStore`) holds `currentGameId` and `currentPlaythroughId` with setters; last selected is persisted in `localStorage` (keys: `questloom-current-game-id`, `questloom-current-playthrough-id`).
+- [x] Reusable ID util (`src/utils/generateId.ts`) exists and is used by the game repository for `create`.
+- [x] No direct Dexie usage outside `src/lib/`; `npm run lint` and `npm run build` pass.
+
+**Remaining for Phase 1:** Proceed to **1.3 Minimal UI** (game list / create game screen using `gameRepository` and `useAppStore`). Then validate **1.4** (repository used by UI, user can create and see games, selection persists).
 
 ### 1.3 Minimal UI for Phase 1
 
@@ -91,10 +101,10 @@ npm run format # Optional: format code
 
 ### 1.4 Definition of done (Phase 1)
 
-- [ ] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
-- [ ] At least one repository (games) implemented and used by the UI; no direct Dexie calls in components/stores.
-- [ ] User can create a game and see it in a list; selection persists in memory (and optionally in localStorage).
-- [ ] App runs fully locally; no network required.
+- [x] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
+- [ ] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. *(Repository and store exist; UI in 1.3 will consume them.)*
+- [ ] User can create a game and see it in a list; selection persists in memory (and optionally in localStorage). *(Requires 1.3 Minimal UI.)*
+- [x] App runs fully locally; no network required.
 
 ---
 
