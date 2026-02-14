@@ -105,11 +105,11 @@ npm run format # Optional: format code
 - [x] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
 - [x] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. *(Repository and store exist; UI in 1.3 consumes them.)*
 - [x] User can create a game and see it in a list; selection persists in memory and in localStorage. *(1.3 Minimal UI complete.)*
-- [ ] User can delete a game. App prompts for confirmation before delete, then deletes the game and all associated playthroughs.
-- [ ] Debug utility exists to purge the local database.
-- [ ] Debug utility exists to purge this app's local storage values.
+- [x] User can delete a game. App prompts for confirmation before delete, then deletes the game and all associated playthroughs.
+- [x] Debug utility exists to purge the local database.
+- [x] Debug utility exists to purge this app's local storage values.
 - [x] App runs fully locally; no network required.
-- [ ] All files in docs are updated with the changes made in this phase.
+- [x] All files in docs are updated with the changes made in this phase.
 
 ---
 

@@ -27,4 +27,11 @@ export interface IPlaythroughRepository {
    * @returns Playthroughs for that game
    */
   getByGameId(gameId: GameId): Promise<Playthrough[]>
+
+  /**
+   * Deletes all playthroughs for a game. Used when deleting a game (cascade).
+   *
+   * @param gameId - Game ID whose playthroughs to delete
+   */
+  deleteByGameId(gameId: GameId): Promise<void>
 }

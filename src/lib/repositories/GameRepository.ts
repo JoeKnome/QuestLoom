@@ -9,6 +9,7 @@ import { generateId } from '../../utils/generateId'
 import { db } from '../db'
 import type { CreateGameInput } from './CreateGameInput'
 import type { IGameRepository } from './IGameRepository'
+import { playthroughRepository } from './PlaythroughRepository'
 
 /**
  * Dexie-backed implementation of IGameRepository.
@@ -44,6 +45,7 @@ class GameRepositoryImpl implements IGameRepository {
   }
 
   async delete(id: GameId): Promise<void> {
+    await playthroughRepository.deleteByGameId(id)
     await db.games.delete(id)
   }
 }

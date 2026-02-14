@@ -7,14 +7,14 @@ import { create } from 'zustand'
 import type { GameId, PlaythroughId } from '../types/ids'
 
 /**
- * Storage key for current game ID.
+ * Storage key for current game ID. Exported for debug utilities (e.g. purge localStorage).
  */
-const STORAGE_KEY_GAME = 'questloom-current-game-id'
+export const STORAGE_KEY_GAME = 'questloom-current-game-id'
 
 /**
- * Storage key for current playthrough ID.
+ * Storage key for current playthrough ID. Exported for debug utilities (e.g. purge localStorage).
  */
-const STORAGE_KEY_PLAYTHROUGH = 'questloom-current-playthrough-id'
+export const STORAGE_KEY_PLAYTHROUGH = 'questloom-current-playthrough-id'
 
 /**
  * Gets a stored ID from localStorage by key.

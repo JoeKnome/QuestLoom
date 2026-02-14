@@ -31,6 +31,10 @@ class PlaythroughRepositoryImpl implements IPlaythroughRepository {
   async getByGameId(gameId: GameId): Promise<Playthrough[]> {
     return db.playthroughs.where('gameId').equals(gameId).toArray()
   }
+
+  async deleteByGameId(gameId: GameId): Promise<void> {
+    await db.playthroughs.where('gameId').equals(gameId).delete()
+  }
 }
 
 /** Single playthrough repository instance. Use this instead of Dexie directly. */

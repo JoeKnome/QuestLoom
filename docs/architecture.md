@@ -26,6 +26,7 @@ Choices are aimed at: commercialization readiness, modern standards, strong supp
 
 - **Local-first (v1)**: **Dexie.js** (IndexedDB wrapper) — Simple API, TypeScript-friendly, indexes for querying threads and entities by `gameId` / `playthroughId`. Schema and store design must explicitly separate game tables (intrinsic) from playthrough tables (user); Dexie makes this straightforward.
 - **Redirectable to hosted**: Feature code must not call Dexie directly. Use a **repository layer** (e.g. `src/lib/repositories/` or `src/data/`): components and stores call repository methods (e.g. `questRepository.getAllByGame(gameId)`). The current implementation uses Dexie; a future implementation can use an API client with the same interface. See [Implementation Plan](implementation-plan.md#redirectability-data-access-layer).
+- **Debug helpers**: `src/lib/debug.ts` provides development-only utilities to purge the local database (clear all tables) and purge app localStorage (current game/playthrough selection).
 - **Backend (commercialization)**: Add when needed for auth, sync, or multi-device.
   - **Runtime**: **Node.js** with **TypeScript**; same language as frontend.
   - **API**: **Hono** or **Fastify** — Lightweight, fast, great TypeScript support; suitable for a small team or solo dev (avoid enterprise-oriented frameworks).
