@@ -100,12 +100,16 @@ npm run format # Optional: format code
 - **Game list / create game** — Single screen: list existing games (from Dexie via repository); button "New game" that creates a game and optionally a default playthrough, then sets it as current. Data flows: UI → repository → Dexie; UI reads from repository (or from a Zustand store that the repository updates).
 - Implemented: `GameListScreen`, `CreateGameForm`, minimal `PlaythroughRepository`; selecting a game sets it (and first playthrough) as current; selection persists in localStorage.
 
-### 1.4 Definition of done (Phase 1)
+### 1.4 Wrap up
 
 - [x] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
 - [x] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. *(Repository and store exist; UI in 1.3 consumes them.)*
-- [x] User can create a game and see it in a list; selection persists in memory (and optionally in localStorage). *(1.3 Minimal UI complete.)*
+- [x] User can create a game and see it in a list; selection persists in memory and in localStorage. *(1.3 Minimal UI complete.)*
+- [ ] User can delete a game. App prompts for confirmation before delete, then deletes the game and all associated playthroughs.
+- [ ] Debug utility exists to purge the local database.
+- [ ] Debug utility exists to purge this app's local storage values.
 - [x] App runs fully locally; no network required.
+- [ ] All files in docs are updated with the changes made in this phase.
 
 ---
 
