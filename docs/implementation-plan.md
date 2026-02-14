@@ -95,15 +95,16 @@ npm run format # Optional: format code
 
 **Remaining for Phase 1:** Proceed to **1.3 Minimal UI** (game list / create game screen using `gameRepository` and `useAppStore`). Then validate **1.4** (repository used by UI, user can create and see games, selection persists).
 
-### 1.3 Minimal UI for Phase 1
+### 1.3 Minimal UI for Phase 1 ✅ Complete
 
 - **Game list / create game** — Single screen: list existing games (from Dexie via repository); button "New game" that creates a game and optionally a default playthrough, then sets it as current. Data flows: UI → repository → Dexie; UI reads from repository (or from a Zustand store that the repository updates).
+- Implemented: `GameListScreen`, `CreateGameForm`, minimal `PlaythroughRepository`; selecting a game sets it (and first playthrough) as current; selection persists in localStorage.
 
 ### 1.4 Definition of done (Phase 1)
 
 - [x] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
-- [ ] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. *(Repository and store exist; UI in 1.3 will consume them.)*
-- [ ] User can create a game and see it in a list; selection persists in memory (and optionally in localStorage). *(Requires 1.3 Minimal UI.)*
+- [x] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. *(Repository and store exist; UI in 1.3 consumes them.)*
+- [x] User can create a game and see it in a list; selection persists in memory (and optionally in localStorage). *(1.3 Minimal UI complete.)*
 - [x] App runs fully locally; no network required.
 
 ---
