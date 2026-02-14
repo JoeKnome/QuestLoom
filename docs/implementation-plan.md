@@ -68,7 +68,7 @@ npm run format # Optional: format code
 
 ---
 
-## Phase 1: Local Data Foundation
+## Phase 1: Local Data Foundation ✅ Complete
 
 **Goal:** Persist one entity type in IndexedDB with a clear game/playthrough boundary; app reads and writes via a repository, not Dexie directly.
 
@@ -117,22 +117,42 @@ npm run format # Optional: format code
 
 **Goal:** All core entities (Quest, Insight, Item, Person, Place, Map, Thread) can be created, read, updated, and deleted in the app; data is scoped by game or playthrough as per data-models.
 
-### 2.1 Repositories and scoping
+### 2.1 Game View
 
-- Add repositories for: **Quest**, **Insight**, **Item**, **Person**, **Place**, **Map**, **Thread**. Each method is scoped by `gameId` (and `playthroughId` where the entity is playthrough-scoped). Follow the same interface pattern as Phase 1 so swapping to an API later only replaces the implementation.
-- **Playthrough-scoped data** — Decide which fields are "progress" (e.g. quest status, item status, notes) and store them in playthrough tables or in columns keyed by `playthroughId`; game tables hold only intrinsic definitions. Implement "clear progress" / "new playthrough" by deleting or resetting playthrough-scoped rows for that playthrough.
+- [ ] When a game is set to current, rather than remaining on the game list with a "Current" badge shown, instead swap to the view for that game. In 2.1 it will only show the name of the current game and the current playthrough.
+- [ ] Clicking the app logo will navigate back to the game list, unsetting the current game and playthrough.
+- [ ] Update docs as needed to reflect this functionality.
 
-### 2.2 Feature modules and UI
+### 2.2 Playthrough Management
 
-- **One feature per entity** (or group): e.g. `features/quests/`, `features/insights/`, `features/items/`, `features/people-places/`, `features/maps/`, `features/threads/`. Each feature uses repositories and shared components.
-- **Simple CRUD UI** — List + create/edit forms for each entity, scoped to the current game (and playthrough where relevant). Navigation: sidebar or tabs to switch between Quest list, Insight list, Items, People & Places, Maps, Threads. No loom yet; focus on data entry and list/detail views.
+- [ ] While in the game view, the user is able to open a panel to manage their playthroughs.
+- [ ] The user can select a different available playthrough to swap to it as current.
+- [ ] The user can change the name of each playthrough.
+- [ ] The user can create a new playthrough, giving it a name and automatically swapping to it.
+- [ ] The user can delete a playthrough, with a confirmation dialog for safety. If this was the current playthrough, the user will automatically be swapped to the next available playthrough. If this was the last playthrough, a new playthrough will be automatically created and set as current.
+- [ ] Update docs as needed to reflect this functionality.
 
-### 2.3 Definition of done (Phase 2)
+### 2.3 Repositories and Scoping
+
+- [ ] Add repositories for: **Quest**, **Insight**, **Item**, **Person**, **Place**, **Map**, **Thread**. Each method is scoped by `gameId` (and `playthroughId` where the entity is playthrough-scoped). Follow the same interface pattern as Phase 1 so swapping to an API later only replaces the implementation.
+- [ ] **Playthrough-scoped data** — Decide which fields are "progress" (e.g. quest status, item status, notes) and store them in playthrough tables or in columns keyed by `playthroughId`; game tables hold only intrinsic definitions.
+- [ ] Update docs as needed to reflect this functionality.
+
+### 2.4 Feature Modules and UI
+
+- [ ] **One feature per entity** (or group): e.g. `features/quests/`, `features/insights/`, `features/items/`, `features/people-places/`, `features/maps/`, `features/threads/`. Each feature uses repositories and shared components.
+- [ ] **Simple CRUD UI** — Within the game view, list + create/edit/delete forms for each entity, scoped to the current game (and playthrough where relevant). Navigation: sidebar to switch between Quest list, Insight list, Items, People, Places, Maps, Threads. No loom yet; focus on data entry and list/detail views.
+- [ ] Update docs as needed to reflect this functionality.
+
+### 2.4 Wrap up
 
 - [ ] All entity types have repository APIs and Dexie persistence; game vs playthrough scoping is enforced.
-- [ ] User can create and edit quests, insights, items, people, places, maps, and threads for the current game.
-- [ ] "New playthrough" (or "clear progress") clears only playthrough data; game data remains.
+- [ ] User can select, create, edit, and delete playthroughs.
+- [ ] User can view,create, edit, and delete quests, insights, items, people, places, maps, and threads for the current game.
+- [ ] "New playthrough" clears only playthrough data; game data remains.
 - [ ] App remains fully local and redirectable (repositories are the only data access).
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
 
 ---
 
