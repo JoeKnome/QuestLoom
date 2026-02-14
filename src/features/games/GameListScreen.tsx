@@ -14,8 +14,8 @@ interface ConfirmState {
 
 /**
  * Single screen: list of games and "New game" form.
- * Loads games from the repository on mount and after create; shows current game badge.
- * Clicking a game sets it (and its first playthrough) as current.
+ * Loads games from the repository on mount and after create.
+ * Clicking a game sets it (and its first playthrough) as current and navigates to the game view.
  */
 export function GameListScreen(): JSX.Element {
   const [games, setGames] = useState<Game[]>([])
@@ -172,37 +172,25 @@ export function GameListScreen(): JSX.Element {
           </p>
         ) : (
           <ul className="space-y-2" role="list">
-            {games.map((game) => {
-              const isCurrent = game.id === currentGameId
-              return (
-                <li key={game.id} className="flex items-stretch gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectGame(game.id)}
-                    className={`flex flex-1 items-center justify-between rounded border px-4 py-3 text-left transition-colors ${
-                      isCurrent
-                        ? 'border-slate-400 bg-slate-100 font-medium text-slate-900'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>{game.name}</span>
-                    {isCurrent && (
-                      <span className="rounded bg-slate-700 px-2 py-0.5 text-xs font-medium text-white">
-                        Current
-                      </span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleDeleteGameClick(e, game)}
-                    className="rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-                    aria-label={`Delete game ${game.name}`}
-                  >
-                    Delete
-                  </button>
-                </li>
-              )
-            })}
+            {games.map((game) => (
+              <li key={game.id} className="flex items-stretch gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSelectGame(game.id)}
+                  className="flex flex-1 items-center justify-between rounded border border-slate-200 bg-white px-4 py-3 text-left text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+                >
+                  <span>{game.name}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleDeleteGameClick(e, game)}
+                  className="rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                  aria-label={`Delete game ${game.name}`}
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
           </ul>
         )}
       </section>

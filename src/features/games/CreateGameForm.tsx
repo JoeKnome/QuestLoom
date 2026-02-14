@@ -9,7 +9,9 @@ import type { CreateGameFormProps } from './CreateGameForm.types'
  *
  * @param props.onCreated - Callback invoked after a game (and playthrough) are created and set as current
  */
-export function CreateGameForm({ onCreated }: CreateGameFormProps): JSX.Element {
+export function CreateGameForm({
+  onCreated,
+}: CreateGameFormProps): JSX.Element {
   const [name, setName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)

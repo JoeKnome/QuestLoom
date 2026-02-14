@@ -117,11 +117,13 @@ npm run format # Optional: format code
 
 **Goal:** All core entities (Quest, Insight, Item, Person, Place, Map, Thread) can be created, read, updated, and deleted in the app; data is scoped by game or playthrough as per data-models.
 
-### 2.1 Game View
+### 2.1 Game View ✅ Complete
 
-- [ ] When a game is set to current, rather than remaining on the game list with a "Current" badge shown, instead swap to the view for that game. In 2.1 it will only show the name of the current game and the current playthrough.
-- [ ] Clicking the app logo will navigate back to the game list, unsetting the current game and playthrough.
-- [ ] Update docs as needed to reflect this functionality.
+- [x] When a game is set to current, rather than remaining on the game list with a "Current" badge shown, instead swap to the view for that game. In 2.1 it will only show the name of the current game and the current playthrough.
+- [x] Clicking the app logo will navigate back to the game list, unsetting the current game and playthrough.
+- [x] Update docs as needed to reflect this functionality.
+
+View switching is state-based: when `currentGameId` is set, the app renders the game view (game name + playthrough name); when null, it renders the game list. No URL routing yet.
 
 ### 2.2 Playthrough Management
 

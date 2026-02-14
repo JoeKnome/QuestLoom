@@ -14,14 +14,14 @@ import type { CreateGameInput } from './CreateGameInput'
 export interface IGameRepository {
   /**
    * Returns all games.
-   * 
+   *
    * @returns All games in storage
    */
   getAll(): Promise<Game[]>
 
   /**
    * Returns a game by ID.
-   * 
+   *
    * @param id - Game ID
    * @returns The game or undefined
    */
@@ -29,7 +29,7 @@ export interface IGameRepository {
 
   /**
    * Creates a game with generated ID and timestamps.
-   * 
+   *
    * @param input - Name (and optional fields); ID/createdAt/updatedAt are set by the repository
    * @returns The created game
    */
@@ -37,14 +37,14 @@ export interface IGameRepository {
 
   /**
    * Updates an existing game; updatedAt is set by the repository.
-   * 
+   *
    * @param game - Full game object
    */
   update(game: Game): Promise<void>
 
-  /** 
+  /**
    * Deletes a game by ID.
-   * 
+   *
    * @param id - Game ID
    */
   delete(id: GameId): Promise<void>
