@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { GameListScreen } from './features/games/GameListScreen'
 import { GameView } from './features/games/GameView'
 import { useAppStore } from './stores/appStore'
@@ -13,12 +14,20 @@ function App() {
     (s) => s.setCurrentGameAndPlaythrough
   )
 
+  const handleLogoClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      setCurrentGameAndPlaythrough(null, null)
+      e.currentTarget.blur()
+    },
+    [setCurrentGameAndPlaythrough]
+  )
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
         <button
           type="button"
-          onClick={() => setCurrentGameAndPlaythrough(null, null)}
+          onClick={handleLogoClick}
           className="cursor-pointer text-xl font-semibold tracking-tight text-slate-900 transition-colors hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
           aria-label="QuestLoom – back to game list"
         >
