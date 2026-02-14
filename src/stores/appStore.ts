@@ -49,8 +49,9 @@ function getStoredPlaythroughId(): PlaythroughId | null {
 
 /**
  * App store state: current game and playthrough IDs.
+ * Internal type for useAppStore; not exported.
  */
-export interface AppState {
+interface AppState {
   /** Currently selected game ID, or null if none. */
   currentGameId: GameId | null
 
