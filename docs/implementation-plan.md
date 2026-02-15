@@ -148,11 +148,11 @@ Implemented: Game view shows a button (current playthrough name) that opens a sl
 - [ ] **Simple CRUD UI** — Within the game view, list + create/edit/delete forms for each entity, scoped to the current game (and playthrough where relevant). Navigation: sidebar to switch between Quest list, Insight list, Items, People, Places, Maps, Threads. No loom yet; focus on data entry and list/detail views.
 - [ ] Update docs as needed to reflect this functionality.
 
-### 2.4 Wrap up
+### 2.5 Wrap up
 
 - [ ] All entity types have repository APIs and Dexie persistence; game vs playthrough scoping is enforced.
 - [ ] User can select, create, edit, and delete playthroughs.
-- [ ] User can view,create, edit, and delete quests, insights, items, people, places, maps, and threads for the current game.
+- [ ] User can view, create, edit, and delete quests, insights, items, people, places, maps, and threads for the current game.
 - [ ] "New playthrough" clears only playthrough data; game data remains.
 - [ ] App remains fully local and redirectable (repositories are the only data access).
 - [ ] All documentation pages are updated reflecting the latest state of the app.
@@ -209,18 +209,3 @@ Implemented: Game view shows a button (current playthrough name) that opens a sl
 - **Maps** — Upload/store map images (e.g. as blobs or base64 in IndexedDB; or file references); markers linked to places; optional full-screen map view.
 - **Responsive and a11y** — Touch-friendly controls, basic keyboard navigation, and semantic markup so the app works on tablet/phone during play.
 - **Redirectability** — Document repository interfaces; add a thin "data source" abstraction if helpful (e.g. `createLocalDataSource()` vs future `createRemoteDataSource(baseUrl)` that return the same repository interface). No backend code required yet; just a clear boundary so adding API clients later is a contained change.
-
----
-
-## Summary: Immediate Steps
-
-| Order | Action                                                                                                                     |
-| ----- | -------------------------------------------------------------------------------------------------------------------------- |
-| 1     | Create Vite + React + TypeScript app in repo (e.g. `npm create vite@latest . -- --template react-ts`).                     |
-| 2     | Install and configure Tailwind CSS; replace default page with minimal QuestLoom shell (header + main).                     |
-| 3     | Install Zustand, Dexie (and optionally dexie-react-hooks).                                                                 |
-| 4     | Add `src/types/`, `src/lib/` (or `src/data/`); add entity types and one Dexie schema + Game repository.                    |
-| 5     | Add ESLint + Prettier; ensure `npm run dev` and `npm run build` succeed.                                                   |
-| 6     | Implement "game list" + "create game" using Game repository and Zustand for current game; verify persistence in IndexedDB. |
-
-After that, proceed to Phase 2 (all entity repositories and CRUD UI), then Phase 3 (threads + loom), then Phase 4 (progression + spoilers). Keep all data access behind repositories so that when you add a hosted backend, you implement the same interfaces against the API and swap the data source.
