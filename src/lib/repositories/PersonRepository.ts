@@ -1,0 +1,57 @@
+/**
+ * Singleton person repository for the app.
+ * Use this instead of Dexie directly; implements IPersonRepository against IndexedDB.
+ */
+
+import type { Person } from '../../types/Person'
+import type { GameId, PersonId } from '../../types/ids'
+import { generateId } from '../../utils/generateId'
+import { db } from '../db'
+import type { CreatePersonInput } from './CreatePersonInput'
+import type { IPersonRepository } from './IPersonRepository'
+
+/**
+ * Dexie-backed implementation of IPersonRepository.
+ */
+class PersonRepositoryImpl implements IPersonRepository {
+  async getByGameId(gameId: GameId): Promise<Person[]> {
+    return db.persons.where('gameId').equals(gameId).toArray()
+  }
+
+  async getById(id: PersonId): Promise<Person | undefined> {
+    return db.persons.get(id)
+  }
+
+  async create(input: CreatePersonInput): Promise<Person> {
+    const now = new Date().toISOString()
+    const person: Person = {
+      id: generateId() as PersonId,
+      gameId: input.gameId,
+      name: input.name,
+      notes: input.notes ?? '',
+      createdAt: now,
+      updatedAt: now,
+    }
+    await db.persons.add(person)
+    return person
+  }
+
+  async update(person: Person): Promise<void> {
+    const updated: Person = {
+      ...person,
+      updatedAt: new Date().toISOString(),
+    }
+    await db.persons.put(updated)
+  }
+
+  async delete(id: PersonId): Promise<void> {
+    await db.persons.delete(id)
+  }
+
+  async deleteByGameId(gameId: GameId): Promise<void> {
+    await db.persons.where('gameId').equals(gameId).delete()
+  }
+}
+
+/** Single person repository instance. */
+export const personRepository: IPersonRepository = new PersonRepositoryImpl()
