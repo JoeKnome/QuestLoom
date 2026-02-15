@@ -136,11 +136,13 @@ View switching is state-based: when `currentGameId` is set, the app renders the 
 
 Implemented: Game view shows a button (current playthrough name) that opens a slide-out **PlaythroughPanel**. The panel lists playthroughs (with "Current" indicator), supports select (and closes panel), inline rename, create (form with name), and delete (ConfirmDialog). Delete of current swaps to first remaining or creates a "Default" playthrough if none remain; delete of non-current leaves selection unchanged. Playthrough repository extended with `getById`, `update`, and `delete(id)`.
 
-### 2.3 Repositories and Scoping
+### 2.3 Repositories and Scoping ✅ Complete
 
-- [ ] Add repositories for: **Quest**, **Insight**, **Item**, **Person**, **Place**, **Map**, **Thread**. Each method is scoped by `gameId` (and `playthroughId` where the entity is playthrough-scoped). Follow the same interface pattern as Phase 1 so swapping to an API later only replaces the implementation.
-- [ ] **Playthrough-scoped data** — Decide which fields are "progress" (e.g. quest status, item status, notes) and store them in playthrough tables or in columns keyed by `playthroughId`; game tables hold only intrinsic definitions.
-- [ ] Update docs as needed to reflect this functionality.
+- [x] Add repositories for: **Quest**, **Insight**, **Item**, **Person**, **Place**, **Map**, **Thread**. Each method is scoped by `gameId` (and `playthroughId` where the entity is playthrough-scoped). Follow the same interface pattern as Phase 1 so swapping to an API later only replaces the implementation.
+- [x] **Playthrough-scoped data** — Decide which fields are "progress" (e.g. quest status, item status, notes) and store them in playthrough tables or in columns keyed by `playthroughId`; game tables hold only intrinsic definitions.
+- [x] Update docs as needed to reflect this functionality.
+
+Implemented: All seven entity repositories in `src/lib/repositories/` with getByGameId, getById, create, update, delete, deleteByGameId. Quest/Insight/Item also expose progress/state get/upsert/deleteByPlaythroughId; EntityDiscoveryRepository for discovery. Thread supports optional playthroughId (game- vs playthrough-scoped). Game delete cascades to all game-scoped entities; playthrough delete cascades to questProgress, insightProgress, itemState, entityDiscovery, and playthrough-scoped threads.
 
 ### 2.4 Feature Modules and UI
 

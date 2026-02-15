@@ -25,7 +25,14 @@ Choices are aimed at: commercialization readiness, modern standards, strong supp
 ### Data & Persistence
 
 - **Local-first (v1)**: **Dexie.js** (IndexedDB wrapper) — Simple API, TypeScript-friendly, indexes for querying threads and entities by `gameId` / `playthroughId`. Schema and store design must explicitly separate game tables (intrinsic) from playthrough tables (user); Dexie makes this straightforward.
-- **Redirectable to hosted**: Feature code must not call Dexie directly. Use a **repository layer** (e.g. `src/lib/repositories/` or `src/data/`): components and stores call repository methods (e.g. `questRepository.getAllByGame(gameId)`). The current implementation uses Dexie; a future implementation can use an API client with the same interface. See [Implementation Plan](implementation-plan.md#redirectability-data-access-layer).
+- **Redirectable to hosted**: Feature code must not call Dexie directly. Use a **repository layer** (e.g. `src/lib/repositories/` or `src/data/`): components and stores call repository methods (e.g. `questRepository.getByGameId(gameId)`). The current implementation uses Dexie; a future implementation can use an API client with the same interface. See [Implementation Plan](implementation-plan.md#redirectability-data-access-layer).
+
+### Repositories
+
+All data access goes through repository interfaces in `src/lib/repositories/`. Scoping:
+
+- **Game-scoped** — `gameRepository`, `questRepository`, `insightRepository`, `itemRepository`, `personRepository`, `placeRepository`, `mapRepository`, `threadRepository`. Methods are keyed by `gameId`; create/update/delete operate on entities for that game. Thread can optionally be playthrough-scoped (`playthroughId` on create).
+- **Playthrough-scoped** — Progress/state/discovery: `questRepository` / `insightRepository` / `itemRepository` expose get/upsert/delete for quest progress, insight progress, and item state per playthrough; `entityDiscoveryRepository` for person/place/map discovery. `playthroughRepository` and `threadRepository.deleteByPlaythroughId` complete playthrough-scoped access. Deleting a game cascades to all game-scoped entity tables; deleting a playthrough cascades to progress, state, discovery, and playthrough-scoped threads.
 - **Debug helpers**: `src/lib/debug.ts` provides development-only utilities to purge the local database (clear all tables) and purge app localStorage (current game/playthrough selection).
 - **Backend (commercialization)**: Add when needed for auth, sync, or multi-device.
   - **Runtime**: **Node.js** with **TypeScript**; same language as frontend.

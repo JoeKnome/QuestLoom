@@ -48,6 +48,8 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | createdAt  | datetime | Creation timestamp                          |
 | updatedAt  | datetime | Last update timestamp                       |
 
+**Note:** In the implementation, status and notes are playthrough-scoped (stored in `QuestProgress`). Objective completion is currently on the quest definition; for strict data separation it could later move to QuestProgress (e.g. `completedObjectives: boolean[]`).
+
 ### Insight
 
 | Field     | Type     | Description                                        |
