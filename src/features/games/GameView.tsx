@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { gameRepository, playthroughRepository } from '../../lib/repositories'
 import { useAppStore } from '../../stores/appStore'
 import type { Game } from '../../types/Game'
 import type { Playthrough } from '../../types/Playthrough'
+import { PlaythroughPanel } from './PlaythroughPanel'
 
 /**
  * Game view screen shown when a game is set as current.
@@ -19,10 +20,17 @@ export function GameView(): JSX.Element {
   )
 
   const [game, setGame] = useState<Game | null>(null)
+  const [playthroughs, setPlaythroughs] = useState<Playthrough[]>([])
   const [playthrough, setPlaythrough] = useState<
     Playthrough | null | undefined
   >(undefined)
   const [isLoading, setIsLoading] = useState(true)
+  const [isPlaythroughPanelOpen, setIsPlaythroughPanelOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const refetchPlaythroughs = useCallback(() => {
+    setRefreshKey((k) => k + 1)
+  }, [])
 
   useEffect(() => {
     if (currentGameId === null) return
@@ -47,6 +55,7 @@ export function GameView(): JSX.Element {
         }
 
         setGame(fetchedGame)
+        setPlaythroughs(playthroughs)
         const current = currentPlaythroughId
           ? playthroughs.find((p) => p.id === currentPlaythroughId)
           : null
@@ -60,7 +69,12 @@ export function GameView(): JSX.Element {
     return () => {
       cancelled = true
     }
-  }, [currentGameId, currentPlaythroughId, setCurrentGameAndPlaythrough])
+  }, [
+    currentGameId,
+    currentPlaythroughId,
+    setCurrentGameAndPlaythrough,
+    refreshKey,
+  ])
 
   if (currentGameId === null) {
     return <></>
@@ -77,11 +91,27 @@ export function GameView(): JSX.Element {
   return (
     <div className="space-y-2">
       <h2 className="text-lg font-medium text-slate-800">{game.name}</h2>
-      <p className="text-slate-600">
-        {playthrough !== undefined && playthrough !== null
-          ? playthrough.name || 'Unnamed playthrough'
-          : 'No playthrough'}
-      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setIsPlaythroughPanelOpen(true)}
+          className="rounded border border-slate-200 bg-white px-3 py-1.5 text-left text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50"
+          aria-label="Manage playthroughs"
+        >
+          {playthrough !== undefined && playthrough !== null
+            ? playthrough.name || 'Unnamed playthrough'
+            : 'No playthrough'}
+        </button>
+      </div>
+      {isPlaythroughPanelOpen ? (
+        <PlaythroughPanel
+          gameId={currentGameId}
+          currentPlaythroughId={currentPlaythroughId}
+          playthroughs={playthroughs}
+          onClose={() => setIsPlaythroughPanelOpen(false)}
+          onPlaythroughsChange={refetchPlaythroughs}
+        />
+      ) : null}
     </div>
   )
 }

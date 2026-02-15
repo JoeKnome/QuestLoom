@@ -125,14 +125,16 @@ npm run format # Optional: format code
 
 View switching is state-based: when `currentGameId` is set, the app renders the game view (game name + playthrough name); when null, it renders the game list. No URL routing yet.
 
-### 2.2 Playthrough Management
+### 2.2 Playthrough Management ✅ Complete
 
-- [ ] While in the game view, the user is able to open a panel to manage their playthroughs.
-- [ ] The user can select a different available playthrough to swap to it as current.
-- [ ] The user can change the name of each playthrough.
-- [ ] The user can create a new playthrough, giving it a name and automatically swapping to it.
-- [ ] The user can delete a playthrough, with a confirmation dialog for safety. If this was the current playthrough, the user will automatically be swapped to the next available playthrough. If this was the last playthrough, a new playthrough will be automatically created and set as current.
-- [ ] Update docs as needed to reflect this functionality.
+- [x] While in the game view, the user is able to open a panel to manage their playthroughs.
+- [x] The user can select a different available playthrough to swap to it as current.
+- [x] The user can change the name of each playthrough.
+- [x] The user can create a new playthrough, giving it a name and automatically swapping to it.
+- [x] The user can delete a playthrough, with a confirmation dialog for safety. If this was the current playthrough, the user will automatically be swapped to the next available playthrough. If this was the last playthrough, a new playthrough will be automatically created and set as current.
+- [x] Update docs as needed to reflect this functionality.
+
+Implemented: Game view shows a button (current playthrough name) that opens a slide-out **PlaythroughPanel**. The panel lists playthroughs (with "Current" indicator), supports select (and closes panel), inline rename, create (form with name), and delete (ConfirmDialog). Delete of current swaps to first remaining or creates a "Default" playthrough if none remain; delete of non-current leaves selection unchanged. Playthrough repository extended with `getById`, `update`, and `delete(id)`.
 
 ### 2.3 Repositories and Scoping
 

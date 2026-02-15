@@ -4,7 +4,7 @@
  */
 
 import type { Playthrough } from '../../types/Playthrough'
-import type { GameId } from '../../types/ids'
+import type { GameId, PlaythroughId } from '../../types/ids'
 import type { CreatePlaythroughInput } from './CreatePlaythroughInput'
 
 /**
@@ -27,6 +27,28 @@ export interface IPlaythroughRepository {
    * @returns Playthroughs for that game
    */
   getByGameId(gameId: GameId): Promise<Playthrough[]>
+
+  /**
+   * Returns a single playthrough by ID.
+   *
+   * @param id - Playthrough ID
+   * @returns The playthrough, or undefined if not found
+   */
+  getById(id: PlaythroughId): Promise<Playthrough | undefined>
+
+  /**
+   * Updates an existing playthrough (e.g. name). updatedAt is set by the repository.
+   *
+   * @param playthrough - Playthrough to update
+   */
+  update(playthrough: Playthrough): Promise<void>
+
+  /**
+   * Deletes a single playthrough by ID.
+   *
+   * @param id - Playthrough ID to delete
+   */
+  delete(id: PlaythroughId): Promise<void>
 
   /**
    * Deletes all playthroughs for a game. Used when deleting a game (cascade).

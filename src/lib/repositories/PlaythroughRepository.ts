@@ -32,6 +32,22 @@ class PlaythroughRepositoryImpl implements IPlaythroughRepository {
     return db.playthroughs.where('gameId').equals(gameId).toArray()
   }
 
+  async getById(id: PlaythroughId): Promise<Playthrough | undefined> {
+    return db.playthroughs.get(id)
+  }
+
+  async update(playthrough: Playthrough): Promise<void> {
+    const updated: Playthrough = {
+      ...playthrough,
+      updatedAt: new Date().toISOString(),
+    }
+    await db.playthroughs.put(updated)
+  }
+
+  async delete(id: PlaythroughId): Promise<void> {
+    await db.playthroughs.delete(id)
+  }
+
   async deleteByGameId(gameId: GameId): Promise<void> {
     await db.playthroughs.where('gameId').equals(gameId).delete()
   }
