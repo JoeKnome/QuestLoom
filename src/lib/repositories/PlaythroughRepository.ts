@@ -8,7 +8,12 @@ import type { GameId, PlaythroughId } from '../../types/ids'
 import { generateId } from '../../utils/generateId'
 import { db } from '../db'
 import type { CreatePlaythroughInput } from './CreatePlaythroughInput'
+import { entityDiscoveryRepository } from './EntityDiscoveryRepository'
 import type { IPlaythroughRepository } from './IPlaythroughRepository'
+import { insightRepository } from './InsightRepository'
+import { itemRepository } from './ItemRepository'
+import { questRepository } from './QuestRepository'
+import { threadRepository } from './ThreadRepository'
 
 /**
  * Dexie-backed implementation of IPlaythroughRepository.
@@ -45,6 +50,11 @@ class PlaythroughRepositoryImpl implements IPlaythroughRepository {
   }
 
   async delete(id: PlaythroughId): Promise<void> {
+    await questRepository.deleteProgressByPlaythroughId(id)
+    await insightRepository.deleteProgressByPlaythroughId(id)
+    await itemRepository.deleteStateByPlaythroughId(id)
+    await entityDiscoveryRepository.deleteByPlaythroughId(id)
+    await threadRepository.deleteByPlaythroughId(id)
     await db.playthroughs.delete(id)
   }
 
