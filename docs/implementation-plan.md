@@ -144,11 +144,13 @@ Implemented: Game view shows a button (current playthrough name) that opens a sl
 
 Implemented: All seven entity repositories in `src/lib/repositories/` with getByGameId, getById, create, update, delete, deleteByGameId. Quest/Insight/Item also expose progress/state get/upsert/deleteByPlaythroughId; EntityDiscoveryRepository for discovery. Thread supports optional playthroughId (game- vs playthrough-scoped). Game delete cascades to all game-scoped entities; playthrough delete cascades to questProgress, insightProgress, itemState, entityDiscovery, and playthrough-scoped threads.
 
-### 2.4 Feature Modules and UI
+### 2.4 Feature Modules and UI ✅ Complete
 
-- [ ] **One feature per entity** (or group): e.g. `features/quests/`, `features/insights/`, `features/items/`, `features/people-places/`, `features/maps/`, `features/threads/`. Each feature uses repositories and shared components.
-- [ ] **Simple CRUD UI** — Within the game view, list + create/edit/delete forms for each entity, scoped to the current game (and playthrough where relevant). Navigation: sidebar to switch between Quest list, Insight list, Items, People, Places, Maps, Threads. No loom yet; focus on data entry and list/detail views.
-- [ ] Update docs as needed to reflect this functionality.
+- [x] **One feature per entity**: `features/quests/`, `features/insights/`, `features/items/`, `features/people/`, `features/places/`, `features/maps/`, `features/threads/`. Each feature uses repositories and shared components.
+- [x] **Simple CRUD UI** — Within the game view, list + create/edit/delete forms for each entity, scoped to the current game (and playthrough where relevant). Navigation: sidebar to switch between Quests, Insights, Items, People, Places, Maps, Threads (seven sections). No loom yet; focus on data entry and list/detail views.
+- [x] Update docs as needed to reflect this functionality.
+
+Implemented: GameView includes a sidebar (responsive: horizontal scroll on small screens, vertical on md+) and content area. Each section renders a list screen (QuestListScreen, InsightListScreen, ItemListScreen, PersonListScreen, PlaceListScreen, MapListScreen, ThreadListScreen) with create/edit forms and delete (ConfirmDialog). Shared components: PlacePicker, MapPicker, EntityPicker; getEntityDisplayName for thread labels. Quest/Insight/Item lists show and edit playthrough progress/state (status dropdown) when a playthrough is selected.
 
 ### 2.5 Wrap up
 
@@ -159,6 +161,7 @@ Implemented: All seven entity repositories in `src/lib/repositories/` with getBy
 - [ ] App remains fully local and redirectable (repositories are the only data access).
 - [ ] All documentation pages are updated reflecting the latest state of the app.
 - [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ---
 

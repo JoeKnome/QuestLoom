@@ -57,18 +57,27 @@ All data access goes through repository interfaces in `src/lib/repositories/`. S
 - **Hono/Fastify over Express**: Modern, TypeScript-first, and lightweight; avoid enterprise-oriented stacks (Nest, etc.) for a one-person project.
 - **PostgreSQL when backend exists**: Relational model fits entities and threads; cloud Postgres (Neon, Supabase, Railway) is affordable and scales.
 
-## Structure (Proposed)
+## Structure
 
 ```text
 QuestLoom/
 ├── docs/                 # Design and spec (this folder)
 ├── src/
-│   ├── components/       # UI components
-│   ├── features/         # Feature modules (quests, insights, items, etc.)
+│   ├── components/       # Shared UI (ConfirmDialog, PlacePicker, MapPicker, EntityPicker)
+│   ├── features/         # Feature modules
+│   │   ├── games/        # Game list, GameView, PlaythroughPanel, sidebar
+│   │   ├── quests/       # Quest list and CRUD
+│   │   ├── insights/     # Insight list and CRUD
+│   │   ├── items/        # Item list and CRUD
+│   │   ├── people/       # Person list and CRUD
+│   │   ├── places/       # Place list and CRUD
+│   │   ├── maps/         # Map list and CRUD
+│   │   └── threads/      # Thread list and CRUD
 │   ├── hooks/            # Shared hooks
-│   ├── stores/           # State management
+│   ├── lib/              # Repositories, db, debug
+│   ├── stores/           # State management (appStore)
 │   ├── types/            # TypeScript types / data models
-│   ├── utils/            # Utilities
+│   ├── utils/            # Utilities (generateId, getEntityDisplayName)
 │   └── App.tsx           # Root component
 ├── public/
 └── [config files]
