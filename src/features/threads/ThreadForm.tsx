@@ -1,9 +1,13 @@
 import { useCallback, useState } from 'react'
+import { EntityPicker } from '../../components/EntityPicker'
 import { threadRepository } from '../../lib/repositories'
+import {
+  EntityType,
+  THREAD_ENDPOINT_ENTITY_TYPES,
+} from '../../types/EntityType'
 import type { GameId, PlaythroughId } from '../../types/ids'
 import type { Thread } from '../../types/Thread'
-import { EntityType } from '../../types/EntityType'
-import { EntityPicker } from '../../components/EntityPicker'
+import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
 
 /**
  * Props for ThreadForm when creating a new thread.
@@ -39,25 +43,6 @@ export interface ThreadFormEditProps {
  * Represents the props for the ThreadForm component.
  */
 export type ThreadFormProps = ThreadFormCreateProps | ThreadFormEditProps
-
-const ENTITY_TYPES: EntityType[] = [
-  EntityType.QUEST,
-  EntityType.INSIGHT,
-  EntityType.ITEM,
-  EntityType.PERSON,
-  EntityType.PLACE,
-]
-
-const entityTypeLabel = (t: EntityType): string =>
-  t === EntityType.QUEST
-    ? 'Quest'
-    : t === EntityType.INSIGHT
-      ? 'Insight'
-      : t === EntityType.ITEM
-        ? 'Item'
-        : t === EntityType.PERSON
-          ? 'Person'
-          : 'Place'
 
 /**
  * Form to create or edit a thread. Uses threadRepository and EntityPicker for source/target.
@@ -165,9 +150,9 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               disabled={isSubmitting}
               className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
             >
-              {ENTITY_TYPES.map((t) => (
+              {THREAD_ENDPOINT_ENTITY_TYPES.map((t) => (
                 <option key={t} value={t}>
-                  {entityTypeLabel(t)}
+                  {ENTITY_TYPE_LABELS[t]}
                 </option>
               ))}
             </select>
@@ -198,9 +183,9 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               disabled={isSubmitting}
               className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
             >
-              {ENTITY_TYPES.map((t) => (
+              {THREAD_ENDPOINT_ENTITY_TYPES.map((t) => (
                 <option key={t} value={t}>
-                  {entityTypeLabel(t)}
+                  {ENTITY_TYPE_LABELS[t]}
                 </option>
               ))}
             </select>

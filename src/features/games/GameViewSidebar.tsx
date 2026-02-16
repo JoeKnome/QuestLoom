@@ -1,27 +1,27 @@
-import type { GameViewSection } from './GameViewSection'
-import { GAME_VIEW_SECTION_LABELS } from './GameViewSection'
+import { EntityType } from '../../types/EntityType'
+import { ENTITY_TYPE_PLURAL_LABELS } from '../../utils/entityTypeLabels'
 
 /**
  * Props for the GameViewSidebar component.
  */
 export interface GameViewSidebarProps {
   /** Currently active section. */
-  activeSection: GameViewSection
+  activeSection: EntityType
   /** Called when the user selects a section. */
-  onSelectSection: (section: GameViewSection) => void
+  onSelectSection: (section: EntityType) => void
 }
 
 /**
- * The sections of the game view sidebar.
+ * Sections of the game view sidebar in display order.
  */
-const SECTIONS: GameViewSection[] = [
-  'quests',
-  'insights',
-  'items',
-  'people',
-  'places',
-  'maps',
-  'threads',
+const SECTIONS: EntityType[] = [
+  EntityType.QUEST,
+  EntityType.INSIGHT,
+  EntityType.ITEM,
+  EntityType.PERSON,
+  EntityType.PLACE,
+  EntityType.MAP,
+  EntityType.THREAD,
 ]
 
 /**
@@ -57,7 +57,7 @@ export function GameViewSidebar({
               }`}
               aria-current={isActive ? 'true' : undefined}
             >
-              {GAME_VIEW_SECTION_LABELS[section]}
+              {ENTITY_TYPE_PLURAL_LABELS[section]}
             </button>
           )
         })}

@@ -1,6 +1,6 @@
 import type { GameId, PlaythroughId } from '../../types/ids'
-import type { GameViewSection } from './GameViewSection'
-import { GAME_VIEW_SECTION_LABELS } from './GameViewSection'
+import { EntityType } from '../../types/EntityType'
+import { ENTITY_TYPE_PLURAL_LABELS } from '../../utils/entityTypeLabels'
 import { InsightListScreen } from '../insights/InsightListScreen'
 import { ItemListScreen } from '../items/ItemListScreen'
 import { MapListScreen } from '../maps/MapListScreen'
@@ -17,8 +17,8 @@ export interface GameViewContentProps {
   gameId: GameId
   /** Current playthrough ID (may be null). */
   playthroughId: PlaythroughId | null
-  /** The section to render. */
-  section: GameViewSection
+  /** The section to render (entity type). */
+  section: EntityType
 }
 
 /**
@@ -38,22 +38,22 @@ export function GameViewContent({
   const commonProps = { gameId, playthroughId }
 
   switch (section) {
-    case 'quests':
+    case EntityType.QUEST:
       return <QuestListScreen {...commonProps} />
-    case 'insights':
+    case EntityType.INSIGHT:
       return <InsightListScreen {...commonProps} />
-    case 'items':
+    case EntityType.ITEM:
       return <ItemListScreen {...commonProps} />
-    case 'people':
+    case EntityType.PERSON:
       return <PersonListScreen {...commonProps} />
-    case 'places':
+    case EntityType.PLACE:
       return <PlaceListScreen {...commonProps} />
-    case 'maps':
+    case EntityType.MAP:
       return <MapListScreen {...commonProps} />
-    case 'threads':
+    case EntityType.THREAD:
       return <ThreadListScreen {...commonProps} />
     default: {
-      const label = GAME_VIEW_SECTION_LABELS[section as GameViewSection]
+      const label = ENTITY_TYPE_PLURAL_LABELS[section]
       return (
         <p className="text-slate-500" aria-live="polite">
           {label} — coming soon

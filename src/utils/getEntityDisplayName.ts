@@ -44,6 +44,9 @@ export async function getEntityDisplayName(
         const p = await placeRepository.getById(entityId)
         return p?.name ?? entityId
       }
+      case EntityType.MAP:
+      case EntityType.THREAD:
+        return entityId
       default:
         return entityId
     }

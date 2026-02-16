@@ -68,14 +68,10 @@ export function QuestListScreen({
       const names = await Promise.all(
         list.map(async (q) => ({
           id: q.id,
-          name: q.giver
-            ? await getGiverDisplayName(gameId, q.giver)
-            : '',
+          name: q.giver ? await getGiverDisplayName(gameId, q.giver) : '',
         }))
       )
-      setGiverNames(
-        Object.fromEntries(names.map(({ id, name }) => [id, name]))
-      )
+      setGiverNames(Object.fromEntries(names.map(({ id, name }) => [id, name])))
     } finally {
       setIsLoading(false)
     }

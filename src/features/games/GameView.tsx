@@ -3,7 +3,7 @@ import { gameRepository, playthroughRepository } from '../../lib/repositories'
 import { useAppStore } from '../../stores/appStore'
 import type { Game } from '../../types/Game'
 import type { Playthrough } from '../../types/Playthrough'
-import type { GameViewSection } from './GameViewSection'
+import { EntityType } from '../../types/EntityType'
 import { GameViewContent } from './GameViewContent'
 import { GameViewSidebar } from './GameViewSidebar'
 import { PlaythroughPanel } from './PlaythroughPanel'
@@ -30,7 +30,9 @@ export function GameView(): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [isPlaythroughPanelOpen, setIsPlaythroughPanelOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [activeSection, setActiveSection] = useState<GameViewSection>('quests')
+  const [activeSection, setActiveSection] = useState<EntityType>(
+    EntityType.QUEST
+  )
 
   const refetchPlaythroughs = useCallback(() => {
     setRefreshKey((k) => k + 1)

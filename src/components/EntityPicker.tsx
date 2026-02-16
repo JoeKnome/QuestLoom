@@ -6,8 +6,9 @@ import {
   placeRepository,
   questRepository,
 } from '../lib/repositories'
-import type { GameId } from '../types/ids'
 import { EntityType } from '../types/EntityType'
+import type { GameId } from '../types/ids'
+import { ENTITY_TYPE_LABELS } from '../utils/entityTypeLabels'
 
 /**
  * Option shown in the entity picker (id + display label).
@@ -67,6 +68,8 @@ async function loadOptions(
       const list = await placeRepository.getByGameId(gameId)
       return list.map((p) => ({ id: p.id, label: p.name }))
     }
+    case EntityType.MAP:
+    case EntityType.THREAD:
     default:
       return []
   }
@@ -120,16 +123,7 @@ export function EntityPicker({
     [onChange]
   )
 
-  const typeLabel =
-    entityType === EntityType.QUEST
-      ? 'Quest'
-      : entityType === EntityType.INSIGHT
-        ? 'Insight'
-        : entityType === EntityType.ITEM
-          ? 'Item'
-          : entityType === EntityType.PERSON
-            ? 'Person'
-            : 'Place'
+  const typeLabel = ENTITY_TYPE_LABELS[entityType]
 
   if (isLoading) {
     return (
