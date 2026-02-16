@@ -8,6 +8,7 @@ import { EntityType } from '../../types/EntityType'
 import type { GameId, PlaceId } from '../../types/ids'
 import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
+import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import type { CreatePlaceInput } from './CreatePlaceInput'
 import type { IPlaceRepository } from './IPlaceRepository'
 
@@ -47,6 +48,10 @@ class PlaceRepositoryImpl implements IPlaceRepository {
   }
 
   async delete(id: PlaceId): Promise<void> {
+    const place = await db.places.get(id)
+    if (place) {
+      await deleteThreadsForEntity(place.gameId, id)
+    }
     await db.places.delete(id)
   }
 

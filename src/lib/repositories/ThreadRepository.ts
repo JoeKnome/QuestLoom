@@ -66,6 +66,25 @@ class ThreadRepositoryImpl implements IThreadRepository {
   async deleteByPlaythroughId(playthroughId: PlaythroughId): Promise<void> {
     await db.threads.where('playthroughId').equals(playthroughId).delete()
   }
+
+  async getThreadsFromEntity(
+    gameId: GameId,
+    entityId: string,
+    playthroughId?: PlaythroughId | null
+  ): Promise<Thread[]> {
+    const threads = await this.getByGameId(gameId, playthroughId)
+    return threads.filter(
+      (t) => t.sourceId === entityId || t.targetId === entityId
+    )
+  }
+
+  async deleteThreadsInvolvingEntity(
+    gameId: GameId,
+    entityId: string
+  ): Promise<void> {
+    const threads = await this.getThreadsFromEntity(gameId, entityId)
+    await Promise.all(threads.map((t) => this.delete(t.id)))
+  }
 }
 
 /** Single thread repository instance. */

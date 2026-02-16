@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { EntityConnections } from '../../components/EntityConnections'
 import { questRepository } from '../../lib/repositories'
 import type { GameId, PlaythroughId, QuestId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
@@ -46,6 +47,7 @@ export function QuestListScreen({
     { type: 'create' } | { type: 'edit'; quest: Quest } | null
   >(null)
   const [deleteTarget, setDeleteTarget] = useState<QuestId | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   /**
    * Loads the quests for the current game.
@@ -159,56 +161,79 @@ export function QuestListScreen({
           {quests.map((quest) => {
             const progress = progressByQuest[quest.id]
             const status = progress?.status ?? QuestStatus.ACTIVE
+            const isExpanded = expandedId === quest.id
             return (
               <li
                 key={quest.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-200 bg-white px-3 py-2"
+                className="rounded border border-slate-200 bg-white px-3 py-2"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-slate-900">{quest.title}</p>
-                  <p className="text-sm text-slate-600">
-                    Giver: {(giverNames[quest.id] ?? '').trim() || '—'}
-                  </p>
-                  {playthroughId !== null && (
-                    <select
-                      value={status}
-                      onChange={(e) =>
-                        handleStatusChange(
-                          quest.id,
-                          Number(e.target.value) as QuestStatus
-                        )
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900">{quest.title}</p>
+                    <p className="text-sm text-slate-600">
+                      Giver: {(giverNames[quest.id] ?? '').trim() || '—'}
+                    </p>
+                    {playthroughId !== null && (
+                      <select
+                        value={status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            quest.id,
+                            Number(e.target.value) as QuestStatus
+                          )
+                        }
+                        className="mt-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
+                        aria-label={`Status for ${quest.title}`}
+                      >
+                        {[
+                          QuestStatus.ACTIVE,
+                          QuestStatus.COMPLETED,
+                          QuestStatus.BLOCKED,
+                        ].map((s) => (
+                          <option key={s} value={s}>
+                            {QUEST_STATUS_LABELS[s]}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <div className="ml-2 flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedId(isExpanded ? null : quest.id)
                       }
-                      className="mt-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
-                      aria-label={`Status for ${quest.title}`}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                      aria-expanded={isExpanded}
                     >
-                      {[
-                        QuestStatus.ACTIVE,
-                        QuestStatus.COMPLETED,
-                        QuestStatus.BLOCKED,
-                      ].map((s) => (
-                        <option key={s} value={s}>
-                          {QUEST_STATUS_LABELS[s]}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                      Connections
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormState({ type: 'edit', quest })}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(quest.id)}
+                      className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <div className="ml-2 flex shrink-0 gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setFormState({ type: 'edit', quest })}
-                    className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(quest.id)}
-                    className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {isExpanded ? (
+                  <div className="mt-2">
+                    <EntityConnections
+                      gameId={gameId}
+                      entityId={quest.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={quest.title}
+                    />
+                  </div>
+                ) : null}
               </li>
             )
           })}

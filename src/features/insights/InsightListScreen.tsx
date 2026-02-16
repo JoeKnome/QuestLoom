@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { EntityConnections } from '../../components/EntityConnections'
 import { insightRepository } from '../../lib/repositories'
 import type { GameId, InsightId, PlaythroughId } from '../../types/ids'
 import type { Insight } from '../../types/Insight'
@@ -44,6 +45,7 @@ export function InsightListScreen({
     { type: 'create' } | { type: 'edit'; insight: Insight } | null
   >(null)
   const [deleteTarget, setDeleteTarget] = useState<InsightId | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   /**
    * Loads the insights for the current game.
@@ -152,56 +154,81 @@ export function InsightListScreen({
           {insights.map((insight) => {
             const progress = progressByInsight[insight.id]
             const status = progress?.status ?? InsightStatus.ACTIVE
+            const isExpanded = expandedId === insight.id
             return (
               <li
                 key={insight.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-200 bg-white px-3 py-2"
+                className="rounded border border-slate-200 bg-white px-3 py-2"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-slate-900">{insight.title}</p>
-                  <p className="truncate text-sm text-slate-600">
-                    {insight.content}
-                  </p>
-                  {playthroughId !== null && (
-                    <select
-                      value={status}
-                      onChange={(e) =>
-                        handleStatusChange(
-                          insight.id,
-                          Number(e.target.value) as InsightStatus
-                        )
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900">
+                      {insight.title}
+                    </p>
+                    <p className="truncate text-sm text-slate-600">
+                      {insight.content}
+                    </p>
+                    {playthroughId !== null && (
+                      <select
+                        value={status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            insight.id,
+                            Number(e.target.value) as InsightStatus
+                          )
+                        }
+                        className="mt-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
+                        aria-label={`Status for ${insight.title}`}
+                      >
+                        {[
+                          InsightStatus.ACTIVE,
+                          InsightStatus.RESOLVED,
+                          InsightStatus.IRRELEVANT,
+                        ].map((s) => (
+                          <option key={s} value={s}>
+                            {INSIGHT_STATUS_LABELS[s]}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <div className="ml-2 flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedId(isExpanded ? null : insight.id)
                       }
-                      className="mt-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
-                      aria-label={`Status for ${insight.title}`}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                      aria-expanded={isExpanded}
                     >
-                      {[
-                        InsightStatus.ACTIVE,
-                        InsightStatus.RESOLVED,
-                        InsightStatus.IRRELEVANT,
-                      ].map((s) => (
-                        <option key={s} value={s}>
-                          {INSIGHT_STATUS_LABELS[s]}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                      Connections
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormState({ type: 'edit', insight })}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(insight.id)}
+                      className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <div className="ml-2 flex shrink-0 gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setFormState({ type: 'edit', insight })}
-                    className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(insight.id)}
-                    className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {isExpanded ? (
+                  <div className="mt-2">
+                    <EntityConnections
+                      gameId={gameId}
+                      entityId={insight.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={insight.title}
+                    />
+                  </div>
+                ) : null}
               </li>
             )
           })}

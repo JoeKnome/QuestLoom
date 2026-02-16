@@ -65,4 +65,28 @@ export interface IThreadRepository {
    * @param playthroughId - The ID of the playthrough to delete.
    */
   deleteByPlaythroughId(playthroughId: PlaythroughId): Promise<void>
+
+  /**
+   * Returns threads where the given entity is source or target, for the game
+   * (and optionally filtered by playthrough). Used by list UI and loom.
+   *
+   * @param gameId - The ID of the game.
+   * @param entityId - Typed entity ID (source or target).
+   * @param playthroughId - Optional. Null = game-level only; set = game-level + that playthrough.
+   * @returns Threads involving the entity.
+   */
+  getThreadsFromEntity(
+    gameId: GameId,
+    entityId: string,
+    playthroughId?: PlaythroughId | null
+  ): Promise<Thread[]>
+
+  /**
+   * Deletes all threads for the game where the entity is source or target.
+   * Used when an entity is deleted so threads are not orphaned.
+   *
+   * @param gameId - The ID of the game.
+   * @param entityId - Typed entity ID (source or target).
+   */
+  deleteThreadsInvolvingEntity(gameId: GameId, entityId: string): Promise<void>
 }

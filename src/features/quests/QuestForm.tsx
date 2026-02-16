@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { GiverPicker } from '../../components/GiverPicker'
-import { questRepository } from '../../lib/repositories'
+import { questRepository, threadRepository } from '../../lib/repositories'
+import { THREAD_LABEL_GIVER } from '../../lib/repositories/threadLabels'
 import type { GameId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
 import type { QuestObjective } from '../../types/QuestObjective'
@@ -58,6 +59,38 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
   const [error, setError] = useState<string | null>(null)
 
   /**
+   * Syncs the "giver" representative thread for a quest: create/update if giver set, delete if cleared.
+   */
+  const syncGiverThread = useCallback(
+    async (gameId: GameId, questId: string, giverValue: string) => {
+      const threads = await threadRepository.getThreadsFromEntity(
+        gameId,
+        questId,
+        null
+      )
+      const giverThread = threads.find((t) => t.label === THREAD_LABEL_GIVER)
+      if (giverValue.trim()) {
+        if (giverThread) {
+          await threadRepository.update({
+            ...giverThread,
+            targetId: giverValue.trim(),
+          })
+        } else {
+          await threadRepository.create({
+            gameId,
+            sourceId: questId,
+            targetId: giverValue.trim(),
+            label: THREAD_LABEL_GIVER,
+          })
+        }
+      } else if (giverThread) {
+        await threadRepository.delete(giverThread.id)
+      }
+    },
+    []
+  )
+
+  /**
    * Handles the submission of the quest form.
    */
   const handleSubmit = useCallback(
@@ -71,18 +104,21 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
       setError(null)
       setIsSubmitting(true)
       try {
+        const giverValue = giver.trim()
         if (props.mode === 'create') {
-          await questRepository.create({
+          const quest = await questRepository.create({
             gameId: props.gameId,
             title: trimmedTitle,
-            giver: giver.trim(),
+            giver: giverValue,
             objectives: objectives.length > 0 ? objectives : undefined,
           })
+          await syncGiverThread(props.gameId, quest.id, giverValue)
         } else {
+          await syncGiverThread(props.quest.gameId, props.quest.id, giverValue)
           await questRepository.update({
             ...props.quest,
             title: trimmedTitle,
-            giver: giver.trim(),
+            giver: giverValue,
             objectives,
           })
         }
@@ -93,7 +129,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [title, giver, objectives, props]
+    [title, giver, objectives, props, syncGiverThread]
   )
 
   /**

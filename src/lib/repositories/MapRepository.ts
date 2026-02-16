@@ -8,6 +8,7 @@ import { EntityType } from '../../types/EntityType'
 import type { GameId, MapId } from '../../types/ids'
 import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
+import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import type { CreateMapInput } from './CreateMapInput'
 import type { IMapRepository } from './IMapRepository'
 
@@ -47,6 +48,10 @@ class MapRepositoryImpl implements IMapRepository {
   }
 
   async delete(id: MapId): Promise<void> {
+    const map = await db.maps.get(id)
+    if (map) {
+      await deleteThreadsForEntity(map.gameId, id)
+    }
     await db.maps.delete(id)
   }
 

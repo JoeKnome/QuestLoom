@@ -177,10 +177,11 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 **Goal:** Users can create and view threads between entities; a loom (graph) view shows the network and supports "follow a thread" exploration.
 
-### 3.1 Thread creation and listing
+### 3.1 Thread creation and listing ✅ Complete
 
-- **Thread repository** — Create/update/delete threads; list by `gameId`, by source/target entity, or by "threads from entity X." Used by both list UI and loom.
-- **UI** — Create thread (pick source entity, target entity, optional label); list threads for the game; optionally list "threads from this entity" on entity detail.
+- **Generalized thread representation** — Threads are the primary representation of entity connections. The UI creates a representative thread when you link entities (quest giver, item location, place map) and keeps the existing entity field in sync (dual-write). Reserved thread labels: `giver`, `location`, `map`.
+- **Thread repository** — `getThreadsFromEntity(gameId, entityId, playthroughId?)` and `deleteThreadsInvolvingEntity(gameId, entityId)` added. Deleting any entity (quest, insight, item, person, place, map) cascades to remove threads involving that entity.
+- **UI** — `EntityConnections` component shows threads from an entity; each list screen (Quests, Insights, Items, People, Places) has an expandable row with a "Connections" button that reveals threads for that entity.
 
 ### 3.2 Loom (graph) view
 
@@ -189,7 +190,7 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 ### 3.3 Definition of done (Phase 3)
 
-- [ ] Threads are created and stored; thread list and per-entity thread views work.
+- [x] Threads are created and stored; thread list and per-entity thread views work (Phase 3.1).
 - [ ] Loom view renders the graph for the current game; user can explore by following threads.
 - [ ] Still local-only; repositories unchanged for future redirect.
 

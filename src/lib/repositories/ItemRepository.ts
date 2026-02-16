@@ -9,6 +9,7 @@ import { EntityType } from '../../types/EntityType'
 import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
 import { generateId, generateEntityId } from '../../utils/generateId'
 import { db, type ItemStateRow } from '../db'
+import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import type { CreateItemInput } from './CreateItemInput'
 import type { IItemRepository } from './IItemRepository'
 
@@ -48,6 +49,10 @@ class ItemRepositoryImpl implements IItemRepository {
   }
 
   async delete(id: ItemId): Promise<void> {
+    const item = await db.items.get(id)
+    if (item) {
+      await deleteThreadsForEntity(item.gameId, id)
+    }
     await db.items.delete(id)
   }
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { EntityConnections } from '../../components/EntityConnections'
 import { personRepository } from '../../lib/repositories'
 import type { GameId, PersonId } from '../../types/ids'
 import type { Person } from '../../types/Person'
@@ -25,6 +26,7 @@ export interface PersonListScreenProps {
  */
 export function PersonListScreen({
   gameId,
+  playthroughId,
 }: PersonListScreenProps): JSX.Element {
   const [persons, setPersons] = useState<Person[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -32,6 +34,7 @@ export function PersonListScreen({
     { type: 'create' } | { type: 'edit'; person: Person } | null
   >(null)
   const [deleteTarget, setDeleteTarget] = useState<PersonId | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   /**
    * Loads the people for the current game.
@@ -107,37 +110,62 @@ export function PersonListScreen({
         <p className="text-slate-500">No people yet. Add one to get started.</p>
       ) : (
         <ul className="space-y-2">
-          {persons.map((person) => (
-            <li
-              key={person.id}
-              className="flex items-center justify-between rounded border border-slate-200 bg-white px-3 py-2"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-slate-900">{person.name}</p>
-                {person.notes ? (
-                  <p className="truncate text-sm text-slate-600">
-                    {person.notes}
-                  </p>
+          {persons.map((person) => {
+            const isExpanded = expandedId === person.id
+            return (
+              <li
+                key={person.id}
+                className="rounded border border-slate-200 bg-white px-3 py-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900">{person.name}</p>
+                    {person.notes ? (
+                      <p className="truncate text-sm text-slate-600">
+                        {person.notes}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="ml-2 flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedId(isExpanded ? null : person.id)
+                      }
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                      aria-expanded={isExpanded}
+                    >
+                      Connections
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormState({ type: 'edit', person })}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(person.id)}
+                      className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+                {isExpanded ? (
+                  <div className="mt-2">
+                    <EntityConnections
+                      gameId={gameId}
+                      entityId={person.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={person.name}
+                    />
+                  </div>
                 ) : null}
-              </div>
-              <div className="ml-2 flex shrink-0 gap-1">
-                <button
-                  type="button"
-                  onClick={() => setFormState({ type: 'edit', person })}
-                  className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(person.id)}
-                  className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
+              </li>
+            )
+          })}
         </ul>
       )}
 

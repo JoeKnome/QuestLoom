@@ -8,6 +8,7 @@ import { EntityType } from '../../types/EntityType'
 import type { GameId, PersonId } from '../../types/ids'
 import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
+import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import type { CreatePersonInput } from './CreatePersonInput'
 import type { IPersonRepository } from './IPersonRepository'
 
@@ -46,6 +47,10 @@ class PersonRepositoryImpl implements IPersonRepository {
   }
 
   async delete(id: PersonId): Promise<void> {
+    const person = await db.persons.get(id)
+    if (person) {
+      await deleteThreadsForEntity(person.gameId, id)
+    }
     await db.persons.delete(id)
   }
 

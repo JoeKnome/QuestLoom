@@ -48,7 +48,7 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | createdAt  | datetime | Creation timestamp                          |
 | updatedAt  | datetime | Last update timestamp                       |
 
-**Note:** In the implementation, status and notes are playthrough-scoped (stored in `QuestProgress`). Objective completion is currently on the quest definition; for strict data separation it could later move to QuestProgress (e.g. `completedObjectives: boolean[]`).
+**Note:** In the implementation, status and notes are playthrough-scoped (stored in `QuestProgress`). Objective completion is currently on the quest definition; for strict data separation it could later move to QuestProgress (e.g. `completedObjectives: boolean[]`). The giver link is also represented by a thread (Quest → Person|Place) with reserved label `giver`; the UI dual-writes so the field and thread stay in sync.
 
 ### Insight
 
@@ -64,16 +64,16 @@ Entity and schema design must distinguish which fields (or which entities) belon
 
 ### Item
 
-| Field       | Type     | Description                          |
-| ----------- | -------- | ------------------------------------ |
-| id          | string   | Unique identifier                    |
-| name        | string   | Item name                            |
-| location    | id       | The place where the item is acquired |
-| description | string   | Optional description                 |
-| status      | enum     | possessed \| used \| lost \| other   |
-| notes       | string   | Optional notes                       |
-| createdAt   | datetime | Creation timestamp                   |
-| updatedAt   | datetime | Last update timestamp                |
+| Field       | Type     | Description                                                                                            |
+| ----------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| id          | string   | Unique identifier                                                                                      |
+| name        | string   | Item name                                                                                              |
+| location    | id       | The place where the item is acquired (also represented by a thread Item → Place with label `location`) |
+| description | string   | Optional description                                                                                   |
+| status      | enum     | possessed \| used \| lost \| other                                                                     |
+| notes       | string   | Optional notes                                                                                         |
+| createdAt   | datetime | Creation timestamp                                                                                     |
+| updatedAt   | datetime | Last update timestamp                                                                                  |
 
 ### Person
 
@@ -87,14 +87,14 @@ Entity and schema design must distinguish which fields (or which entities) belon
 
 ### Place
 
-| Field     | Type     | Description           |
-| --------- | -------- | --------------------- |
-| id        | string   | Unique identifier     |
-| name      | string   | Location name         |
-| notes     | string   | Optional notes        |
-| map       | id       | Optional link to Map  |
-| createdAt | datetime | Creation timestamp    |
-| updatedAt | datetime | Last update timestamp |
+| Field     | Type     | Description                                                                      |
+| --------- | -------- | -------------------------------------------------------------------------------- |
+| id        | string   | Unique identifier                                                                |
+| name      | string   | Location name                                                                    |
+| notes     | string   | Optional notes                                                                   |
+| map       | id       | Optional link to Map (also represented by a thread Place → Map with label `map`) |
+| createdAt | datetime | Creation timestamp                                                               |
+| updatedAt | datetime | Last update timestamp                                                            |
 
 ### Map
 
@@ -121,7 +121,7 @@ Entity and schema design must distinguish which fields (or which entities) belon
 
 ## Relationships (Threads)
 
-Threads link entities. When viewed as a network or graph, this view is called the **loom**; users follow threads using the loom to visualize relationships.
+Threads link entities. When viewed as a network or graph, this view is called the **loom**; users follow threads using the loom to visualize relationships. The thread repository exposes `getThreadsFromEntity(gameId, entityId, playthroughId?)` (threads where the entity is source or target) and `deleteThreadsInvolvingEntity(gameId, entityId)` (used when an entity is deleted so threads are not orphaned).
 
 - **Quest ↔ Insight** — Insights can support or relate to quests (key info, lore, understanding)
 - **Quest ↔ Item** — Items may be required for or obtained during quests

@@ -9,6 +9,7 @@ import { EntityType } from '../../types/EntityType'
 import type { GameId, InsightId, PlaythroughId } from '../../types/ids'
 import { generateId, generateEntityId } from '../../utils/generateId'
 import { db, type InsightProgressRow } from '../db'
+import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import type { CreateInsightInput } from './CreateInsightInput'
 import type { IInsightRepository } from './IInsightRepository'
 
@@ -47,6 +48,10 @@ class InsightRepositoryImpl implements IInsightRepository {
   }
 
   async delete(id: InsightId): Promise<void> {
+    const insight = await db.insights.get(id)
+    if (insight) {
+      await deleteThreadsForEntity(insight.gameId, id)
+    }
     await db.insights.delete(id)
   }
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { EntityConnections } from '../../components/EntityConnections'
 import { itemRepository, placeRepository } from '../../lib/repositories'
 import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
 import type { Item } from '../../types/Item'
@@ -44,6 +45,7 @@ export function ItemListScreen({
     { type: 'create' } | { type: 'edit'; item: Item } | null
   >(null)
   const [deleteTarget, setDeleteTarget] = useState<ItemId | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   /**
    * Loads the items for the current game.
@@ -156,62 +158,83 @@ export function ItemListScreen({
           {items.map((item) => {
             const state = stateByItem[item.id]
             const status = state?.status ?? ItemStatus.POSSESSED
+            const isExpanded = expandedId === item.id
             return (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-200 bg-white px-3 py-2"
+                className="rounded border border-slate-200 bg-white px-3 py-2"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-slate-900">{item.name}</p>
-                  <p className="text-sm text-slate-600">
-                    Location: {placeNames[item.location] ?? item.location}
-                  </p>
-                  {item.description ? (
-                    <p className="truncate text-sm text-slate-500">
-                      {item.description}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900">{item.name}</p>
+                    <p className="text-sm text-slate-600">
+                      Location: {placeNames[item.location] ?? item.location}
                     </p>
-                  ) : null}
-                  {playthroughId !== null && (
-                    <select
-                      value={status}
-                      onChange={(e) =>
-                        handleStatusChange(
-                          item.id,
-                          Number(e.target.value) as ItemStatus
-                        )
-                      }
-                      className="mt-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
-                      aria-label={`Status for ${item.name}`}
+                    {item.description ? (
+                      <p className="truncate text-sm text-slate-500">
+                        {item.description}
+                      </p>
+                    ) : null}
+                    {playthroughId !== null && (
+                      <select
+                        value={status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            item.id,
+                            Number(e.target.value) as ItemStatus
+                          )
+                        }
+                        className="mt-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
+                        aria-label={`Status for ${item.name}`}
+                      >
+                        {[
+                          ItemStatus.POSSESSED,
+                          ItemStatus.USED,
+                          ItemStatus.LOST,
+                          ItemStatus.OTHER,
+                        ].map((s) => (
+                          <option key={s} value={s}>
+                            {ITEM_STATUS_LABELS[s]}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <div className="ml-2 flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                      aria-expanded={isExpanded}
                     >
-                      {[
-                        ItemStatus.POSSESSED,
-                        ItemStatus.USED,
-                        ItemStatus.LOST,
-                        ItemStatus.OTHER,
-                      ].map((s) => (
-                        <option key={s} value={s}>
-                          {ITEM_STATUS_LABELS[s]}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                      Connections
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormState({ type: 'edit', item })}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(item.id)}
+                      className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <div className="ml-2 flex shrink-0 gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setFormState({ type: 'edit', item })}
-                    className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(item.id)}
-                    className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {isExpanded ? (
+                  <div className="mt-2">
+                    <EntityConnections
+                      gameId={gameId}
+                      entityId={item.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={item.name}
+                    />
+                  </div>
+                ) : null}
               </li>
             )
           })}

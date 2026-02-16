@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
-import { itemRepository } from '../../lib/repositories'
+import { itemRepository, threadRepository } from '../../lib/repositories'
+import { THREAD_LABEL_LOCATION } from '../../lib/repositories/threadLabels'
 import type { GameId, PlaceId } from '../../types/ids'
 import type { Item } from '../../types/Item'
 import { PlacePicker } from '../../components/PlacePicker'
@@ -57,6 +58,40 @@ export function ItemForm(props: ItemFormProps): JSX.Element {
   const gameId = props.mode === 'create' ? props.gameId : props.item.gameId
 
   /**
+   * Syncs the "location" representative thread for an item: create/update if location set, delete if cleared.
+   */
+  const syncLocationThread = useCallback(
+    async (gId: GameId, itemId: string, placeId: string) => {
+      const threads = await threadRepository.getThreadsFromEntity(
+        gId,
+        itemId,
+        null
+      )
+      const locationThread = threads.find(
+        (t) => t.label === THREAD_LABEL_LOCATION
+      )
+      if (placeId) {
+        if (locationThread) {
+          await threadRepository.update({
+            ...locationThread,
+            targetId: placeId,
+          })
+        } else {
+          await threadRepository.create({
+            gameId: gId,
+            sourceId: itemId,
+            targetId: placeId,
+            label: THREAD_LABEL_LOCATION,
+          })
+        }
+      } else if (locationThread) {
+        await threadRepository.delete(locationThread.id)
+      }
+    },
+    []
+  )
+
+  /**
    * Handles the submission of the item form.
    */
   const handleSubmit = useCallback(
@@ -74,18 +109,21 @@ export function ItemForm(props: ItemFormProps): JSX.Element {
       setError(null)
       setIsSubmitting(true)
       try {
+        const placeId = location as PlaceId
         if (props.mode === 'create') {
-          await itemRepository.create({
+          const item = await itemRepository.create({
             gameId: props.gameId,
             name: trimmedName,
-            location: location as PlaceId,
+            location: placeId,
             description: description.trim() || undefined,
           })
+          await syncLocationThread(props.gameId, item.id, placeId)
         } else {
+          await syncLocationThread(props.item.gameId, props.item.id, placeId)
           await itemRepository.update({
             ...props.item,
             name: trimmedName,
-            location: location as PlaceId,
+            location: placeId,
             description: description.trim(),
           })
         }
@@ -96,7 +134,7 @@ export function ItemForm(props: ItemFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [name, location, description, props]
+    [name, location, description, props, syncLocationThread]
   )
 
   return (

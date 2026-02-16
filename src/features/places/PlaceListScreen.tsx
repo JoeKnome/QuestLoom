@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { EntityConnections } from '../../components/EntityConnections'
 import { placeRepository } from '../../lib/repositories'
 import type { GameId, PlaceId } from '../../types/ids'
 import type { Place } from '../../types/Place'
@@ -23,13 +24,17 @@ export interface PlaceListScreenProps {
  * @param props.playthroughId - Unused; places are game-scoped
  * @returns A JSX element representing the PlaceListScreen component.
  */
-export function PlaceListScreen({ gameId }: PlaceListScreenProps): JSX.Element {
+export function PlaceListScreen({
+  gameId,
+  playthroughId,
+}: PlaceListScreenProps): JSX.Element {
   const [places, setPlaces] = useState<Place[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; place: Place } | null
   >(null)
   const [deleteTarget, setDeleteTarget] = useState<PlaceId | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   /**
    * Loads the places for the current game.
@@ -105,37 +110,62 @@ export function PlaceListScreen({ gameId }: PlaceListScreenProps): JSX.Element {
         <p className="text-slate-500">No places yet. Add one to get started.</p>
       ) : (
         <ul className="space-y-2">
-          {places.map((place) => (
-            <li
-              key={place.id}
-              className="flex items-center justify-between rounded border border-slate-200 bg-white px-3 py-2"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-slate-900">{place.name}</p>
-                {place.notes ? (
-                  <p className="truncate text-sm text-slate-600">
-                    {place.notes}
-                  </p>
+          {places.map((place) => {
+            const isExpanded = expandedId === place.id
+            return (
+              <li
+                key={place.id}
+                className="rounded border border-slate-200 bg-white px-3 py-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900">{place.name}</p>
+                    {place.notes ? (
+                      <p className="truncate text-sm text-slate-600">
+                        {place.notes}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="ml-2 flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedId(isExpanded ? null : place.id)
+                      }
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                      aria-expanded={isExpanded}
+                    >
+                      Connections
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormState({ type: 'edit', place })}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(place.id)}
+                      className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+                {isExpanded ? (
+                  <div className="mt-2">
+                    <EntityConnections
+                      gameId={gameId}
+                      entityId={place.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={place.name}
+                    />
+                  </div>
                 ) : null}
-              </div>
-              <div className="ml-2 flex shrink-0 gap-1">
-                <button
-                  type="button"
-                  onClick={() => setFormState({ type: 'edit', place })}
-                  className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(place.id)}
-                  className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
+              </li>
+            )
+          })}
         </ul>
       )}
 

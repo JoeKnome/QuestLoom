@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
-import { placeRepository } from '../../lib/repositories'
+import { placeRepository, threadRepository } from '../../lib/repositories'
+import { THREAD_LABEL_MAP } from '../../lib/repositories/threadLabels'
 import type { GameId, MapId } from '../../types/ids'
 import type { Place } from '../../types/Place'
 import { MapPicker } from '../../components/MapPicker'
@@ -59,6 +60,38 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
   const [error, setError] = useState<string | null>(null)
 
   /**
+   * Syncs the "map" representative thread for a place: create/update if map set, delete if cleared.
+   */
+  const syncMapThread = useCallback(
+    async (gameId: GameId, placeId: string, mapValue: MapId | '') => {
+      const threads = await threadRepository.getThreadsFromEntity(
+        gameId,
+        placeId,
+        null
+      )
+      const mapThread = threads.find((t) => t.label === THREAD_LABEL_MAP)
+      if (mapValue) {
+        if (mapThread) {
+          await threadRepository.update({
+            ...mapThread,
+            targetId: mapValue,
+          })
+        } else {
+          await threadRepository.create({
+            gameId,
+            sourceId: placeId,
+            targetId: mapValue,
+            label: THREAD_LABEL_MAP,
+          })
+        }
+      } else if (mapThread) {
+        await threadRepository.delete(mapThread.id)
+      }
+    },
+    []
+  )
+
+  /**
    * Handles the submission of the place form.
    */
   const handleSubmit = useCallback(
@@ -72,19 +105,22 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
       setError(null)
       setIsSubmitting(true)
       try {
+        const mapValue = mapId === '' ? undefined : mapId
         if (props.mode === 'create') {
-          await placeRepository.create({
+          const place = await placeRepository.create({
             gameId: props.gameId,
             name: trimmedName,
             notes: notes.trim() || undefined,
-            map: mapId === '' ? undefined : mapId,
+            map: mapValue,
           })
+          await syncMapThread(props.gameId, place.id, mapId)
         } else {
+          await syncMapThread(props.place.gameId, props.place.id, mapId)
           await placeRepository.update({
             ...props.place,
             name: trimmedName,
             notes: notes.trim(),
-            map: mapId === '' ? undefined : mapId,
+            map: mapValue,
           })
         }
         props.onSaved()
@@ -94,7 +130,7 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [name, notes, mapId, props]
+    [name, notes, mapId, props, syncMapThread]
   )
 
   return (

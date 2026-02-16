@@ -9,6 +9,7 @@ import { EntityType } from '../../types/EntityType'
 import type { GameId, PlaythroughId, QuestId } from '../../types/ids'
 import { generateId, generateEntityId } from '../../utils/generateId'
 import { db, type QuestProgressRow } from '../db'
+import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import type { CreateQuestInput } from './CreateQuestInput'
 import type { IQuestRepository } from './IQuestRepository'
 
@@ -48,6 +49,10 @@ class QuestRepositoryImpl implements IQuestRepository {
   }
 
   async delete(id: QuestId): Promise<void> {
+    const quest = await db.quests.get(id)
+    if (quest) {
+      await deleteThreadsForEntity(quest.gameId, id)
+    }
     await db.quests.delete(id)
   }
 
