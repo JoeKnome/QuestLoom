@@ -97,15 +97,17 @@ These elements have no off-the-shelf equivalent and must be implemented for Ques
 
 | Decision     | Status   | Notes                                                               |
 | ------------ | -------- | ------------------------------------------------------------------- |
-| Language     | Proposed | TypeScript for frontend and backend                                 |
-| Framework    | Proposed | React 18+ with Vite                                                 |
-| Styling      | Proposed | Tailwind CSS; consider shadcn/ui for components                     |
-| Loom / graph | Proposed | React Flow as primary; Cytoscape.js as alternative                  |
-| State        | Proposed | Zustand; TanStack Query when backend exists                         |
-| Data (v1)    | Proposed | Dexie (IndexedDB), schema enforces game vs playthrough separation   |
+| Language     | Adopted  | TypeScript for frontend (and future backend)                        |
+| Framework    | Adopted  | React 18+ with Vite                                                 |
+| Styling      | Adopted  | Tailwind CSS                                                        |
+| Loom / graph | Proposed | React Flow as primary; Cytoscape.js as alternative (Phase 3)        |
+| State        | Adopted  | Zustand; TanStack Query when backend exists                         |
+| Data (v1)    | Adopted  | Dexie (IndexedDB), schema enforces game vs playthrough separation   |
 | Backend      | Proposed | Node + TypeScript, Hono or Fastify, PostgreSQL when needed          |
 | Auth         | Proposed | Not in v1; add Clerk, Supabase Auth, or Lucia for commercialization |
 | Hosting (v1) | Proposed | Static deploy (Vercel, Netlify, or similar)                         |
+
+**Phase 2 complete:** All core entities (Quest, Insight, Item, Person, Place, Map, Thread) have repositories and CRUD UI; game vs playthrough scoping is enforced. Data access is repository-only (redirectable).
 
 ## Data Separation (Game vs Playthrough)
 

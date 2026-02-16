@@ -17,9 +17,7 @@ import { parseEntityId } from './parseEntityId'
  * @param entityId - Typed entity ID (e.g. "3:uuid" for a person)
  * @returns The display label, or the id if not found; empty string for empty/invalid id
  */
-export async function getEntityDisplayName(
-  entityId: string
-): Promise<string> {
+export async function getEntityDisplayName(entityId: string): Promise<string> {
   const trimmed = entityId?.trim() ?? ''
   if (trimmed === '') return ''
   const parsed = parseEntityId(trimmed)

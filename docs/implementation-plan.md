@@ -113,7 +113,7 @@ npm run format # Optional: format code
 
 ---
 
-## Phase 2: Core Entities and CRUD
+## Phase 2: Core Entities and CRUD ✅ Complete
 
 **Goal:** All core entities (Quest, Insight, Item, Person, Place, Map, Thread) can be created, read, updated, and deleted in the app; data is scoped by game or playthrough as per data-models.
 
@@ -152,16 +152,24 @@ Implemented: All seven entity repositories in `src/lib/repositories/` with getBy
 
 Implemented: GameView includes a sidebar (responsive: horizontal scroll on small screens, vertical on md+) and content area. Each section renders a list screen (QuestListScreen, InsightListScreen, ItemListScreen, PersonListScreen, PlaceListScreen, MapListScreen, ThreadListScreen) with create/edit forms and delete (ConfirmDialog). Shared components: PlacePicker, MapPicker, EntityPicker; getEntityDisplayName for thread labels. Quest/Insight/Item lists show and edit playthrough progress/state (status dropdown) when a playthrough is selected.
 
-### 2.5 Wrap up
+### 2.5 Wrap up ✅ Complete
 
-- [ ] All entity types have repository APIs and Dexie persistence; game vs playthrough scoping is enforced.
-- [ ] User can select, create, edit, and delete playthroughs.
-- [ ] User can view, create, edit, and delete quests, insights, items, people, places, maps, and threads for the current game.
-- [ ] "New playthrough" clears only playthrough data; game data remains.
-- [ ] App remains fully local and redirectable (repositories are the only data access).
-- [ ] All documentation pages are updated reflecting the latest state of the app.
-- [ ] All items left to do are documented for future action.
-- [ ] All affected code passes code standards, style, and lint.
+- [x] All entity types have repository APIs and Dexie persistence; game vs playthrough scoping is enforced.
+- [x] User can select, create, edit, and delete playthroughs.
+- [x] User can view, create, edit, and delete quests, insights, items, people, places, maps, and threads for the current game.
+- [x] "New playthrough" clears only playthrough data; game data remains.
+- [x] App remains fully local and redirectable (repositories are the only data access).
+- [x] All documentation pages are updated reflecting the latest state of the app.
+- [x] All items left to do are documented for future action.
+- [x] All affected code passes code standards, style, and lint.
+
+**Phase 2.5 validation:** Repositories (Game, Playthrough, Quest, Insight, Item, Person, Place, Map, Thread, EntityDiscovery) live in `src/lib/repositories/`; Dexie is used only inside `src/lib/`. Playthrough delete cascades to quest progress, insight progress, item state, entity discovery, and playthrough-scoped threads; game data is unchanged. Creating a new playthrough adds a playthrough row only; game-scoped entities remain. Lint and format pass.
+
+**Items left for future action** (see `docs/issues/`):
+
+- [item-unpossessed-status.md](issues/item-unpossessed-status.md) — Default "unpossessed" item status.
+- [status-labels-reusability.md](issues/status-labels-reusability.md) — Elevate status labels for reuse across list/detail views.
+- [repetitive-prop-definitions.md](issues/repetitive-prop-definitions.md) — Generic Create/Edit props for entity forms.
 
 ---
 
