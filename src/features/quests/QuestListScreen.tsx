@@ -5,6 +5,7 @@ import type { GameId, PlaythroughId, QuestId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
 import type { QuestProgress } from '../../types/QuestProgress'
 import { QuestStatus } from '../../types/QuestStatus'
+import { getGiverDisplayName } from '../../utils/getEntityDisplayName'
 import { QuestForm } from './QuestForm'
 
 /**
@@ -36,6 +37,7 @@ export function QuestListScreen({
   playthroughId,
 }: QuestListScreenProps): JSX.Element {
   const [quests, setQuests] = useState<Quest[]>([])
+  const [giverNames, setGiverNames] = useState<Record<string, string>>({})
   const [progressByQuest, setProgressByQuest] = useState<
     Record<string, QuestProgress>
   >({})
@@ -63,6 +65,17 @@ export function QuestListScreen({
         byQuest[p.questId] = p
       })
       setProgressByQuest(byQuest)
+      const names = await Promise.all(
+        list.map(async (q) => ({
+          id: q.id,
+          name: q.giver
+            ? await getGiverDisplayName(gameId, q.giver)
+            : '',
+        }))
+      )
+      setGiverNames(
+        Object.fromEntries(names.map(({ id, name }) => [id, name]))
+      )
     } finally {
       setIsLoading(false)
     }
@@ -158,7 +171,7 @@ export function QuestListScreen({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-slate-900">{quest.title}</p>
                   <p className="text-sm text-slate-600">
-                    Giver: {quest.giver || '—'}
+                    Giver: {(giverNames[quest.id] ?? '').trim() || '—'}
                   </p>
                   {playthroughId !== null && (
                     <select

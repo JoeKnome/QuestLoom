@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { GiverPicker } from '../../components/GiverPicker'
 import { questRepository } from '../../lib/repositories'
 import type { GameId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
@@ -148,14 +149,13 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
         >
           Giver
         </label>
-        <input
+        <GiverPicker
           id="quest-giver"
-          type="text"
+          gameId={props.mode === 'create' ? props.gameId : props.quest.gameId}
           value={giver}
-          onChange={(e) => setGiver(e.target.value)}
-          placeholder="Who gave the quest (name or ID)"
+          onChange={setGiver}
           disabled={isSubmitting}
-          className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
+          aria-label="Quest giver (person or place)"
         />
       </div>
       <div>

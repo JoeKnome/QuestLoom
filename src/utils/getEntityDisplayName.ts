@@ -51,3 +51,26 @@ export async function getEntityDisplayName(
     return entityId
   }
 }
+
+/**
+ * Fetches the display name for a quest giver (person or place by ID).
+ * Tries person first, then place; used when the giver is stored as an ID only.
+ *
+ * @param _gameId - Game ID (unused; getById is sufficient for lookup)
+ * @param giverId - Person or place entity ID
+ * @returns The display name (person name or place name), or the id if not found
+ */
+export async function getGiverDisplayName(
+  _gameId: GameId,
+  giverId: string
+): Promise<string> {
+  if (!giverId.trim()) return ''
+  try {
+    const person = await personRepository.getById(giverId)
+    if (person != null) return person.name
+    const place = await placeRepository.getById(giverId)
+    return place?.name ?? giverId
+  } catch {
+    return giverId
+  }
+}
