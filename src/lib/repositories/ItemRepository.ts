@@ -5,8 +5,9 @@
 
 import type { Item } from '../../types/Item'
 import type { ItemState } from '../../types/ItemState'
+import { EntityType } from '../../types/EntityType'
 import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
+import { generateId, generateEntityId } from '../../utils/generateId'
 import { db, type ItemStateRow } from '../db'
 import type { CreateItemInput } from './CreateItemInput'
 import type { IItemRepository } from './IItemRepository'
@@ -26,7 +27,7 @@ class ItemRepositoryImpl implements IItemRepository {
   async create(input: CreateItemInput): Promise<Item> {
     const now = new Date().toISOString()
     const item: Item = {
-      id: generateId() as ItemId,
+      id: generateEntityId(EntityType.ITEM) as ItemId,
       gameId: input.gameId,
       name: input.name,
       location: input.location,

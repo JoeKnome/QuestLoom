@@ -5,7 +5,7 @@ import type { GameId, PlaythroughId, QuestId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
 import type { QuestProgress } from '../../types/QuestProgress'
 import { QuestStatus } from '../../types/QuestStatus'
-import { getGiverDisplayName } from '../../utils/getEntityDisplayName'
+import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
 import { QuestForm } from './QuestForm'
 
 /**
@@ -68,7 +68,7 @@ export function QuestListScreen({
       const names = await Promise.all(
         list.map(async (q) => ({
           id: q.id,
-          name: q.giver ? await getGiverDisplayName(gameId, q.giver) : '',
+          name: q.giver ? await getEntityDisplayName(q.giver) : '',
         }))
       )
       setGiverNames(Object.fromEntries(names.map(({ id, name }) => [id, name])))

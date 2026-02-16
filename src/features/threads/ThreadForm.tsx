@@ -8,6 +8,7 @@ import {
 import type { GameId, PlaythroughId } from '../../types/ids'
 import type { Thread } from '../../types/Thread'
 import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
+import { getEntityTypeFromId } from '../../utils/parseEntityId'
 
 /**
  * Props for ThreadForm when creating a new thread.
@@ -54,14 +55,18 @@ export type ThreadFormProps = ThreadFormCreateProps | ThreadFormEditProps
  */
 export function ThreadForm(props: ThreadFormProps): JSX.Element {
   const isCreate = props.mode === 'create'
-  const [sourceType, setSourceType] = useState<EntityType>(
-    isCreate ? EntityType.PERSON : props.thread.sourceType
+  const [sourceType, setSourceType] = useState<EntityType>(() =>
+    isCreate
+      ? EntityType.PERSON
+      : (getEntityTypeFromId(props.thread.sourceId) ?? EntityType.PERSON)
   )
   const [sourceId, setSourceId] = useState(
     isCreate ? '' : props.thread.sourceId
   )
-  const [targetType, setTargetType] = useState<EntityType>(
-    isCreate ? EntityType.PLACE : props.thread.targetType
+  const [targetType, setTargetType] = useState<EntityType>(() =>
+    isCreate
+      ? EntityType.PLACE
+      : (getEntityTypeFromId(props.thread.targetId) ?? EntityType.PLACE)
   )
   const [targetId, setTargetId] = useState(
     isCreate ? '' : props.thread.targetId
@@ -86,7 +91,7 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
         setError('Select a target entity.')
         return
       }
-      if (sourceId === targetId && sourceType === targetType) {
+      if (sourceId === targetId) {
         setError('Source and target must be different.')
         return
       }
@@ -100,9 +105,7 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               ? (props.playthroughId ?? undefined)
               : null,
             sourceId,
-            sourceType,
             targetId,
-            targetType,
             label: label.trim() || undefined,
           })
         } else {
@@ -118,16 +121,7 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [
-      sourceId,
-      targetId,
-      sourceType,
-      targetType,
-      label,
-      playthroughOnly,
-      isCreate,
-      props,
-    ]
+    [sourceId, targetId, label, playthroughOnly, isCreate, props]
   )
 
   const clearSourceId = useCallback(() => setSourceId(''), [])

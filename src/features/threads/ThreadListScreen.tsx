@@ -49,8 +49,8 @@ export function ThreadListScreen({
       await Promise.all(
         list.map(async (t) => {
           const [source, target] = await Promise.all([
-            getEntityDisplayName(gameId, t.sourceType, t.sourceId),
-            getEntityDisplayName(gameId, t.targetType, t.targetId),
+            getEntityDisplayName(t.sourceId),
+            getEntityDisplayName(t.targetId),
           ])
           nextLabels[t.id] = { source, target }
         })

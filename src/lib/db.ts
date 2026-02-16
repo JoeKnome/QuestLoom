@@ -76,6 +76,40 @@ export class QuestLoomDB extends Dexie {
       entityDiscovery:
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
     })
+    // v2: type-in-ID; clear entity and progress tables so all new data uses typed IDs
+    this.version(2)
+      .stores({
+        games: 'id',
+        playthroughs: 'id, gameId',
+        quests: 'id, gameId',
+        insights: 'id, gameId',
+        items: 'id, gameId',
+        persons: 'id, gameId',
+        places: 'id, gameId',
+        maps: 'id, gameId',
+        threads: 'id, gameId, playthroughId',
+        questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
+        insightProgress:
+          'id, playthroughId, insightId, [playthroughId+insightId]',
+        itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
+        entityDiscovery:
+          'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
+      })
+      .upgrade((tx) => {
+        return Promise.all([
+          tx.table('quests').clear(),
+          tx.table('insights').clear(),
+          tx.table('items').clear(),
+          tx.table('persons').clear(),
+          tx.table('places').clear(),
+          tx.table('maps').clear(),
+          tx.table('threads').clear(),
+          tx.table('questProgress').clear(),
+          tx.table('insightProgress').clear(),
+          tx.table('itemState').clear(),
+          tx.table('entityDiscovery').clear(),
+        ])
+      })
   }
 }
 

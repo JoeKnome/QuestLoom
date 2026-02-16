@@ -4,8 +4,9 @@
  */
 
 import type { Place } from '../../types/Place'
+import { EntityType } from '../../types/EntityType'
 import type { GameId, PlaceId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
+import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
 import type { CreatePlaceInput } from './CreatePlaceInput'
 import type { IPlaceRepository } from './IPlaceRepository'
@@ -25,7 +26,7 @@ class PlaceRepositoryImpl implements IPlaceRepository {
   async create(input: CreatePlaceInput): Promise<Place> {
     const now = new Date().toISOString()
     const place: Place = {
-      id: generateId() as PlaceId,
+      id: generateEntityId(EntityType.PLACE) as PlaceId,
       gameId: input.gameId,
       name: input.name,
       notes: input.notes ?? '',

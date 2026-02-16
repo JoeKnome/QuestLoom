@@ -4,8 +4,9 @@
  */
 
 import type { Map } from '../../types/Map'
+import { EntityType } from '../../types/EntityType'
 import type { GameId, MapId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
+import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
 import type { CreateMapInput } from './CreateMapInput'
 import type { IMapRepository } from './IMapRepository'
@@ -25,7 +26,7 @@ class MapRepositoryImpl implements IMapRepository {
   async create(input: CreateMapInput): Promise<Map> {
     const now = new Date().toISOString()
     const map: Map = {
-      id: generateId() as MapId,
+      id: generateEntityId(EntityType.MAP) as MapId,
       gameId: input.gameId,
       name: input.name,
       imageUrl: input.imageUrl,

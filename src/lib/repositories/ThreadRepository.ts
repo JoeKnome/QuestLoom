@@ -4,8 +4,9 @@
  */
 
 import type { Thread } from '../../types/Thread'
+import { EntityType } from '../../types/EntityType'
 import type { GameId, PlaythroughId, ThreadId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
+import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
 import type { CreateThreadInput } from './CreateThreadInput'
 import type { IThreadRepository } from './IThreadRepository'
@@ -38,13 +39,11 @@ class ThreadRepositoryImpl implements IThreadRepository {
   async create(input: CreateThreadInput): Promise<Thread> {
     const now = new Date().toISOString()
     const thread: Thread = {
-      id: generateId() as ThreadId,
+      id: generateEntityId(EntityType.THREAD) as ThreadId,
       gameId: input.gameId,
       playthroughId: input.playthroughId ?? undefined,
       sourceId: input.sourceId,
-      sourceType: input.sourceType,
       targetId: input.targetId,
-      targetType: input.targetType,
       label: input.label ?? '',
       createdAt: now,
     }

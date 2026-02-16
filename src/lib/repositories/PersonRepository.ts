@@ -4,8 +4,9 @@
  */
 
 import type { Person } from '../../types/Person'
+import { EntityType } from '../../types/EntityType'
 import type { GameId, PersonId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
+import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
 import type { CreatePersonInput } from './CreatePersonInput'
 import type { IPersonRepository } from './IPersonRepository'
@@ -25,7 +26,7 @@ class PersonRepositoryImpl implements IPersonRepository {
   async create(input: CreatePersonInput): Promise<Person> {
     const now = new Date().toISOString()
     const person: Person = {
-      id: generateId() as PersonId,
+      id: generateEntityId(EntityType.PERSON) as PersonId,
       gameId: input.gameId,
       name: input.name,
       notes: input.notes ?? '',

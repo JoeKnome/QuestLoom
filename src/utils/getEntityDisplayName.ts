@@ -1,79 +1,60 @@
 import {
   insightRepository,
   itemRepository,
+  mapRepository,
   personRepository,
   placeRepository,
   questRepository,
 } from '../lib/repositories'
-import type { GameId } from '../types/ids'
 import { EntityType } from '../types/EntityType'
+import { parseEntityId } from './parseEntityId'
 
 /**
- * Fetches the display name for an entity (e.g. quest title, person name).
- * Used when listing threads or showing entity references.
+ * Fetches the display name for an entity by its typed ID (format type:uuid).
+ * Parses the ID to determine type and performs a single repository lookup.
+ * Use when the reference is polymorphic (e.g. quest giver) or when you only have the ID.
  *
- * @param gameId - Game ID (entities are scoped by game)
- * @param entityType - Type of the entity
- * @param entityId - Entity ID
- * @returns The display label, or the id if not found
+ * @param entityId - Typed entity ID (e.g. "3:uuid" for a person)
+ * @returns The display label, or the id if not found; empty string for empty/invalid id
  */
 export async function getEntityDisplayName(
-  _gameId: GameId,
-  entityType: EntityType,
   entityId: string
 ): Promise<string> {
+  const trimmed = entityId?.trim() ?? ''
+  if (trimmed === '') return ''
+  const parsed = parseEntityId(trimmed)
+  if (parsed == null) return trimmed
   try {
-    switch (entityType) {
+    switch (parsed.type) {
       case EntityType.QUEST: {
-        const q = await questRepository.getById(entityId)
-        return q?.title ?? entityId
+        const q = await questRepository.getById(trimmed)
+        return q?.title ?? trimmed
       }
       case EntityType.INSIGHT: {
-        const i = await insightRepository.getById(entityId)
-        return i?.title ?? entityId
+        const i = await insightRepository.getById(trimmed)
+        return i?.title ?? trimmed
       }
       case EntityType.ITEM: {
-        const i = await itemRepository.getById(entityId)
-        return i?.name ?? entityId
+        const i = await itemRepository.getById(trimmed)
+        return i?.name ?? trimmed
       }
       case EntityType.PERSON: {
-        const p = await personRepository.getById(entityId)
-        return p?.name ?? entityId
+        const p = await personRepository.getById(trimmed)
+        return p?.name ?? trimmed
       }
       case EntityType.PLACE: {
-        const p = await placeRepository.getById(entityId)
-        return p?.name ?? entityId
+        const p = await placeRepository.getById(trimmed)
+        return p?.name ?? trimmed
       }
-      case EntityType.MAP:
+      case EntityType.MAP: {
+        const m = await mapRepository.getById(trimmed)
+        return m?.name ?? trimmed
+      }
       case EntityType.THREAD:
-        return entityId
       default:
-        return entityId
+        return trimmed
     }
   } catch {
-    return entityId
-  }
-}
-
-/**
- * Fetches the display name for a quest giver (person or place by ID).
- * Tries person first, then place; used when the giver is stored as an ID only.
- *
- * @param _gameId - Game ID (unused; getById is sufficient for lookup)
- * @param giverId - Person or place entity ID
- * @returns The display name (person name or place name), or the id if not found
- */
-export async function getGiverDisplayName(
-  _gameId: GameId,
-  giverId: string
-): Promise<string> {
-  if (!giverId.trim()) return ''
-  try {
-    const person = await personRepository.getById(giverId)
-    if (person != null) return person.name
-    const place = await placeRepository.getById(giverId)
-    return place?.name ?? giverId
-  } catch {
-    return giverId
+    return trimmed
   }
 }

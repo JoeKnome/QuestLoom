@@ -5,8 +5,9 @@
 
 import type { Quest } from '../../types/Quest'
 import type { QuestProgress } from '../../types/QuestProgress'
+import { EntityType } from '../../types/EntityType'
 import type { GameId, PlaythroughId, QuestId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
+import { generateId, generateEntityId } from '../../utils/generateId'
 import { db, type QuestProgressRow } from '../db'
 import type { CreateQuestInput } from './CreateQuestInput'
 import type { IQuestRepository } from './IQuestRepository'
@@ -26,7 +27,7 @@ class QuestRepositoryImpl implements IQuestRepository {
   async create(input: CreateQuestInput): Promise<Quest> {
     const now = new Date().toISOString()
     const quest: Quest = {
-      id: generateId() as QuestId,
+      id: generateEntityId(EntityType.QUEST) as QuestId,
       gameId: input.gameId,
       title: input.title,
       giver: input.giver,

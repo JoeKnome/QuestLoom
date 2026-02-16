@@ -5,8 +5,9 @@
 
 import type { Insight } from '../../types/Insight'
 import type { InsightProgress } from '../../types/InsightProgress'
+import { EntityType } from '../../types/EntityType'
 import type { GameId, InsightId, PlaythroughId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
+import { generateId, generateEntityId } from '../../utils/generateId'
 import { db, type InsightProgressRow } from '../db'
 import type { CreateInsightInput } from './CreateInsightInput'
 import type { IInsightRepository } from './IInsightRepository'
@@ -26,7 +27,7 @@ class InsightRepositoryImpl implements IInsightRepository {
   async create(input: CreateInsightInput): Promise<Insight> {
     const now = new Date().toISOString()
     const insight: Insight = {
-      id: generateId() as InsightId,
+      id: generateEntityId(EntityType.INSIGHT) as InsightId,
       gameId: input.gameId,
       title: input.title,
       content: input.content,
