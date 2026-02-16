@@ -38,12 +38,12 @@ export function ThreadListScreen({
   const [deleteTarget, setDeleteTarget] = useState<ThreadId | null>(null)
 
   /**
-   * Loads the threads for the current game.
+   * Loads the threads for the current game (game-level plus current playthrough only).
    */
   const loadThreads = useCallback(async () => {
     setIsLoading(true)
     try {
-      const list = await threadRepository.getByGameId(gameId)
+      const list = await threadRepository.getByGameId(gameId, playthroughId)
       setThreads(list)
       const nextLabels: Record<string, { source: string; target: string }> = {}
       await Promise.all(
@@ -59,7 +59,7 @@ export function ThreadListScreen({
     } finally {
       setIsLoading(false)
     }
-  }, [gameId])
+  }, [gameId, playthroughId])
 
   useEffect(() => {
     loadThreads()

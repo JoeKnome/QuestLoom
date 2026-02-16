@@ -8,11 +8,14 @@ import type { CreateThreadInput } from './CreateThreadInput'
  */
 export interface IThreadRepository {
   /**
-   * Returns all threads for a game; optionally filter by playthrough.
+   * Returns threads for a game; optionally scoped by playthrough.
+   * When playthroughId is omitted, returns all threads for the game.
+   * When playthroughId is null, returns only game-level threads (no playthrough-only).
+   * When playthroughId is set, returns game-level threads plus that playthrough's threads only.
    *
    * @param gameId - The ID of the game.
-   * @param playthroughId - The ID of the playthrough.
-   * @returns All threads for the game.
+   * @param playthroughId - Optional. Null = game-level only; set = game-level + that playthrough.
+   * @returns Threads for the game (filtered by playthrough when provided).
    */
   getByGameId(
     gameId: GameId,

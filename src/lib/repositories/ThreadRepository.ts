@@ -19,9 +19,13 @@ class ThreadRepositoryImpl implements IThreadRepository {
     playthroughId?: PlaythroughId | null
   ): Promise<Thread[]> {
     const collection = db.threads.where('gameId').equals(gameId)
-    if (playthroughId !== undefined && playthroughId !== null) {
+    if (playthroughId !== undefined) {
       return collection
-        .filter((t) => t.playthroughId === playthroughId)
+        .filter((t) =>
+          playthroughId === null
+            ? t.playthroughId == null
+            : t.playthroughId == null || t.playthroughId === playthroughId
+        )
         .toArray()
     }
     return collection.toArray()
