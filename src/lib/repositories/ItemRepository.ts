@@ -95,7 +95,7 @@ class ItemRepositoryImpl implements IItemRepository {
 
 /**
  * Convert a ItemStateRow to an ItemState.
- * 
+ *
  * @param row - The ItemStateRow to convert.
  * @returns The ItemState.
  */

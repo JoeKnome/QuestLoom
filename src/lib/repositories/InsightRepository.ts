@@ -97,7 +97,7 @@ class InsightRepositoryImpl implements IInsightRepository {
 
 /**
  * Convert a InsightProgressRow to an InsightProgress.
- * 
+ *
  * @param row - The InsightProgressRow to convert.
  * @returns The InsightProgress.
  */

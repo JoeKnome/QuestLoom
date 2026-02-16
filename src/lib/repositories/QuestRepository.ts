@@ -95,7 +95,7 @@ class QuestRepositoryImpl implements IQuestRepository {
 
 /**
  * Convert a QuestProgressRow to a QuestProgress.
- * 
+ *
  * @param row - The QuestProgressRow to convert.
  * @returns The QuestProgress.
  */

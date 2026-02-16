@@ -57,7 +57,7 @@ class EntityDiscoveryRepositoryImpl implements IEntityDiscoveryRepository {
 
 /**
  * Convert a EntityDiscoveryRow to an EntityDiscovery.
- * 
+ *
  * @param row - The EntityDiscoveryRow to convert.
  * @returns The EntityDiscovery.
  */
