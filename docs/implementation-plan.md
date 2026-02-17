@@ -24,25 +24,25 @@ No backend, auth, or sync in the initial implementation; add them when moving to
 
 **Status:** Validation steps succeeded; node/npm are available for subsequent phases.
 
-### 0.1 Create Vite + React + TypeScript app
+### 0.1 Create Vite + React + TypeScript app ✅ Complete
 
 - In repo root: `npm create vite@latest . -- --template react-ts` (use `.` to create in current directory; accept overwrite for existing files if prompted, or create in a temp dir and merge).
 - Install dependencies: `npm install`.
 - Verify: `npm run dev` — default Vite React page loads.
 
-### 0.2 Add tooling and styling
+### 0.2 Add tooling and styling ✅ Complete
 
 - **Tailwind CSS**: `npm install -D tailwindcss postcss autoprefixer` then `npx tailwindcss init -p`; configure `tailwind.config.js` content for `./index.html` and `./src/**/*.{js,ts,jsx,tsx}`; add Tailwind directives to `src/index.css`.
 - **ESLint + Prettier**: Extend ESLint for TypeScript and React (e.g. `@typescript-eslint`, `eslint-plugin-react`); add Prettier and avoid conflicts (e.g. `eslint-config-prettier`).
 - **Zustand**: `npm install zustand`.
 - **Dexie**: `npm install dexie` (and `dexie-react-hooks` if you want reactive queries in React).
 
-### 0.3 Project structure
+### 0.3 Project structure ✅ Complete
 
 - Create folders under `src/`: `components/`, `features/`, `hooks/`, `stores/`, `types/`, `utils/`, and optionally `lib/` (for shared data layer).
 - Replace the default Vite page with a minimal **app shell**: one layout with a simple header/title (e.g. "QuestLoom") and a placeholder main area. No routing yet if you prefer a single view; add a simple router (e.g. React Router) when you add multiple views.
 
-### 0.4 Definition of done (Phase 0)
+### 0.4 Wrap up (Phase 0) ✅ Complete
 
 - [x] `npm run dev` runs and shows a QuestLoom shell (header + main area).
 - [x] `npm run build` succeeds.
@@ -100,7 +100,7 @@ npm run format # Optional: format code
 - **Game list / create game** — Single screen: list existing games (from Dexie via repository); button "New game" that creates a game and optionally a default playthrough, then sets it as current. Data flows: UI → repository → Dexie; UI reads from repository (or from a Zustand store that the repository updates).
 - Implemented: `GameListScreen`, `CreateGameForm`, minimal `PlaythroughRepository`; selecting a game sets it (and first playthrough) as current; selection persists in localStorage.
 
-### 1.4 Wrap up ✅ Complete
+### 1.4 Wrap up (Phase 1) ✅ Complete
 
 - [x] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
 - [x] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. *(Repository and store exist; UI in 1.3 consumes them.)*
@@ -152,7 +152,7 @@ Implemented: All seven entity repositories in `src/lib/repositories/` with getBy
 
 Implemented: GameView includes a sidebar (responsive: horizontal scroll on small screens, vertical on md+) and content area. Each section renders a list screen (QuestListScreen, InsightListScreen, ItemListScreen, PersonListScreen, PlaceListScreen, MapListScreen, ThreadListScreen) with create/edit forms and delete (ConfirmDialog). Shared components: PlacePicker, MapPicker, EntityPicker; getEntityDisplayName for thread labels. Quest/Insight/Item lists show and edit playthrough progress/state (status dropdown) when a playthrough is selected.
 
-### 2.5 Wrap up ✅ Complete
+### 2.5 Wrap up (Phase 2) ✅ Complete
 
 - [x] All entity types have repository APIs and Dexie persistence; game vs playthrough scoping is enforced.
 - [x] User can select, create, edit, and delete playthroughs.
@@ -190,11 +190,14 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 - [x] **Layout** — Force-directed layout via **d3-force** (threads are relationship-focused, not hierarchical). Auto-layout on load.
 - [x] **Interactions** — Select a node to highlight its edges; click an edge to focus/select source and target. Fit view control in the Loom. (Path highlight between two nodes can be a follow-up.)
 
-### 3.3 Definition of done (Phase 3)
+### 3.3 Wrap up (Phase 3)
 
 - [x] Threads are created and stored; thread list and per-entity thread views work (Phase 3.1).
 - [x] Loom view renders the graph for the current game; user can explore by following threads (Phase 3.2).
 - [x] Still local-only; repositories unchanged for future redirect.
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ---
 
@@ -210,11 +213,14 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 - **Rules** — Define which entities/insights/threads are visible only after certain conditions (e.g. insight resolved, item acquired). Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the loom (hide or grey out not-yet-visible nodes/edges).
 
-### 4.3 Definition of done (Phase 4)
+### 4.3 Wrap up (Phase 4)
 
 - [ ] "What I can do next" (or similar) is visible and driven by current items/insights.
 - [ ] Spoiler gating hides or softens content until progression conditions are met.
 - [ ] Data and logic remain local; repository interface unchanged.
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ---
 
@@ -225,3 +231,9 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 - **Maps** — Upload/store map images (e.g. as blobs or base64 in IndexedDB; or file references); markers linked to places; optional full-screen map view.
 - **Responsive and a11y** — Touch-friendly controls, basic keyboard navigation, and semantic markup so the app works on tablet/phone during play.
 - **Redirectability** — Document repository interfaces; add a thin "data source" abstraction if helpful (e.g. `createLocalDataSource()` vs future `createRemoteDataSource(baseUrl)` that return the same repository interface). No backend code required yet; just a clear boundary so adding API clients later is a contained change.
+
+### 5.1 Wrap up (Phase 5)
+
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
