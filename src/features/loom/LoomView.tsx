@@ -12,13 +12,11 @@ import {
   getConnectedEdges,
   Panel,
   type Edge,
-  type Node,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useCallback, useEffect, useRef } from 'react'
 import type { GameId, PlaythroughId } from '../../types/ids'
 import { EntityNode } from './EntityNode'
-import type { EntityNodeData } from './useLoomGraph'
 import { useLoomGraph } from './useLoomGraph'
 
 /** Custom node types for the Loom. */
@@ -59,28 +57,19 @@ function LoomContent({ gameId, playthroughId }: LoomViewProps): JSX.Element {
     prevLoading.current = isLoading
   }, [isLoading, initialNodes, initialEdges, setNodes, setEdges])
 
-  // When selection changes, highlight edges connected to selected nodes
-  const onSelectionChange = useCallback(
-    ({
-      nodes: currentNodes,
-      edges: currentEdges,
-    }: {
-      nodes: Node<EntityNodeData>[]
-      edges: Edge[]
-    }) => {
-      const selectedNodes = currentNodes.filter((n) => n.selected)
-      if (selectedNodes.length === 0) {
-        setEdges((eds) => eds.map((e) => ({ ...e, selected: false })))
-        return
-      }
-      const connected = getConnectedEdges(selectedNodes, currentEdges)
+  // Sync edge selection whenever node selection changes (so connected edges highlight)
+  useEffect(() => {
+    const selectedNodes = nodes.filter((n) => n.selected)
+    if (selectedNodes.length === 0) {
+      setEdges((eds) => eds.map((e) => ({ ...e, selected: false })))
+      return
+    }
+    setEdges((eds) => {
+      const connected = getConnectedEdges(selectedNodes, eds)
       const connectedIds = new Set(connected.map((e) => e.id))
-      setEdges((eds) =>
-        eds.map((e) => ({ ...e, selected: connectedIds.has(e.id) }))
-      )
-    },
-    [setEdges]
-  )
+      return eds.map((e) => ({ ...e, selected: connectedIds.has(e.id) }))
+    })
+  }, [nodes, setEdges])
 
   /**
    * Handles the click event on an edge.
@@ -89,15 +78,16 @@ function LoomContent({ gameId, playthroughId }: LoomViewProps): JSX.Element {
    * @param edge - The edge that was clicked.
    */
   const onEdgeClick = useCallback(
-    (_event: React.MouseEvent, edge: Edge): void => {
+    (_event: React.MouseEvent, clickedEdge: Edge): void => {
       setNodes((nodes) =>
         nodes.map((node) => ({
           ...node,
-          selected: node.id === edge.source || node.id === edge.target,
+          selected:
+            node.id === clickedEdge.source || node.id === clickedEdge.target,
         }))
       )
       setEdges((edges) =>
-        edges.map((edge) => ({ ...edge, selected: edge.id === edge.id }))
+        edges.map((e) => ({ ...e, selected: e.id === clickedEdge.id }))
       )
     },
     [setNodes, setEdges]
@@ -145,7 +135,6 @@ function LoomContent({ gameId, playthroughId }: LoomViewProps): JSX.Element {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onSelectionChange={onSelectionChange}
         onEdgeClick={onEdgeClick}
         nodeTypes={nodeTypes}
         fitView

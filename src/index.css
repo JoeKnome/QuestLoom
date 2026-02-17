@@ -9,3 +9,8 @@
 .loom-flow .react-flow__nodes {
   z-index: 1;
 }
+/* Loom: clear highlight for selected (connected) edges */
+.loom-flow .react-flow__edge.selected .react-flow__edge-path {
+  stroke: #40569d;
+  stroke-width: 2;
+}
