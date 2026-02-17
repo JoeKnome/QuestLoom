@@ -150,6 +150,8 @@ export function useLoomGraph(
           source: t.sourceId,
           target: t.targetId,
           label: t.label || undefined,
+          type: 'default',
+          pathOptions: { curvature: 0.1 },
         }))
 
       setNodes(flowNodes)
