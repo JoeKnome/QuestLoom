@@ -211,13 +211,15 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 ### 4.1 Map tab and map selection grid
 
-- [ ] **Map tab behavior** — Ensure the existing Maps sidebar tab (from Phase 2) can represent two modes: **selection** (grid of maps) and **map view** (single map). Track map UI state in a store (e.g. `useGameViewStore`) with fields like `mapUiMode: 'selection' | 'view'` and `lastViewedMapId`.
-- [ ] **Tab interaction rules** — Implement logic so that:
+- [x] **Map tab behavior** — Ensure the existing Maps sidebar tab (from Phase 2) can represent two modes: **selection** (grid of maps) and **map view** (single map). Track map UI state in a store (e.g. `useGameViewStore`) with fields like `mapUiMode: 'selection' | 'view'` and `lastViewedMapId`.
+- [x] **Tab interaction rules** — Implement logic so that:
   - When the user is on a **different** sidebar tab, clicking **Maps** opens the **last viewed map view** if `lastViewedMapId` is set; otherwise it opens **map selection**.
   - When the user is already in the **map view**, clicking the **Maps** tab switches back to **map selection**.
   - When the user is in **map selection** and chooses a map, the UI switches to **map view** and updates `lastViewedMapId`.
-- [ ] **Selection grid** — Replace the existing list-style maps screen with a responsive **grid of tiles**. Each tile shows the map name, a small preview of the map image (or a placeholder if none is set), and a subtle hover/focus state. Use Tailwind utilities and existing card components for visual consistency.
-- [ ] **Selection actions** — Clicking a tile opens the map view for that map. Keep create/edit/delete controls available from this grid (e.g. a toolbar button for "New map" and contextual actions per tile).
+- [x] **Selection grid** — Replace the existing list-style maps screen with a responsive **grid of tiles**. Each tile shows the map name, a small preview of the map image (or a placeholder if none is set), and a subtle hover/focus state. Use Tailwind utilities and existing card components for visual consistency.
+- [x] **Selection actions** — Clicking a tile opens the map view for that map. Keep create/edit/delete controls available from this grid (e.g. a toolbar button for "New map" and contextual actions per tile).
+
+Implemented: Added a `useGameViewStore` to track `mapUiMode` and `lastViewedMapId`, updated `GameView` so the Maps sidebar tab toggles between the selection grid and the last viewed map according to the rules above, and refactored the maps feature into a responsive grid of map tiles with image previews, a toolbar “New map” button, and per-tile Edit/Delete actions; clicking a tile opens the corresponding map view and records it as last viewed.
 
 ### 4.2 Map create/edit: image sources
 
