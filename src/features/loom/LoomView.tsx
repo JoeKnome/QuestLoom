@@ -84,7 +84,7 @@ function LoomContent({ gameId, playthroughId }: LoomViewProps): JSX.Element {
 
   /**
    * Handles the click event on an edge.
-   * 
+   *
    * @param _event - The mouse event.
    * @param edge - The edge that was clicked.
    */
@@ -96,10 +96,11 @@ function LoomContent({ gameId, playthroughId }: LoomViewProps): JSX.Element {
           selected: node.id === edge.source || node.id === edge.target,
         }))
       )
-      setEdges((edges) => edges.map((edge) => ({ ...edge, selected: edge.id === edge.id })))
-      setTimeout(() => fitView({ padding: 0.2 }), 100)
+      setEdges((edges) =>
+        edges.map((edge) => ({ ...edge, selected: edge.id === edge.id }))
+      )
     },
-    [setNodes, setEdges, fitView]
+    [setNodes, setEdges]
   )
 
   /**
