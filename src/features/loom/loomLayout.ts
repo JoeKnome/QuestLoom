@@ -5,6 +5,7 @@
 
 import {
   forceCenter,
+  forceCollide,
   forceLink,
   forceManyBody,
   forceSimulation,
@@ -73,13 +74,17 @@ export function runForceLayout(
       'link',
       forceLink(d3Links)
         .id((d) => (d as D3ForceNode).id)
-        .distance(80)
+        .distance(140)
     )
-    .force('charge', forceManyBody().strength(-200))
+    .force('charge', forceManyBody().strength(-90))
+    .force(
+      'collide',
+      forceCollide().radius(36).strength(0.8)
+    )
     .force('center', forceCenter(width / 2, height / 2))
 
   // Run simulation synchronously for a fixed number of ticks
-  for (let i = 0; i < 300; i++) {
+  for (let i = 0; i < 350; i++) {
     simulation.tick()
   }
   simulation.stop()
