@@ -1,6 +1,7 @@
 /**
  * Custom React Flow node for Loom entity (quest, insight, item, person, place, map).
- * Shows entity type badge and display name. Includes Handle components so edges can attach.
+ * Shows entity type badge and display name. Handles are centered so edges connect node-to-node
+ * at the middle of each node (omni-directional); they are invisible and for connection only.
  */
 
 import type { Node, NodeProps } from '@xyflow/react'
@@ -12,9 +13,24 @@ import type { EntityNodeData } from './useLoomGraph'
 /** Entity node type for Loom (custom data). */
 type EntityNodeType = Node<EntityNodeData>
 
+/** Invisible, centered handle so edges connect to node center (no Position.Center in API). */
+const centerHandleStyle: React.CSSProperties = {
+  position: 'absolute',
+  left: '50%',
+  top: '50%',
+  transform: 'translate(-50%, -50%)',
+  opacity: 0,
+  width: 1,
+  height: 1,
+  minWidth: 1,
+  minHeight: 1,
+  border: 'none',
+  padding: 0,
+}
+
 /**
  * Renders a single entity as a Loom node: type badge + label.
- * Source and target Handles allow edges to connect; without them edges do not render.
+ * Source and target Handles are placed at the node center so edges connect center-to-center.
  *
  * @param props - React Flow node props; data contains entityType and label.
  * @returns A JSX element representing the EntityNode component.
@@ -28,14 +44,24 @@ function EntityNodeComponent({
 
   return (
     <div
-      className={`rounded border bg-white px-3 py-2 shadow-sm ${
+      className={`relative rounded border bg-white px-3 py-2 shadow-sm ${
         selected
           ? 'border-slate-400 ring-2 ring-slate-300'
           : 'border-slate-200 hover:border-slate-300'
       }`}
     >
-      <Handle type="target" position={Position.Top} className="!border-slate-300 !bg-white" />
-      <Handle type="source" position={Position.Top} className="!border-slate-300 !bg-white" />
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={centerHandleStyle}
+        className="!border-0"
+      />
+      <Handle
+        type="source"
+        position={Position.Top}
+        style={centerHandleStyle}
+        className="!border-0"
+      />
       <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
         {typeLabel}
       </div>

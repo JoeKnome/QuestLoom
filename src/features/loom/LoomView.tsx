@@ -137,8 +137,9 @@ function LoomContent({ gameId, playthroughId }: LoomViewProps): JSX.Element {
   }
 
   return (
-    <div className="h-full min-h-[400px] w-full">
+    <div className="loom-flow h-full min-h-[400px] w-full">
       <ReactFlow
+        className="loom-flow__canvas"
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}

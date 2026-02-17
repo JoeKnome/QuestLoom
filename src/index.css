@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Loom: edges behind nodes so nodes sit on top of connecting lines */
+.loom-flow .react-flow__edges {
+  z-index: 0;
+}
+.loom-flow .react-flow__nodes {
+  z-index: 1;
+}
