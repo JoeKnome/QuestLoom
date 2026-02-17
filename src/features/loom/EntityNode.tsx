@@ -34,8 +34,8 @@ function EntityNodeComponent({
           : 'border-slate-200 hover:border-slate-300'
       }`}
     >
-      <Handle type="target" position={Position.Left} className="!border-slate-300 !bg-white" />
-      <Handle type="source" position={Position.Right} className="!border-slate-300 !bg-white" />
+      <Handle type="target" position={Position.Top} className="!border-slate-300 !bg-white" />
+      <Handle type="source" position={Position.Top} className="!border-slate-300 !bg-white" />
       <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
         {typeLabel}
       </div>

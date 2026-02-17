@@ -74,7 +74,7 @@ export function runForceLayout(
       'link',
       forceLink(d3Links)
         .id((d) => (d as D3ForceNode).id)
-        .distance(140)
+        .distance(200)
     )
     .force('charge', forceManyBody().strength(-90))
     .force(
