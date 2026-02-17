@@ -205,19 +205,93 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 ---
 
-## Phase 4: Contextual Progression and Spoiler Safety
+## Phase 4: Map View
+
+**Goal:** Give maps a dedicated experience: browse maps as a grid of previews, set map images via URL or upload, and view a selected map in a zoomable, pannable map view with intuitive sidebar tab behavior.
+
+### 4.1 Map tab and map selection grid
+
+- [ ] **Map tab behavior** — Ensure the existing Maps sidebar tab (from Phase 2) can represent two modes: **selection** (grid of maps) and **map view** (single map). Track map UI state in a store (e.g. `useGameViewStore`) with fields like `mapUiMode: 'selection' | 'view'` and `lastViewedMapId`.
+- [ ] **Tab interaction rules** — Implement logic so that:
+  - When the user is on a **different** sidebar tab, clicking **Maps** opens the **last viewed map view** if `lastViewedMapId` is set; otherwise it opens **map selection**.
+  - When the user is already in the **map view**, clicking the **Maps** tab switches back to **map selection**.
+  - When the user is in **map selection** and chooses a map, the UI switches to **map view** and updates `lastViewedMapId`.
+- [ ] **Selection grid** — Replace the existing list-style maps screen with a responsive **grid of tiles**. Each tile shows the map name, a small preview of the map image (or a placeholder if none is set), and a subtle hover/focus state. Use Tailwind utilities and existing card components for visual consistency.
+- [ ] **Selection actions** — Clicking a tile opens the map view for that map. Keep create/edit/delete controls available from this grid (e.g. a toolbar button for "New map" and contextual actions per tile).
+
+### 4.2 Map create/edit: image sources
+
+- [ ] **Map image fields** — Extend the `Map` entity and repository to support an image reference that can come from either a URL or an uploaded asset (e.g. `imageSourceType: 'url' | 'upload'`, `imageUrl?: string`, `imageBlobId?: string`). Keep storage details encapsulated in the repository layer.
+- [ ] **URL input** — In the map create/edit form, add an "Image URL" option with validation (basic URL format, test fetch for preview). Selecting this option stores `imageSourceType = 'url'` and the provided URL; show a live preview thumbnail in the form.
+- [ ] **Upload from disk** — Add a file input control for image uploads (PNG/JPEG/WebP). When a file is chosen, read and store it via the repository (e.g. as a blob or file reference managed by Dexie), setting `imageSourceType = 'upload'`. Show upload progress where appropriate and render a preview once stored or buffered.
+- [ ] **Drag and drop** — Add a drag-and-drop zone on the create/edit form that accepts image files and routes them through the same upload pipeline as the file input. Highlight the drop zone on drag-over; reject non-image files with a user-friendly message.
+- [ ] **Editing behavior** — When editing an existing map, pre-populate the current image source, allow switching between URL and upload, and ensure the repository cleans up any orphaned uploaded blobs when the source changes or a map is deleted.
+
+### 4.3 Map view: render, zoom, and pan
+
+- [ ] **Map view screen** — Introduce a dedicated `MapView` screen/component that takes a `mapId`, loads the map via the repository, and renders the map image in the main content area of the Maps tab.
+- [ ] **Image rendering** — Resolve the correct image source (URL vs uploaded blob) and display it at a suitable base zoom level. Handle loading and error states (e.g. failed URL fetch, missing image).
+- [ ] **Zoom and pan** — Implement client-side zoom and pan (e.g. via CSS transforms and pointer/mouse wheel handlers, or a lightweight pan/zoom helper library). Support mouse wheel zoom, click-and-drag (or touch drag) pan, and a "reset view" control to fit the map to the viewport.
+- [ ] **Integration with tab behavior** — Ensure that entering map view from the grid sets `mapUiMode = 'view'` and `lastViewedMapId`, and that the sidebar tab interactions defined in 4.1 correctly switch between selection and view modes without losing the current zoom/pan state when returning to the same map.
+- [ ] **Accessibility and responsiveness** — Make zoom/pan controls keyboard-accessible where practical, keep the map view usable on smaller screens, and ensure the map grid and map view share consistent styling with other feature tabs.
+
+### 4.4 Map entity and loom integration
+
+- [ ] **Map as view-only entity** — Clarify in `docs/data-models.md` and repository docs that the `Map` entity exists primarily to back the map view experience and should **not** appear as a node in the Loom or be directly connectable via threads.
+- [ ] **Place as map representative** — Establish `Place` as the entity type used in threads and the Loom to represent locations and maps. Ensure UI copy and tooltips reinforce that threads connect places (and other entities), not maps.
+- [ ] **Top-level place per map** — Extend map creation logic so that creating a map automatically creates a corresponding top-level `Place` (e.g. "Map: Tavern District") associated with that map. Store the association in the map and/or place records so it can be resolved efficiently.
+- [ ] **Loom node adjustments** — Update the Loom view configuration so that nodes of type `MAP` are no longer rendered; instead, the associated top-level `Place` is used to represent that map in the Loom.
+- [ ] **Cascade on map delete** — When a map is deleted, automatically delete its associated top-level `Place` and any child places that are scoped specifically to that map, reusing existing cascading delete patterns. Ensure that thread and discovery repositories clean up any connections involving those places, as in Phase 3.
+- [ ] **Name synchronization** — Implement two-way name syncing such that renaming a map also renames its associated top-level place, and renaming that place updates the map name. Log this coupling in docs to avoid accidental divergence.
+
+### 4.5 Map markers: data and display
+
+- [ ] **Marker model** — Introduce a `MapMarker` data model and repository keyed by game (and optionally playthrough) that links a `mapId` and an entity endpoint (`entityId`) with a persistent position stored relative to the map (e.g. normalized `x`/`y` between 0 and 1).
+- [ ] **Eligible entities** — Ensure that all entities except maps and threads can have markers (**same set as `THREAD_ENDPOINT_ENTITY_TYPES` from `EntityType.ts`**). Add guardrails in the marker creation UI to restrict selection to this set.
+- [ ] **Initial marker rendering** — In `MapView`, load markers for the current map and render them on top of the image at their relative positions, transforming them alongside zoom and pan so they remain correctly aligned.
+- [ ] **Basic marker styling** — Implement simple, readable marker visuals for this phase: small circular or pill-shaped badges where the **marker color is tied to the entity type** and the **first letter of the entity’s name** is displayed inside.
+- [ ] **Tooltips** — On hover or focus, show a minimal tooltip near the marker with the full entity name. Follow existing tooltip patterns/components where available.
+
+### 4.6 Map markers: interaction and context menu
+
+- [ ] **Pan vs move safeguards** — Default interactions prioritize safe panning: click-and-drag on the map pans, clicking a marker selects it. Moving a marker requires an explicit action (e.g. "Move marker" from a context menu) so markers are not accidentally dragged while panning. Middle mouse button always pans, with no selection behavior.
+- [ ] **Map context menu** — Implement a right-click (or long-press on touch) context menu on the map background that anchors at the clicked location and lists actions relevant to that point.
+- [ ] **Add marker here (existing entity)** — From the context menu, allow the user to "Add marker here" for an existing entity by opening a lightweight picker limited to eligible entity types. On selection, create a `MapMarker` at that location for the chosen entity.
+- [ ] **Add marker here (new entity)** — Support creating a new entity (e.g. place, item, person, quest, insight) and placing its marker in a single flow (modal or side panel). After creation via the appropriate repository, automatically create a `MapMarker` at the context menu location.
+- [ ] **Marker context menu** — When right-clicking on an existing marker (or long-press on touch), show a marker-specific context menu with actions including **Move marker** and **Delete marker** (with variations below).
+- [ ] **Move marker flow** — Choosing "Move marker" enters a move mode where the marker visually attaches to the cursor; panning is restricted to the middle mouse button. On the next click (mouse up or tap), the marker’s position is updated to the new location and move mode ends; ESC cancels and restores the original position.
+- [ ] **Delete marker only** — Provide an option to delete only the marker while leaving the underlying entity intact. This removes the `MapMarker` record but does not touch the entity or its threads.
+- [ ] **Delete marker and entity** — Provide an option to delete both the marker and the associated entity, with clear confirmation text describing cascading consequences. Reuse existing entity delete flows so all associated threads and discovery data are removed consistently.
+
+### 4.7 Definition of done (Phase 4)
+
+- [ ] The Maps sidebar tab supports both a selection grid and a map view, with tab clicks behaving as specified (toggle selection/view; return to last viewed map when coming from other tabs).
+- [ ] The map selection experience is a grid of tiles showing map names and image previews, with create/edit/delete actions available.
+- [ ] Creating or editing a map allows setting the image via URL, file upload, or drag-and-drop, and the image is persisted via the map repository.
+- [ ] The map view renders the selected map image and supports smooth zoom and pan interactions.
+- [ ] Maps are represented in the Loom via associated top-level places; maps themselves do not appear as Loom nodes or thread endpoints.
+- [ ] Each map has a top-level place that is created, renamed, and deleted in lockstep with the map, with Loom and thread data updating accordingly.
+- [ ] Map markers are stored as persistent data linked to maps and non-map/thread entities, rendered on the map with simple type-colored visuals and tooltips.
+- [ ] Users can add, move, and delete markers via deliberate interactions and a context menu, including flows that create new entities at a location or delete entities with full cascading behavior.
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
+
+---
+
+## Phase 5: Contextual Progression and Spoiler Safety
 
 **Goal:** Surface "what you can do next" from current items/insights; hide information until the user has the right progression (spoiler-friendly).
 
-### 4.1 Contextual progression
+### 5.1 Contextual progression
 
 - **Logic** — Implement in `utils/` or `lib/`: given current playthrough state (items possessed, insights resolved, quest progress), compute "actionable" threads or next steps. Consume from a hook or store; display in a dedicated section or in the loom (e.g. highlight actionable edges).
 
-### 4.2 Spoiler visibility
+### 5.2 Spoiler visibility
 
 - **Rules** — Define which entities/insights/threads are visible only after certain conditions (e.g. insight resolved, item acquired). Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the loom (hide or grey out not-yet-visible nodes/edges).
 
-### 4.3 Definition of done (Phase 4)
+### 5.3 Definition of done (Phase 5)
 
 - [ ] "What I can do next" (or similar) is visible and driven by current items/insights.
 - [ ] Spoiler gating hides or softens content until progression conditions are met.
@@ -228,15 +302,15 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 ---
 
-## Phase 5: Polish and Redirectability Checklist
+## Phase 6: Polish and Redirectability Checklist
 
 **Goal:** App is stable for daily use; codebase is ready to plug in a hosted backend when needed.
 
-- **Maps** — Upload/store map images (e.g. as blobs or base64 in IndexedDB; or file references); markers linked to places; optional full-screen map view.
+- **Maps** — Optional full-screen map view and visual/interaction polish for the map markers and map view introduced in Phase 4 (e.g. refined marker design, animations, advanced filtering, or layering), plus any additional map-related polish not covered earlier.
 - **Responsive and a11y** — Touch-friendly controls, basic keyboard navigation, and semantic markup so the app works on tablet/phone during play.
 - **Redirectability** — Document repository interfaces; add a thin "data source" abstraction if helpful (e.g. `createLocalDataSource()` vs future `createRemoteDataSource(baseUrl)` that return the same repository interface). No backend code required yet; just a clear boundary so adding API clients later is a contained change.
 
-### 5.1 Definition of done (Phase 5)
+### 6.1 Definition of done (Phase 6)
 
 - [ ] All documentation pages are updated reflecting the latest state of the app.
 - [ ] All items left to do are documented for future action.
