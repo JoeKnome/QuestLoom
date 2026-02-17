@@ -179,14 +179,15 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 ### 3.1 Thread creation and listing ✅ Complete
 
-- **Generalized thread representation** — Threads are the primary representation of entity connections. The UI creates a representative thread when you link entities (quest giver, item location, place map) and keeps the existing entity field in sync (dual-write). Reserved thread labels: `giver`, `location`, `map`.
-- **Thread repository** — `getThreadsFromEntity(gameId, entityId, playthroughId?)` and `deleteThreadsInvolvingEntity(gameId, entityId)` added. Deleting any entity (quest, insight, item, person, place, map) cascades to remove threads involving that entity.
-- **UI** — `EntityConnections` component shows threads from an entity; each list screen (Quests, Insights, Items, People, Places) has an expandable row with a "Connections" button that reveals threads for that entity.
+- [x] **Generalized thread representation** — Threads are the primary representation of entity connections. The UI creates a representative thread when you link entities (quest giver, item location, place map) and keeps the existing entity field in sync (dual-write). Reserved thread labels: `giver`, `location`, `map`.
+- [x] **Thread repository** — `getThreadsFromEntity(gameId, entityId, playthroughId?)` and `deleteThreadsInvolvingEntity(gameId, entityId)` added. Deleting any entity (quest, insight, item, person, place, map) cascades to remove threads involving that entity.
+- [x] **UI** — `EntityConnections` component shows threads from an entity; each list screen (Quests, Insights, Items, People, Places) has an expandable row with a "Connections" button that reveals threads for that entity.
 
 ### 3.2 Loom (graph) view
 
-- **React Flow** (or chosen library) — Integrate; nodes = entities (quest, insight, item, person, place), edges = threads. Load current game’s entities and threads via repositories; map to nodes/edges. Custom node component(s) to show entity type and key info.
-- **Interactions** — "Follow a thread": e.g. select a node and highlight its edges; or click an edge to focus source/target. Layout: auto-layout (e.g. React Flow layout lib or simple force-directed) so the graph is readable.
+- [ ] **Loom View** — Threads tab in game view is replaced with Loom tab, opening the Loom view. This is the primary view in which threads will be visualized. Connections section remains as part of the detail view for entities.
+- [ ] **React Flow** — Integrate to fulfill Loom view; nodes = entities (quest, insight, item, person, place), edges = threads. Load current game’s entities and threads via repositories; map to nodes/edges. Custom node component(s) to show entity type and key info.
+- [ ] **Interactions** — "Follow a thread": e.g. select a node and highlight its edges, select a source and target node to highlight a path between them, or click an edge to focus source/target. Layout: auto-layout (e.g. React Flow layout lib or simple force-directed) so the graph is readable.
 
 ### 3.3 Definition of done (Phase 3)
 
