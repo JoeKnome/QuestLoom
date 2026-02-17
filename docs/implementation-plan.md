@@ -42,7 +42,7 @@ No backend, auth, or sync in the initial implementation; add them when moving to
 - Create folders under `src/`: `components/`, `features/`, `hooks/`, `stores/`, `types/`, `utils/`, and optionally `lib/` (for shared data layer).
 - Replace the default Vite page with a minimal **app shell**: one layout with a simple header/title (e.g. "QuestLoom") and a placeholder main area. No routing yet if you prefer a single view; add a simple router (e.g. React Router) when you add multiple views.
 
-### 0.4 Wrap up (Phase 0) ✅ Complete
+### 0.4 Definition of done (Phase 0) ✅ Complete
 
 - [x] `npm run dev` runs and shows a QuestLoom shell (header + main area).
 - [x] `npm run build` succeeds.
@@ -100,7 +100,7 @@ npm run format # Optional: format code
 - **Game list / create game** — Single screen: list existing games (from Dexie via repository); button "New game" that creates a game and optionally a default playthrough, then sets it as current. Data flows: UI → repository → Dexie; UI reads from repository (or from a Zustand store that the repository updates).
 - Implemented: `GameListScreen`, `CreateGameForm`, minimal `PlaythroughRepository`; selecting a game sets it (and first playthrough) as current; selection persists in localStorage.
 
-### 1.4 Wrap up (Phase 1) ✅ Complete
+### 1.4 Definition of done (Phase 1) ✅ Complete
 
 - [x] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
 - [x] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. *(Repository and store exist; UI in 1.3 consumes them.)*
@@ -152,7 +152,7 @@ Implemented: All seven entity repositories in `src/lib/repositories/` with getBy
 
 Implemented: GameView includes a sidebar (responsive: horizontal scroll on small screens, vertical on md+) and content area. Each section renders a list screen (QuestListScreen, InsightListScreen, ItemListScreen, PersonListScreen, PlaceListScreen, MapListScreen, ThreadListScreen) with create/edit forms and delete (ConfirmDialog). Shared components: PlacePicker, MapPicker, EntityPicker; getEntityDisplayName for thread labels. Quest/Insight/Item lists show and edit playthrough progress/state (status dropdown) when a playthrough is selected.
 
-### 2.5 Wrap up (Phase 2) ✅ Complete
+### 2.5 Definition of done (Phase 2) ✅ Complete
 
 - [x] All entity types have repository APIs and Dexie persistence; game vs playthrough scoping is enforced.
 - [x] User can select, create, edit, and delete playthroughs.
@@ -190,7 +190,7 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 - [x] **Layout** — Force-directed layout via **d3-force** (threads are relationship-focused, not hierarchical). Auto-layout on load.
 - [x] **Interactions** — Select a node to highlight its edges; click an edge to focus/select source and target. Fit view control in the Loom. (Path highlight between two nodes can be a follow-up.)
 
-### 3.3 Wrap up (Phase 3)
+### 3.3 Definition of done (Phase 3)
 
 - [x] Threads are created and stored; thread list and per-entity thread views work (Phase 3.1).
 - [x] Loom view renders the graph for the current game; user can explore by following threads (Phase 3.2).
@@ -213,7 +213,7 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 - **Rules** — Define which entities/insights/threads are visible only after certain conditions (e.g. insight resolved, item acquired). Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the loom (hide or grey out not-yet-visible nodes/edges).
 
-### 4.3 Wrap up (Phase 4)
+### 4.3 Definition of done (Phase 4)
 
 - [ ] "What I can do next" (or similar) is visible and driven by current items/insights.
 - [ ] Spoiler gating hides or softens content until progression conditions are met.
@@ -232,7 +232,7 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 - **Responsive and a11y** — Touch-friendly controls, basic keyboard navigation, and semantic markup so the app works on tablet/phone during play.
 - **Redirectability** — Document repository interfaces; add a thin "data source" abstraction if helpful (e.g. `createLocalDataSource()` vs future `createRemoteDataSource(baseUrl)` that return the same repository interface). No backend code required yet; just a clear boundary so adding API clients later is a contained change.
 
-### 5.1 Wrap up (Phase 5)
+### 5.1 Definition of done (Phase 5)
 
 - [ ] All documentation pages are updated reflecting the latest state of the app.
 - [ ] All items left to do are documented for future action.
