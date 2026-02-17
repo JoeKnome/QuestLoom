@@ -4,7 +4,7 @@ import { ENTITY_TYPE_PLURAL_LABELS } from '../../utils/entityTypeLabels'
 import { InsightListScreen } from '../insights/InsightListScreen'
 import { ItemListScreen } from '../items/ItemListScreen'
 import { LoomView } from '../loom/LoomView'
-import { MapListScreen } from '../maps/MapListScreen'
+import { MapsSection } from '../maps/MapsSection'
 import { PersonListScreen } from '../people/PersonListScreen'
 import { PlaceListScreen } from '../places/PlaceListScreen'
 import { QuestListScreen } from '../quests/QuestListScreen'
@@ -49,7 +49,7 @@ export function GameViewContent({
     case EntityType.PLACE:
       return <PlaceListScreen {...commonProps} />
     case EntityType.MAP:
-      return <MapListScreen {...commonProps} />
+      return <MapsSection {...commonProps} />
     case EntityType.THREAD:
       return <LoomView {...commonProps} />
     default: {

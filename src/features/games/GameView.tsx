@@ -4,6 +4,7 @@ import { useAppStore } from '../../stores/appStore'
 import type { Game } from '../../types/Game'
 import type { Playthrough } from '../../types/Playthrough'
 import { EntityType } from '../../types/EntityType'
+import { useGameViewStore } from '../../stores/gameViewStore'
 import { GameViewContent } from './GameViewContent'
 import { GameViewSidebar } from './GameViewSidebar'
 import { PlaythroughPanel } from './PlaythroughPanel'
@@ -33,10 +34,54 @@ export function GameView(): JSX.Element {
   const [activeSection, setActiveSection] = useState<EntityType>(
     EntityType.QUEST
   )
+  const mapUiMode = useGameViewStore((s) => s.mapUiMode)
+  const lastViewedMapId = useGameViewStore((s) => s.lastViewedMapId)
+  const openMapSelection = useGameViewStore((s) => s.openMapSelection)
+  const openMapView = useGameViewStore((s) => s.openMapView)
 
   const refetchPlaythroughs = useCallback(() => {
     setRefreshKey((k) => k + 1)
   }, [])
+
+  /**
+   * Handles sidebar section selection, including custom behavior
+   * for the Maps section to toggle between selection and map view
+   * and to restore the last viewed map when returning from
+   * another section.
+   *
+   * @param section - Section selected by the user.
+   */
+  const handleSelectSection = useCallback(
+    (section: EntityType) => {
+      if (section !== EntityType.MAP) {
+        setActiveSection(section)
+        return
+      }
+
+      if (activeSection !== EntityType.MAP) {
+        if (lastViewedMapId !== null) {
+          openMapView(lastViewedMapId)
+        } else {
+          openMapSelection()
+        }
+        setActiveSection(EntityType.MAP)
+        return
+      }
+
+      if (mapUiMode === 'view') {
+        openMapSelection()
+      }
+
+      setActiveSection(EntityType.MAP)
+    },
+    [
+      activeSection,
+      lastViewedMapId,
+      mapUiMode,
+      openMapSelection,
+      openMapView,
+    ]
+  )
 
   useEffect(() => {
     if (currentGameId === null) return
@@ -112,7 +157,7 @@ export function GameView(): JSX.Element {
       <div className="flex min-h-0 flex-1 gap-4">
         <GameViewSidebar
           activeSection={activeSection}
-          onSelectSection={setActiveSection}
+          onSelectSection={handleSelectSection}
         />
         <div className="min-w-0 flex-1 overflow-auto rounded border border-slate-200 bg-white p-4">
           <GameViewContent

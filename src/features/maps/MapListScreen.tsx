@@ -3,6 +3,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { mapRepository } from '../../lib/repositories'
 import type { GameId, MapId } from '../../types/ids'
 import type { Map } from '../../types/Map'
+import { useGameViewStore } from '../../stores/gameViewStore'
 import { MapForm } from './MapForm'
 
 /**
@@ -30,6 +31,7 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
     { type: 'create' } | { type: 'edit'; map: Map } | null
   >(null)
   const [deleteTarget, setDeleteTarget] = useState<MapId | null>(null)
+  const openMapView = useGameViewStore((s) => s.openMapView)
 
   /**
    * Loads the maps for the current game.
@@ -104,39 +106,64 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
       {maps.length === 0 && formState === null ? (
         <p className="text-slate-500">No maps yet. Add one to get started.</p>
       ) : (
-        <ul className="space-y-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {maps.map((map) => (
-            <li
+            <button
               key={map.id}
-              className="flex items-center justify-between rounded border border-slate-200 bg-white px-3 py-2"
+              type="button"
+              onClick={() => openMapView(map.id)}
+              className="flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:border-slate-300 hover:shadow"
             >
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-slate-900">{map.name}</p>
+              <div className="relative h-32 w-full overflow-hidden bg-slate-100">
                 {map.imageUrl ? (
-                  <p className="truncate text-sm text-slate-600">
-                    {map.imageUrl}
+                  <img
+                    src={map.imageUrl}
+                    alt={map.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
+                    No image
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-1 flex-col justify-between px-3 py-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900">
+                    {map.name}
                   </p>
-                ) : null}
+                  {map.imageUrl ? (
+                    <p className="mt-0.5 line-clamp-1 text-xs text-slate-600">
+                      {map.imageUrl}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="mt-2 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setFormState({ type: 'edit', map })
+                    }}
+                    className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setDeleteTarget(map.id)
+                    }}
+                    className="rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              <div className="ml-2 flex shrink-0 gap-1">
-                <button
-                  type="button"
-                  onClick={() => setFormState({ type: 'edit', map })}
-                  className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(map.id)}
-                  className="rounded border border-red-300 bg-white px-2 py-1 text-sm text-red-700 hover:bg-red-50"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
+            </button>
           ))}
-        </ul>
+        </div>
       )}
 
       <ConfirmDialog
