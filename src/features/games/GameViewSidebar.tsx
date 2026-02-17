@@ -16,13 +16,20 @@ export interface GameViewSidebarProps {
  */
 const SECTIONS: EntityType[] = [
   EntityType.QUEST,
-  EntityType.INSIGHT,
+  EntityType.THREAD,
+  EntityType.MAP,
+  EntityType.PLACE,
   EntityType.ITEM,
   EntityType.PERSON,
-  EntityType.PLACE,
-  EntityType.MAP,
-  EntityType.THREAD,
+  EntityType.INSIGHT,
 ]
+
+/**
+ * Override section labels in the sidebar. THREAD section is shown as "Loom" (graph view).
+ */
+const SECTION_DISPLAY_LABELS: Partial<Record<EntityType, string>> = {
+  [EntityType.THREAD]: 'Loom',
+}
 
 /**
  * Sidebar navigation for the game view. Lists all entity sections;
@@ -57,7 +64,8 @@ export function GameViewSidebar({
               }`}
               aria-current={isActive ? 'true' : undefined}
             >
-              {ENTITY_TYPE_PLURAL_LABELS[section]}
+              {SECTION_DISPLAY_LABELS[section] ??
+                ENTITY_TYPE_PLURAL_LABELS[section]}
             </button>
           )
         })}

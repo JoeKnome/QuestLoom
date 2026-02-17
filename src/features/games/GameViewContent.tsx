@@ -1,13 +1,13 @@
-import type { GameId, PlaythroughId } from '../../types/ids'
 import { EntityType } from '../../types/EntityType'
+import type { GameId, PlaythroughId } from '../../types/ids'
 import { ENTITY_TYPE_PLURAL_LABELS } from '../../utils/entityTypeLabels'
 import { InsightListScreen } from '../insights/InsightListScreen'
 import { ItemListScreen } from '../items/ItemListScreen'
+import { LoomView } from '../loom/LoomView'
 import { MapListScreen } from '../maps/MapListScreen'
 import { PersonListScreen } from '../people/PersonListScreen'
 import { PlaceListScreen } from '../places/PlaceListScreen'
 import { QuestListScreen } from '../quests/QuestListScreen'
-import { ThreadListScreen } from '../threads/ThreadListScreen'
 
 /**
  * Props for the GameViewContent component.
@@ -51,7 +51,7 @@ export function GameViewContent({
     case EntityType.MAP:
       return <MapListScreen {...commonProps} />
     case EntityType.THREAD:
-      return <ThreadListScreen {...commonProps} />
+      return <LoomView {...commonProps} />
     default: {
       const label = ENTITY_TYPE_PLURAL_LABELS[section]
       return (
