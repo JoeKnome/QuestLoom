@@ -17,9 +17,8 @@ Choices are aimed at: commercialization readiness, modern standards, strong supp
 - **React 18+** — Largest ecosystem for graph/visualization libraries, hiring pool, and documentation; fits the loom (graph) and complex UI needs. No framework lock-in; can deploy as SPA.
 - **Vite** — Fast dev server and builds; standard for modern React apps; simple config and great DX for a solo dev.
 - **Styling**: **Tailwind CSS** — Utility-first, rapid UI iteration, consistent design; works well with component libraries. Consider **shadcn/ui** (copy-paste React components on Radix + Tailwind) for accessible primitives without a heavy dependency; you own the code and can customize for commercialization.
-- **Graph / Loom view**: Use a library for the network canvas; implement loom semantics on top.
-  - **Primary option: React Flow** — React-native, actively maintained, good for node–edge graphs and custom nodes; fits “follow a thread” and entity nodes. Well documented.
-  - **Alternative: Cytoscape.js** (via `react-cytoscapejs`) — Strong for graph theory and layout algorithms; steeper integration with React state.
+- **Graph / Loom view**: The Loom uses **React Flow** (`@xyflow/react`) for the canvas (nodes = entities, edges = threads) and **d3-force** for automatic layout. Threads are relationship-focused rather than hierarchical, so force-directed layout is used. Custom node components show entity type and name; interactions include selecting a node to highlight its edges and clicking an edge to focus source/target.
+
 - **State**: **Zustand** — Minimal boilerplate, scales from a few stores to many; easy to split by domain (e.g. `gameStore`, `playthroughStore`) and enforce game vs playthrough in one place. Add **TanStack Query** when a backend exists (caching, sync, optimistic updates).
 
 ### Data & Persistence
@@ -72,7 +71,8 @@ QuestLoom/
 │   │   ├── people/       # Person list and CRUD
 │   │   ├── places/       # Place list and CRUD
 │   │   ├── maps/         # Map list and CRUD
-│   │   └── threads/      # Thread list and CRUD
+│   │   ├── threads/      # Thread list and CRUD
+│   │   └── loom/         # Loom graph view (LoomView, EntityNode, useLoomGraph, loomLayout)
 │   ├── hooks/            # Shared hooks
 │   ├── lib/              # Repositories, db, debug
 │   ├── stores/           # State management (appStore)
@@ -100,7 +100,7 @@ These elements have no off-the-shelf equivalent and must be implemented for Ques
 | Language     | Adopted  | TypeScript for frontend (and future backend)                        |
 | Framework    | Adopted  | React 18+ with Vite                                                 |
 | Styling      | Adopted  | Tailwind CSS                                                        |
-| Loom / graph | Proposed | React Flow as primary; Cytoscape.js as alternative (Phase 3)        |
+| Loom / graph | Adopted  | React Flow (@xyflow/react) + d3-force for layout (Phase 3.2)       |
 | State        | Adopted  | Zustand; TanStack Query when backend exists                         |
 | Data (v1)    | Adopted  | Dexie (IndexedDB), schema enforces game vs playthrough separation   |
 | Backend      | Proposed | Node + TypeScript, Hono or Fastify, PostgreSQL when needed          |

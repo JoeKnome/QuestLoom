@@ -183,17 +183,18 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 - [x] **Thread repository** — `getThreadsFromEntity(gameId, entityId, playthroughId?)` and `deleteThreadsInvolvingEntity(gameId, entityId)` added. Deleting any entity (quest, insight, item, person, place, map) cascades to remove threads involving that entity.
 - [x] **UI** — `EntityConnections` component shows threads from an entity; each list screen (Quests, Insights, Items, People, Places) has an expandable row with a "Connections" button that reveals threads for that entity.
 
-### 3.2 Loom (graph) view
+### 3.2 Loom (graph) view ✅ Complete
 
-- [ ] **Loom View** — Threads tab in game view is replaced with Loom tab, opening the Loom view. This is the primary view in which threads will be visualized. Connections section remains as part of the detail view for entities.
-- [ ] **React Flow** — Integrate to fulfill Loom view; nodes = entities (quest, insight, item, person, place), edges = threads. Load current game’s entities and threads via repositories; map to nodes/edges. Custom node component(s) to show entity type and key info.
-- [ ] **Interactions** — "Follow a thread": e.g. select a node and highlight its edges, select a source and target node to highlight a path between them, or click an edge to focus source/target. Layout: auto-layout (e.g. React Flow layout lib or simple force-directed) so the graph is readable.
+- [x] **Loom View** — Threads tab in game view is replaced with Loom tab, opening the Loom view. This is the primary view in which threads will be visualized. Connections section remains as part of the detail view for entities.
+- [x] **React Flow** — Integrate to fulfill Loom view; nodes = entities (quest, insight, item, person, place, map), edges = threads. Load current game’s entities and threads via repositories; map to nodes/edges. Custom node component (EntityNode) shows entity type and key info.
+- [x] **Layout** — Force-directed layout via **d3-force** (threads are relationship-focused, not hierarchical). Auto-layout on load.
+- [x] **Interactions** — Select a node to highlight its edges; click an edge to focus/select source and target. Fit view control in the Loom. (Path highlight between two nodes can be a follow-up.)
 
 ### 3.3 Definition of done (Phase 3)
 
 - [x] Threads are created and stored; thread list and per-entity thread views work (Phase 3.1).
-- [ ] Loom view renders the graph for the current game; user can explore by following threads.
-- [ ] Still local-only; repositories unchanged for future redirect.
+- [x] Loom view renders the graph for the current game; user can explore by following threads (Phase 3.2).
+- [x] Still local-only; repositories unchanged for future redirect.
 
 ---
 
