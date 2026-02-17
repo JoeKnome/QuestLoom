@@ -103,8 +103,8 @@ npm run format # Optional: format code
 ### 1.4 Definition of done (Phase 1) ✅ Complete
 
 - [x] Types and Dexie schema in place; game and playthrough separation is clear in the schema.
-- [x] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. *(Repository and store exist; UI in 1.3 consumes them.)*
-- [x] User can create a game and see it in a list; selection persists in memory and in localStorage. *(1.3 Minimal UI complete.)*
+- [x] At least one repository (games) implemented and **used by the UI**; no direct Dexie calls in components/stores. _(Repository and store exist; UI in 1.3 consumes them.)_
+- [x] User can create a game and see it in a list; selection persists in memory and in localStorage. _(1.3 Minimal UI complete.)_
 - [x] User can delete a game. App prompts for confirmation before delete, then deletes the game and all associated playthroughs.
 - [x] Debug utility exists to purge the local database.
 - [x] Debug utility exists to purge this app's local storage values.
@@ -173,7 +173,7 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 ---
 
-## Phase 3: Threads and Loom View
+## Phase 3: Threads and Loom View ✅ Complete
 
 **Goal:** Users can create and view threads between entities; a loom (graph) view shows the network and supports "follow a thread" exploration.
 
@@ -190,14 +190,18 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 - [x] **Layout** — Force-directed layout via **d3-force** (threads are relationship-focused, not hierarchical). Auto-layout on load.
 - [x] **Interactions** — Select a node to highlight its edges; click an edge to focus/select source and target. Fit view control in the Loom. (Path highlight between two nodes can be a follow-up.)
 
-### 3.3 Definition of done (Phase 3)
+### 3.3 Definition of done (Phase 3) ✅ Complete
 
 - [x] Threads are created and stored; thread list and per-entity thread views work (Phase 3.1).
 - [x] Loom view renders the graph for the current game; user can explore by following threads (Phase 3.2).
 - [x] Still local-only; repositories unchanged for future redirect.
-- [ ] All documentation pages are updated reflecting the latest state of the app.
-- [ ] All items left to do are documented for future action.
-- [ ] All affected code passes code standards, style, and lint.
+- [x] All documentation pages are updated reflecting the latest state of the app.
+- [x] All items left to do are documented for future action.
+- [x] All affected code passes code standards, style, and lint.
+
+**Items left for future action** (see `docs/issues/`):
+
+- [loom-path-highlighting.md](issues/loom-path-highlighting.md) — Highlight paths between two entities in the Loom view.
 
 ---
 

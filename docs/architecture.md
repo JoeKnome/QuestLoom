@@ -109,6 +109,8 @@ These elements have no off-the-shelf equivalent and must be implemented for Ques
 
 **Phase 2 complete:** All core entities (Quest, Insight, Item, Person, Place, Map, Thread) have repositories and CRUD UI; game vs playthrough scoping is enforced. Data access is repository-only (redirectable).
 
+**Phase 3 complete:** Threads and the Loom view are implemented using React Flow and d3-force; users can explore the current game's entities and threads as a graph and follow connections via the Loom.
+
 ## Data Separation (Game vs Playthrough)
 
 Persistence and storage **must** separate two tiers:

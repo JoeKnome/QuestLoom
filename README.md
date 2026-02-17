@@ -88,7 +88,7 @@ QuestLoom/
    npm run format
    ```
 
-Phase 0 (bootstrap) is complete: Vite + React + TypeScript, Tailwind, Zustand, Dexie, ESLint, Prettier, and folder structure. Next: [Phase 1](docs/implementation-plan.md#phase-1-local-data-foundation) (local data foundation).
+Phases 0–3 are complete: the app is bootstrapped with Vite + React + TypeScript, Tailwind, Zustand, Dexie, ESLint, and Prettier; core entities and threads have CRUD UI; and a Loom view visualizes entity threads as a graph. See the [Implementation Plan](docs/implementation-plan.md) for current and upcoming work.
 
 ## License
 
