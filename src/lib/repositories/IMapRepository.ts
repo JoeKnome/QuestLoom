@@ -51,4 +51,27 @@ export interface IMapRepository {
    * @param gameId - The ID of the game to delete.
    */
   deleteByGameId(gameId: GameId): Promise<void>
+
+  /**
+   * Sets the map image to a URL; removes any existing uploaded blob.
+   *
+   * @param mapId - The map to update.
+   * @param url - Valid HTTP(S) URL for the image.
+   */
+  setImageFromUrl(mapId: MapId, url: string): Promise<void>
+
+  /**
+   * Sets the map image from an uploaded file; stores blob and updates map.
+   *
+   * @param mapId - The map to update.
+   * @param file - Image file (e.g. PNG, JPEG, WebP).
+   */
+  setImageFromUpload(mapId: MapId, file: File): Promise<void>
+
+  /**
+   * Clears the map image (removes blob if present, clears URL).
+   *
+   * @param mapId - The map to update.
+   */
+  clearImage(mapId: MapId): Promise<void>
 }

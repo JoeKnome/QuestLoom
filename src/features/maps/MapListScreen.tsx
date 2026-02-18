@@ -123,7 +123,9 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
-                    No image
+                    {map.imageSourceType === 'upload' || map.imageBlobId
+                      ? 'Uploaded image'
+                      : 'No image'}
                   </div>
                 )}
               </div>
@@ -135,6 +137,10 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
                   {map.imageUrl ? (
                     <p className="mt-0.5 line-clamp-1 text-xs text-slate-600">
                       {map.imageUrl}
+                    </p>
+                  ) : map.imageSourceType === 'upload' || map.imageBlobId ? (
+                    <p className="mt-0.5 text-xs text-slate-600">
+                      Uploaded image
                     </p>
                   ) : null}
                 </div>

@@ -6,8 +6,8 @@
 import type { Map } from '../../types/Map'
 import { EntityType } from '../../types/EntityType'
 import type { GameId, MapId } from '../../types/ids'
-import { generateEntityId } from '../../utils/generateId'
-import { db } from '../db'
+import { generateEntityId, generateId } from '../../utils/generateId'
+import { db, type MapImageBlobRow } from '../db'
 import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import type { CreateMapInput } from './CreateMapInput'
 import type { IMapRepository } from './IMapRepository'
@@ -30,7 +30,9 @@ class MapRepositoryImpl implements IMapRepository {
       id: generateEntityId(EntityType.MAP) as MapId,
       gameId: input.gameId,
       name: input.name,
-      imageUrl: input.imageUrl,
+      imageSourceType: input.imageSourceType,
+      imageUrl: input.imageUrl ?? '',
+      imageBlobId: input.imageBlobId,
       markers: input.markers ?? [],
       createdAt: now,
       updatedAt: now,
@@ -50,13 +52,74 @@ class MapRepositoryImpl implements IMapRepository {
   async delete(id: MapId): Promise<void> {
     const map = await db.maps.get(id)
     if (map) {
+      if (map.imageSourceType === 'upload' && map.imageBlobId) {
+        await db.mapImages.delete(map.imageBlobId)
+      }
       await deleteThreadsForEntity(map.gameId, id)
     }
     await db.maps.delete(id)
   }
 
   async deleteByGameId(gameId: GameId): Promise<void> {
+    await db.mapImages.where('gameId').equals(gameId).delete()
     await db.maps.where('gameId').equals(gameId).delete()
+  }
+
+  async setImageFromUrl(mapId: MapId, url: string): Promise<void> {
+    const map = await db.maps.get(mapId)
+    if (!map) return
+    if (map.imageSourceType === 'upload' && map.imageBlobId) {
+      await db.mapImages.delete(map.imageBlobId)
+    }
+    const updated: Map = {
+      ...map,
+      imageSourceType: 'url',
+      imageUrl: url,
+      imageBlobId: undefined,
+      updatedAt: new Date().toISOString(),
+    }
+    await db.maps.put(updated)
+  }
+
+  async setImageFromUpload(mapId: MapId, file: File): Promise<void> {
+    const map = await db.maps.get(mapId)
+    if (!map) return
+    if (map.imageSourceType === 'upload' && map.imageBlobId) {
+      await db.mapImages.delete(map.imageBlobId)
+    }
+    const blobId = generateId()
+    const row: MapImageBlobRow = {
+      id: blobId,
+      gameId: map.gameId,
+      mapId,
+      blob: file,
+      createdAt: new Date().toISOString(),
+    }
+    await db.mapImages.add(row)
+    const updated: Map = {
+      ...map,
+      imageSourceType: 'upload',
+      imageUrl: undefined,
+      imageBlobId: blobId,
+      updatedAt: new Date().toISOString(),
+    }
+    await db.maps.put(updated)
+  }
+
+  async clearImage(mapId: MapId): Promise<void> {
+    const map = await db.maps.get(mapId)
+    if (!map) return
+    if (map.imageSourceType === 'upload' && map.imageBlobId) {
+      await db.mapImages.delete(map.imageBlobId)
+    }
+    const updated: Map = {
+      ...map,
+      imageSourceType: undefined,
+      imageUrl: undefined,
+      imageBlobId: undefined,
+      updatedAt: new Date().toISOString(),
+    }
+    await db.maps.put(updated)
   }
 }
 

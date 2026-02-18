@@ -17,13 +17,21 @@ export interface MapMarker {
 }
 
 /**
+ * How the map image is provided.
+ * Legacy: if imageSourceType is missing but imageUrl is non-empty, treat as 'url'.
+ */
+export type MapImageSourceType = 'url' | 'upload'
+
+/**
  * Map definition (game-scoped).
  * Discovery state lives in EntityDiscovery per playthrough.
  *
  * @property id - Unique identifier
  * @property gameId - ID of the game this map belongs to
  * @property name - Map label
- * @property imageUrl - URL or blob reference to map image
+ * @property imageSourceType - How the image is provided ('url' or 'upload'); legacy rows with imageUrl but no type are treated as 'url'
+ * @property imageUrl - Used only when imageSourceType === 'url'; HTTP(S) URL to the map image
+ * @property imageBlobId - Used only when imageSourceType === 'upload'; references an uploaded image stored by the repository
  * @property markers - Markers (placeId, position, label)
  * @property createdAt - Creation timestamp (ISO 8601)
  * @property updatedAt - Last update timestamp (ISO 8601)
@@ -35,8 +43,12 @@ export interface Map {
   gameId: GameId
   /** Map label. */
   name: string
-  /** URL or blob reference to map image. */
-  imageUrl: string
+  /** How the image is provided; legacy: missing + non-empty imageUrl is treated as 'url'. */
+  imageSourceType?: MapImageSourceType
+  /** HTTP(S) URL to map image; used only when imageSourceType === 'url'. */
+  imageUrl?: string
+  /** Reference to uploaded image in repository storage; used only when imageSourceType === 'upload'. */
+  imageBlobId?: string
   /** Markers (placeId, position, label). */
   markers: MapMarker[]
   /** Creation timestamp (ISO 8601). */

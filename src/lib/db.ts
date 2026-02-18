@@ -4,6 +4,7 @@
  */
 
 import Dexie, { type Table } from 'dexie'
+import type { GameId, MapId } from '../types/ids'
 import type { Game } from '../types/Game'
 import type { Playthrough } from '../types/Playthrough'
 import type { Quest } from '../types/Quest'
@@ -39,6 +40,23 @@ export interface EntityDiscoveryRow extends EntityDiscovery {
 }
 
 /**
+ * Stored uploaded map image blob.
+ * Used when Map.imageSourceType === 'upload'; Map.imageBlobId references id.
+ */
+export interface MapImageBlobRow {
+  /** Unique identifier (same as Map.imageBlobId). */
+  id: string
+  /** Game this blob belongs to (for cascade delete). */
+  gameId: GameId
+  /** Map this blob is attached to (for cleanup on source change). */
+  mapId: MapId
+  /** The image binary. */
+  blob: Blob
+  /** Creation timestamp (ISO 8601). */
+  createdAt: string
+}
+
+/**
  * QuestLoom database schema and typed tables.
  * Do not call Dexie from components/stores; use repositories (Phase 1.2).
  */
@@ -56,6 +74,7 @@ export class QuestLoomDB extends Dexie {
   insightProgress!: Table<InsightProgressRow, string>
   itemState!: Table<ItemStateRow, string>
   entityDiscovery!: Table<EntityDiscoveryRow, string>
+  mapImages!: Table<MapImageBlobRow, string>
 
   constructor() {
     super('QuestLoomDB')
@@ -77,39 +96,42 @@ export class QuestLoomDB extends Dexie {
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
     })
     // v2: type-in-ID; clear entity and progress tables so all new data uses typed IDs
-    this.version(2)
-      .stores({
-        games: 'id',
-        playthroughs: 'id, gameId',
-        quests: 'id, gameId',
-        insights: 'id, gameId',
-        items: 'id, gameId',
-        persons: 'id, gameId',
-        places: 'id, gameId',
-        maps: 'id, gameId',
-        threads: 'id, gameId, playthroughId',
-        questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
-        insightProgress:
-          'id, playthroughId, insightId, [playthroughId+insightId]',
-        itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
-        entityDiscovery:
-          'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
-      })
-      .upgrade((tx) => {
-        return Promise.all([
-          tx.table('quests').clear(),
-          tx.table('insights').clear(),
-          tx.table('items').clear(),
-          tx.table('persons').clear(),
-          tx.table('places').clear(),
-          tx.table('maps').clear(),
-          tx.table('threads').clear(),
-          tx.table('questProgress').clear(),
-          tx.table('insightProgress').clear(),
-          tx.table('itemState').clear(),
-          tx.table('entityDiscovery').clear(),
-        ])
-      })
+    this.version(2).stores({
+      games: 'id',
+      playthroughs: 'id, gameId',
+      quests: 'id, gameId',
+      insights: 'id, gameId',
+      items: 'id, gameId',
+      persons: 'id, gameId',
+      places: 'id, gameId',
+      maps: 'id, gameId',
+      threads: 'id, gameId, playthroughId',
+      questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
+      insightProgress:
+        'id, playthroughId, insightId, [playthroughId+insightId]',
+      itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
+      entityDiscovery:
+        'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
+    })
+    // v3: map image blobs for upload source
+    this.version(3).stores({
+      games: 'id',
+      playthroughs: 'id, gameId',
+      quests: 'id, gameId',
+      insights: 'id, gameId',
+      items: 'id, gameId',
+      persons: 'id, gameId',
+      places: 'id, gameId',
+      maps: 'id, gameId',
+      threads: 'id, gameId, playthroughId',
+      questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
+      insightProgress:
+        'id, playthroughId, insightId, [playthroughId+insightId]',
+      itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
+      entityDiscovery:
+        'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
+      mapImages: 'id, gameId, mapId',
+    })
   }
 }
 
