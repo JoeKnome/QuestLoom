@@ -20,7 +20,7 @@ export interface MapViewProps {
 
 /**
  * Computes scale and translation to fit the image inside the container (object-contain style).
- * 
+ *
  * @param containerWidth - The width of the container.
  * @param containerHeight - The height of the container.
  * @param imageWidth - The width of the image.

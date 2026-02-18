@@ -122,12 +122,6 @@ class MapRepositoryImpl implements IMapRepository {
     await db.maps.put(updated)
   }
 
-  /**
-   * Returns the URL of the map image for display.
-   * 
-   * @param mapId - The ID of the map.
-   * @returns The URL of the map image for display.
-   */
   async getMapImageDisplayUrl(
     mapId: MapId
   ): Promise<{ url: string; revoke?: () => void } | null> {
