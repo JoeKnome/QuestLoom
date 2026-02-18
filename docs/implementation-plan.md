@@ -209,7 +209,7 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 **Goal:** Give maps a dedicated experience: browse maps as a grid of previews, set map images via URL or upload, and view a selected map in a zoomable, pannable map view with intuitive sidebar tab behavior.
 
-### 4.1 Map tab and map selection grid
+### 4.1 Map tab and map selection grid ✅ Complete
 
 - [x] **Map tab behavior** — Ensure the existing Maps sidebar tab (from Phase 2) can represent two modes: **selection** (grid of maps) and **map view** (single map). Track map UI state in a store (e.g. `useGameViewStore`) with fields like `mapUiMode: 'selection' | 'view'` and `lastViewedMapId`.
 - [x] **Tab interaction rules** — Implement logic so that:
@@ -221,13 +221,15 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 Implemented: Added a `useGameViewStore` to track `mapUiMode` and `lastViewedMapId`, updated `GameView` so the Maps sidebar tab toggles between the selection grid and the last viewed map according to the rules above, and refactored the maps feature into a responsive grid of map tiles with image previews, a toolbar “New map” button, and per-tile Edit/Delete actions; clicking a tile opens the corresponding map view and records it as last viewed.
 
-### 4.2 Map create/edit: image sources
+### 4.2 Map create/edit: image sources ✅ Complete
 
-- [ ] **Map image fields** — Extend the `Map` entity and repository to support an image reference that can come from either a URL or an uploaded asset (e.g. `imageSourceType: 'url' | 'upload'`, `imageUrl?: string`, `imageBlobId?: string`). Keep storage details encapsulated in the repository layer.
-- [ ] **URL input** — In the map create/edit form, add an "Image URL" option with validation (basic URL format, test fetch for preview). Selecting this option stores `imageSourceType = 'url'` and the provided URL; show a live preview thumbnail in the form.
-- [ ] **Upload from disk** — Add a file input control for image uploads (PNG/JPEG/WebP). When a file is chosen, read and store it via the repository (e.g. as a blob or file reference managed by Dexie), setting `imageSourceType = 'upload'`. Show upload progress where appropriate and render a preview once stored or buffered.
-- [ ] **Drag and drop** — Add a drag-and-drop zone on the create/edit form that accepts image files and routes them through the same upload pipeline as the file input. Highlight the drop zone on drag-over; reject non-image files with a user-friendly message.
-- [ ] **Editing behavior** — When editing an existing map, pre-populate the current image source, allow switching between URL and upload, and ensure the repository cleans up any orphaned uploaded blobs when the source changes or a map is deleted.
+- [x] **Map image fields** — Extend the `Map` entity and repository to support an image reference that can come from either a URL or an uploaded asset (e.g. `imageSourceType: 'url' | 'upload'`, `imageUrl?: string`, `imageBlobId?: string`). Keep storage details encapsulated in the repository layer.
+- [x] **URL input** — In the map create/edit form, add an "Image URL" option with validation (basic URL format, test fetch for preview). Selecting this option stores `imageSourceType = 'url'` and the provided URL; show a live preview thumbnail in the form.
+- [x] **Upload from disk** — Add a file input control for image uploads (PNG/JPEG/WebP). When a file is chosen, read and store it via the repository (e.g. as a blob or file reference managed by Dexie), setting `imageSourceType = 'upload'`. Show upload progress where appropriate and render a preview once stored or buffered.
+- [x] **Drag and drop** — Add a drag-and-drop zone on the create/edit form that accepts image files and routes them through the same upload pipeline as the file input. Highlight the drop zone on drag-over; reject non-image files with a user-friendly message.
+- [x] **Editing behavior** — When editing an existing map, pre-populate the current image source, allow switching between URL and upload, and ensure the repository cleans up any orphaned uploaded blobs when the source changes or a map is deleted.
+
+Implemented: Extended `Map` and `CreateMapInput` with optional `imageSourceType`, `imageUrl`, and `imageBlobId`; added Dexie `mapImages` table for uploaded blobs (schema v3). Map repository now exposes `setImageFromUrl`, `setImageFromUpload`, and `clearImage`, and deletes blob rows on map delete or source change. MapForm offers image source radios (None, URL, Upload), URL validation (http/https) with live preview, file input (PNG/JPEG/WebP, max 10 MB) with object-URL preview and "Remove image," and a drag-and-drop zone that routes the first valid image through the same pipeline. Create/edit flows persist and switch between sources; edit mode pre-populates current source and shows "Using uploaded image" when an upload is present. MapListScreen shows "Uploaded image" in the grid for maps with uploads; full blob display in MapView is deferred to 4.3.
 
 ### 4.3 Map view: render, zoom, and pan
 
