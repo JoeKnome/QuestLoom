@@ -121,6 +121,41 @@ class MapRepositoryImpl implements IMapRepository {
     }
     await db.maps.put(updated)
   }
+
+  /**
+   * Returns the URL of the map image for display.
+   * 
+   * @param mapId - The ID of the map.
+   * @returns The URL of the map image for display.
+   */
+  async getMapImageDisplayUrl(
+    mapId: MapId
+  ): Promise<{ url: string; revoke?: () => void } | null> {
+    const map = await db.maps.get(mapId)
+    if (!map) return null
+
+    const hasUrl =
+      map.imageSourceType === 'url' ||
+      (map.imageUrl != null && map.imageUrl.trim() !== '')
+    if (hasUrl && map.imageUrl) {
+      return { url: map.imageUrl }
+    }
+
+    if (
+      (map.imageSourceType === 'upload' || map.imageBlobId) &&
+      map.imageBlobId
+    ) {
+      const row = await db.mapImages.get(map.imageBlobId)
+      if (!row) return null
+      const url = URL.createObjectURL(row.blob)
+      return {
+        url,
+        revoke: () => URL.revokeObjectURL(url),
+      }
+    }
+
+    return null
+  }
 }
 
 /** Single map repository instance. */

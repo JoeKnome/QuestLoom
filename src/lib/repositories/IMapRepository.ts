@@ -74,4 +74,16 @@ export interface IMapRepository {
    * @param mapId - The map to update.
    */
   clearImage(mapId: MapId): Promise<void>
+
+  /**
+   * Returns a displayable URL for the map image, if any.
+   * For URL source returns the map's imageUrl; for upload creates an object URL
+   * from the stored blob. Caller must call revoke() on unmount when present to avoid leaks.
+   *
+   * @param mapId - The map to get the image URL for.
+   * @returns Object with url and optional revoke callback, or null if no image.
+   */
+  getMapImageDisplayUrl(
+    mapId: MapId
+  ): Promise<{ url: string; revoke?: () => void } | null>
 }

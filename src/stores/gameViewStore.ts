@@ -15,6 +15,18 @@ import type { MapId } from '../types/ids'
 export type MapUiMode = 'selection' | 'view'
 
 /**
+ * Stored zoom/pan transform for a map view (scale and translation in px).
+ */
+export interface MapViewTransform {
+  /** Scale factor (e.g. 1 = fit, 2 = 2x zoom). */
+  scale: number
+  /** Horizontal translation in pixels. */
+  x: number
+  /** Vertical translation in pixels. */
+  y: number
+}
+
+/**
  * Internal state shape for the game view store.
  * Tracks map UI mode and the last viewed map ID.
  */
@@ -33,6 +45,12 @@ interface GameViewState {
   lastViewedMapId: MapId | null
 
   /**
+   * Per-map zoom/pan transform so returning to a map restores the same view.
+   * Keyed by MapId.
+   */
+  mapViewTransform: Record<string, MapViewTransform>
+
+  /**
    * Sets the current map UI mode.
    *
    * @param mode - Next UI mode for the Maps section.
@@ -45,6 +63,15 @@ interface GameViewState {
    * @param mapId - Map ID to remember, or null to clear.
    */
   setLastViewedMapId: (mapId: MapId | null) => void
+
+  /**
+   * Stores the zoom/pan transform for a map so it can be restored when
+   * switching back to that map from the selection grid.
+   *
+   * @param mapId - The map to store the transform for.
+   * @param transform - Scale and translation (x, y in px).
+   */
+  setMapViewTransform: (mapId: MapId, transform: MapViewTransform) => void
 
   /**
    * Opens the map selection grid in the Maps section and
@@ -69,6 +96,7 @@ interface GameViewState {
 export const useGameViewStore = create<GameViewState>((set) => ({
   mapUiMode: 'selection',
   lastViewedMapId: null,
+  mapViewTransform: {},
 
   setMapUiMode: (mode) => {
     set({ mapUiMode: mode })
@@ -76,6 +104,15 @@ export const useGameViewStore = create<GameViewState>((set) => ({
 
   setLastViewedMapId: (mapId) => {
     set({ lastViewedMapId: mapId })
+  },
+
+  setMapViewTransform: (mapId, transform) => {
+    set((state) => ({
+      mapViewTransform: {
+        ...state.mapViewTransform,
+        [mapId]: transform,
+      },
+    }))
   },
 
   openMapSelection: () => {

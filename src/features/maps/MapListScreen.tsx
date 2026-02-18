@@ -1,10 +1,67 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { mapRepository } from '../../lib/repositories'
 import type { GameId, MapId } from '../../types/ids'
 import type { Map } from '../../types/Map'
 import { useGameViewStore } from '../../stores/gameViewStore'
 import { MapForm } from './MapForm'
+
+/**
+ * Resolves and displays a map image for a grid tile (URL or uploaded blob).
+ * Revokes object URLs on unmount with a short delay to avoid revoking during React Strict Mode re-mount.
+ */
+function MapTilePreview({ map }: { map: Map }): JSX.Element {
+  const [displayUrl, setDisplayUrl] = useState<string | null>(
+    map.imageUrl && map.imageUrl.trim() !== '' ? map.imageUrl : null
+  )
+  const revokeRef = useRef<(() => void) | undefined>(undefined)
+
+  useEffect(() => {
+    if (map.imageUrl && map.imageUrl.trim() !== '') {
+      setDisplayUrl(map.imageUrl)
+      revokeRef.current = undefined
+      return
+    }
+    if (
+      (map.imageSourceType === 'upload' || map.imageBlobId) &&
+      map.imageBlobId
+    ) {
+      let cancelled = false
+      mapRepository.getMapImageDisplayUrl(map.id).then((display) => {
+        if (cancelled || !display) return
+        setDisplayUrl(display.url)
+        revokeRef.current = display.revoke
+      })
+      return () => {
+        cancelled = true
+        const revoke = revokeRef.current
+        if (revoke) {
+          setTimeout(() => revoke(), 0)
+        }
+      }
+    }
+    setDisplayUrl(null)
+    revokeRef.current = undefined
+    return undefined
+  }, [map.id, map.imageUrl, map.imageSourceType, map.imageBlobId])
+
+  if (displayUrl) {
+    return (
+      <img
+        src={displayUrl}
+        alt={map.name}
+        className="h-full w-full object-cover"
+      />
+    )
+  }
+  return (
+    <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
+      {map.imageSourceType === 'upload' || map.imageBlobId
+        ? 'Uploaded image'
+        : 'No image'}
+    </div>
+  )
+}
 
 /**
  * Props for the MapListScreen component.
@@ -115,19 +172,7 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
               className="flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:border-slate-300 hover:shadow"
             >
               <div className="relative h-32 w-full overflow-hidden bg-slate-100">
-                {map.imageUrl ? (
-                  <img
-                    src={map.imageUrl}
-                    alt={map.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
-                    {map.imageSourceType === 'upload' || map.imageBlobId
-                      ? 'Uploaded image'
-                      : 'No image'}
-                  </div>
-                )}
+                <MapTilePreview map={map} />
               </div>
               <div className="flex flex-1 flex-col justify-between px-3 py-2">
                 <div className="min-w-0">
