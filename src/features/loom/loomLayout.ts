@@ -77,10 +77,7 @@ export function runForceLayout(
         .distance(200)
     )
     .force('charge', forceManyBody().strength(-90))
-    .force(
-      'collide',
-      forceCollide().radius(36).strength(0.8)
-    )
+    .force('collide', forceCollide().radius(36).strength(0.8))
     .force('center', forceCenter(width / 2, height / 2))
 
   // Run simulation synchronously for a fixed number of ticks

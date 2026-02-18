@@ -35,4 +35,3 @@ export function MapsSection({
 
   return <MapListScreen gameId={gameId} playthroughId={playthroughId} />
 }
-

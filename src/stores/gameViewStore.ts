@@ -86,4 +86,3 @@ export const useGameViewStore = create<GameViewState>((set) => ({
     set({ mapUiMode: 'view', lastViewedMapId: mapId })
   },
 }))
-

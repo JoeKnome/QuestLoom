@@ -74,13 +74,7 @@ export function GameView(): JSX.Element {
 
       setActiveSection(EntityType.MAP)
     },
-    [
-      activeSection,
-      lastViewedMapId,
-      mapUiMode,
-      openMapSelection,
-      openMapView,
-    ]
+    [activeSection, lastViewedMapId, mapUiMode, openMapSelection, openMapView]
   )
 
   useEffect(() => {

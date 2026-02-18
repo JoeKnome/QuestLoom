@@ -44,7 +44,7 @@ export type MapFormProps = MapFormCreateProps | MapFormEditProps
 
 /**
  * Checks if a file is a valid image file.
- * 
+ *
  * @param file - The file to check.
  * @returns True if the file is a valid image file, false otherwise.
  */
@@ -54,7 +54,7 @@ function isValidImageFile(file: File): boolean {
 
 /**
  * Validates a URL.
- * 
+ *
  * @param url - The URL to validate.
  * @returns The error message if the URL is invalid, null otherwise.
  */
@@ -120,7 +120,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
 
   /**
    * Handles the selection of a file.
-   * 
+   *
    * @param file - The file to select.
    */
   const handleFileSelect = useCallback(
@@ -143,7 +143,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
 
   /**
    * Handles the change of the file input.
-   * 
+   *
    * @param e - The change event.
    */
   const handleFileInputChange = useCallback(
@@ -157,7 +157,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
 
   /**
    * Handles the drag over event.
-   * 
+   *
    * @param e - The drag event.
    */
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -168,7 +168,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
 
   /**
    * Handles the drag leave event.
-   * 
+   *
    * @param e - The drag event.
    */
   const handleDragLeave = useCallback((e: React.DragEvent) => {
@@ -179,7 +179,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
 
   /**
    * Handles the drop event.
-   * 
+   *
    * @param e - The drag event.
    */
   const handleDrop = useCallback(
@@ -204,7 +204,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
 
   /**
    * Handles the submission of the form.
-   * 
+   *
    * @param e - The form event.
    */
   const handleSubmit = useCallback(

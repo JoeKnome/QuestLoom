@@ -97,4 +97,3 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
     </div>
   )
 }
-
