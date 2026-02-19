@@ -33,10 +33,13 @@
 
 ### Maps
 
-- Create or upload maps (image-based initially)
-- Add markers for places, items, or points of interest
-- Link map locations to Place entities
-- Multiple maps per game
+- **Map selection and view** — Maps sidebar tab shows a grid of map tiles (name + image preview). Clicking a tile opens the map view for that map; clicking the Maps tab when already in map view returns to the grid. Last viewed map is remembered when switching from other tabs.
+- **Map image** — Create or edit a map with an image from: URL (with validation and preview), file upload (PNG/JPEG/WebP), or drag-and-drop. Image is persisted via the map repository; uploaded blobs are stored and cleaned up on map delete or source change.
+- **Map view** — Zoom (wheel, pinch, toolbar) and pan (click-and-drag; middle mouse always pans). Reset view fits the map to the viewport. Zoom/pan state is preserved per map when switching tabs.
+- **Top-level place per map** — Each map has exactly one associated top-level place (e.g. "Map: Tavern District") created and renamed in lockstep with the map. Maps do not appear as Loom nodes or thread endpoints; places (including each map’s top-level place) represent locations in the Loom and in threads.
+- **Map markers** — Markers link a map location (logical x,y) to an entity (quest, insight, item, person, or place). Markers show a type-colored badge with the entity’s first letter and a tooltip with the entity name (and optional label).
+- **Marker interactions** — Right-click (or long-press) on the map opens a context menu: add a marker for an existing entity (picker) or create a new entity and place its marker. Right-click on a marker: move marker (cursor-follow then click to place; ESC cancels), delete marker only, or delete marker and entity (with confirmation and full cascade). Pan is default; moving a marker requires the explicit "Move marker" action.
+- Multiple maps per game.
 
 ### People & Places
 

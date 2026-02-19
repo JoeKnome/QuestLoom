@@ -205,7 +205,7 @@ Implemented: GameView includes a sidebar (responsive: horizontal scroll on small
 
 ---
 
-## Phase 4: Map View
+## Phase 4: Map View ✅ Complete
 
 **Goal:** Give maps a dedicated experience: browse maps as a grid of previews, set map images via URL or upload, and view a selected map in a zoomable, pannable map view with intuitive sidebar tab behavior.
 
@@ -276,7 +276,7 @@ Implemented: Standalone `MapMarker` type and `mapMarkers` Dexie table (schema v5
 
 Implemented: Debug control removed; `clientToLogical` helper added (no clamping, periphery supported). Pan only on left/middle on map background; middle always pans; left on marker does not pan. Reusable `ContextMenu` component; map context menu (right-click or 500 ms long-press) with "Add marker here (existing entity)" (modal: type + EntityPicker, then create marker) and "Add marker here (new entity)" (modal: type + name/title, optional location for Item, then create entity + marker). Marker context menu: Move marker (enters move mode), Delete marker only (ConfirmDialog, then `mapMarkerRepository.delete`), Delete marker and entity (ConfirmDialog danger, then entity repo delete). Move mode: marker follows cursor via `moveModePendingPosition`, commit on pointer up, ESC cancels. Long-press opens the same context menus on touch.
 
-### 4.7 Definition of done (Phase 4)
+### 4.7 Definition of done (Phase 4) ✅ Complete
 
 - [x] The Maps sidebar tab supports both a selection grid and a map view, with tab clicks behaving as specified (toggle selection/view; return to last viewed map when coming from other tabs).
 - [x] The map selection experience is a grid of tiles showing map names and image previews, with create/edit/delete actions available.
@@ -286,9 +286,11 @@ Implemented: Debug control removed; `clientToLogical` helper added (no clamping,
 - [x] Each map has a top-level place that is created, renamed, and deleted in lockstep with the map, with Loom and thread data (including representative map threads from non–top-level places) updating accordingly.
 - [x] Map markers are stored as persistent data linked to maps and non-map/thread entities, rendered on the map with simple type-colored visuals and tooltips (Phase 4.5).
 - [x] Users can add, move, and delete markers via deliberate interactions and a context menu, including flows that create new entities at a location or delete entities with full cascading behavior (Phase 4.6).
-- [ ] All documentation pages are updated reflecting the latest state of the app.
-- [ ] All items left to do are documented for future action.
-- [ ] All affected code passes code standards, style, and lint.
+- [x] All documentation pages are updated reflecting the latest state of the app.
+- [x] All items left to do are documented for future action.
+- [x] All affected code passes code standards, style, and lint.
+
+**Items left for future action** (see `docs/issues/`): [map-marker-realignment.md](issues/map-marker-realignment.md) — Re-align or prompt when map image is changed (size/aspect ratio).
 
 ---
 

@@ -111,6 +111,8 @@ These elements have no off-the-shelf equivalent and must be implemented for Ques
 
 **Phase 3 complete:** Threads and the Loom view are implemented using React Flow and d3-force; users can explore the current game's entities and threads as a graph and follow connections via the Loom.
 
+**Phase 4 complete:** Map view is fully implemented: map selection grid and single-map view with tab behavior (toggle selection/view, last viewed map), image from URL/upload/drag-and-drop with persistence and cleanup, zoom and pan with per-map state, top-level place per map (name sync, Loom/thread representation via places only), and map markers (data model, rendering, context menu for add/move/delete including "new entity at location" and "delete marker and entity" with cascade).
+
 ## Data Separation (Game vs Playthrough)
 
 Persistence and storage **must** separate two tiers:

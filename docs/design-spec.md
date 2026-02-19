@@ -35,7 +35,7 @@ A companion app for mystery and adventure games that lets users track quests, in
 - **Quests** — Objectives, goals, and progress tracking
 - **Insights** — Key information, lore you discover, and understanding that helps solve unknowns or advance objectives; optional linking to other entities
 - **Items** — Inventory and key objects
-- **Maps** — Spatial context and location tracking
+- **Maps** — Spatial context and location tracking: image-based maps with zoom/pan, optional markers linked to entities (quests, insights, items, people, places), and a dedicated map view with context-menu-driven add/move/delete of markers.
 - **Threads** — Relationships between people and places, and between any entities
 
 ### Out of Scope
