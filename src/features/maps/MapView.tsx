@@ -17,7 +17,7 @@ import { EntityType } from '../../types/EntityType'
 import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
 import { MapMarkerBadge } from './MapMarkerBadge'
 
-const MIN_SCALE = 0.1
+const MIN_SCALE = 0.5
 const MAX_SCALE = 10
 const ZOOM_STEP = 1.25
 
