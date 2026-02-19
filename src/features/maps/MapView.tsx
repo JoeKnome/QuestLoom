@@ -17,14 +17,16 @@ import { EntityType } from '../../types/EntityType'
 import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
 import { MapMarkerBadge } from './MapMarkerBadge'
 
-const MIN_SCALE = 0.5
-const MAX_SCALE = 10
+/** Zoom-out limit as a multiple of fit-to-view scale (similar periphery across maps). */
+const MIN_SCALE_MULTIPLIER = 0.5
+/** Zoom-in limit as a multiple of fit-to-view scale (similar max zoom across maps). */
+const MAX_SCALE_MULTIPLIER = 4
 const ZOOM_STEP = 1.25
 
 /** Minimum effective scale for markers when zoomed out (keeps them visible). */
-const MIN_MARKER_SCALE = 0.75
+const MIN_MARKER_SCALE = 0.5
 /** Maximum effective scale for markers when zoomed in (prevents them dominating). */
-const MAX_MARKER_SCALE = 3.0
+const MAX_MARKER_SCALE = 2.0
 
 /**
  * Props for the MapView component.
@@ -38,6 +40,7 @@ export interface MapViewProps {
 
 /**
  * Computes scale and translation to fit the image inside the container (object-contain style).
+ * Scale is not capped at 1 so small images are scaled up to fill the view.
  *
  * @param containerWidth - The width of the container.
  * @param containerHeight - The height of the container.
@@ -56,12 +59,27 @@ function fitToView(
   }
   const scale = Math.min(
     containerWidth / imageWidth,
-    containerHeight / imageHeight,
-    1
+    containerHeight / imageHeight
   )
   const x = (containerWidth - imageWidth * scale) / 2
   const y = (containerHeight - imageHeight * scale) / 2
   return { scale, x, y }
+}
+
+/**
+ * Scale limits derived from fit-to-view so zoom range is consistent across map image dimensions.
+ *
+ * @param fitScale - Scale that fits the image in the container (from fitToView).
+ * @returns Min and max effective scale for clamping.
+ */
+function scaleLimitsFromFit(fitScale: number): {
+  minEffectiveScale: number
+  maxEffectiveScale: number
+} {
+  return {
+    minEffectiveScale: fitScale * MIN_SCALE_MULTIPLIER,
+    maxEffectiveScale: fitScale * MAX_SCALE_MULTIPLIER,
+  }
 }
 
 /**
@@ -224,13 +242,25 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
     (factor: number) => {
       const container = containerRef.current
       const img = imgRef.current
-      if (!container || !img) return
+      if (!container || !img?.naturalWidth || !img.naturalHeight) return
       const rect = container.getBoundingClientRect()
+      const fit = fitToView(
+        rect.width,
+        rect.height,
+        img.naturalWidth,
+        img.naturalHeight
+      )
+      const { minEffectiveScale, maxEffectiveScale } = scaleLimitsFromFit(
+        fit.scale
+      )
       const centerX = rect.width / 2
       const centerY = rect.height / 2
       const contentX = (centerX - translateX) / scale
       const contentY = (centerY - translateY) / scale
-      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor))
+      const newScale = Math.min(
+        maxEffectiveScale,
+        Math.max(minEffectiveScale, scale * factor)
+      )
       const newX = centerX - contentX * newScale
       const newY = centerY - contentY * newScale
       applyTransform(newScale, newX, newY)
@@ -246,14 +276,6 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
 
     setImageSize({ width: img.naturalWidth, height: img.naturalHeight })
 
-    if (storedTransform) {
-      setScale(storedTransform.scale)
-      setTranslateX(storedTransform.x)
-      setTranslateY(storedTransform.y)
-      lastTransformRef.current = storedTransform
-      return
-    }
-
     const rect = container.getBoundingClientRect()
     const fit = fitToView(
       rect.width,
@@ -261,8 +283,30 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
       img.naturalWidth,
       img.naturalHeight
     )
+    const { minEffectiveScale, maxEffectiveScale } = scaleLimitsFromFit(
+      fit.scale
+    )
+
+    if (storedTransform) {
+      const clampedScale = Math.min(
+        maxEffectiveScale,
+        Math.max(minEffectiveScale, storedTransform.scale)
+      )
+      const stored = {
+        scale: clampedScale,
+        x: storedTransform.x,
+        y: storedTransform.y,
+      }
+      setScale(stored.scale)
+      setTranslateX(stored.x)
+      setTranslateY(stored.y)
+      lastTransformRef.current = stored
+      setMapViewTransform(mapId, stored)
+      return
+    }
+
     applyTransform(fit.scale, fit.x, fit.y)
-  }, [storedTransform, applyTransform])
+  }, [storedTransform, applyTransform, mapId, setMapViewTransform])
 
   // Load map and resolve image URL (URL or blob). Revoke is kept only in a ref so we
   // never run an effect that could revoke the current URL during Strict Mode double-mount.
@@ -430,15 +474,35 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
   // Wheel zoom toward cursor
   const onWheel = useCallback(
     (e: React.WheelEvent) => {
-      if (!imageDisplayUrl || !containerRef.current) return
+      const container = containerRef.current
+      const img = imgRef.current
+      if (
+        !imageDisplayUrl ||
+        !container ||
+        !img?.naturalWidth ||
+        !img.naturalHeight
+      )
+        return
       e.preventDefault()
+      const rect = container.getBoundingClientRect()
+      const fit = fitToView(
+        rect.width,
+        rect.height,
+        img.naturalWidth,
+        img.naturalHeight
+      )
+      const { minEffectiveScale, maxEffectiveScale } = scaleLimitsFromFit(
+        fit.scale
+      )
       const factor = e.deltaY > 0 ? 1 / ZOOM_STEP : ZOOM_STEP
-      const rect = containerRef.current.getBoundingClientRect()
       const cx = e.clientX - rect.left
       const cy = e.clientY - rect.top
       const contentX = (cx - translateX) / scale
       const contentY = (cy - translateY) / scale
-      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor))
+      const newScale = Math.min(
+        maxEffectiveScale,
+        Math.max(minEffectiveScale, scale * factor)
+      )
       const newX = cx - contentX * newScale
       const newY = cy - contentY * newScale
       applyTransform(newScale, newX, newY)
@@ -599,10 +663,21 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
 
               // Map marker scale proportionally over the map's zoom range so they
               // grow evenly from min to max instead of staying flat at the caps.
-              const t = Math.max(
-                0,
-                Math.min(1, (scale - MIN_SCALE) / (MAX_SCALE - MIN_SCALE))
-              )
+              const rect = containerRef.current?.getBoundingClientRect()
+              const fitScale =
+                rect && w > 0 && h > 0
+                  ? fitToView(rect.width, rect.height, w, h).scale
+                  : 1
+              const { minEffectiveScale, maxEffectiveScale } =
+                scaleLimitsFromFit(fitScale)
+              const range = maxEffectiveScale - minEffectiveScale
+              const t =
+                range <= 0
+                  ? 0
+                  : Math.max(
+                      0,
+                      Math.min(1, (scale - minEffectiveScale) / range)
+                    )
               const effectiveMarkerScale =
                 MIN_MARKER_SCALE + t * (MAX_MARKER_SCALE - MIN_MARKER_SCALE)
               const markerLocalScale = effectiveMarkerScale / scale
