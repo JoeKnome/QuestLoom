@@ -262,17 +262,19 @@ Implemented: The loom graph hook (`useLoomGraph`) now loads only quests, insight
 
 Implemented: Standalone `MapMarker` type and `mapMarkers` Dexie table (schema v5); `IMapMarkerRepository` and `mapMarkerRepository` with getByMapId, create, update, delete, deleteByMapId, deleteByEntity. Map delete and entity deletes cascade to markers. Positions are stored as logical coordinates (0–1 or unbounded); MapView renders by scaling to the image’s intrinsic size so "Reset view" fits the map and markers stay aligned. MapView uses a transform wrapper sized to the image (not the viewport) so zoom/pan and fit-to-view behave correctly. Markers render as `MapMarkerBadge` (entity-type color, first letter of entity name, native tooltip; optional label in tooltip). Map and marker content use `select-none` to prevent text selection. A temporary debug "Add test marker" button creates a marker for a random entity at a random position for validation; remove in Phase 4.6.
 
-### 4.6 Map markers: interaction and context menu
+### 4.6 Map markers: interaction and context menu ✅ Complete
 
-- [ ] **Remove temporary debug** — Remove the Phase 4.5 temporary debug control from `MapView` (the "Add test marker" button and related state/handler). It is flagged in code with "REMOVE in Phase 4.6" and exists only to validate marker behavior before the context menu is implemented.
-- [ ] **Pan vs move safeguards** — Default interactions prioritize safe panning: click-and-drag on the map pans, clicking a marker selects it. Moving a marker requires an explicit action (e.g. "Move marker" from a context menu) so markers are not accidentally dragged while panning. Middle mouse button always pans, with no selection behavior.
-- [ ] **Map context menu** — Implement a right-click (or long-press on touch) context menu on the map background that anchors at the clicked location and lists actions relevant to that point.
-- [ ] **Add marker here (existing entity)** — From the context menu, allow the user to "Add marker here" for an existing entity by opening a lightweight picker limited to eligible entity types. On selection, create a `MapMarker` at that location for the chosen entity.
-- [ ] **Add marker here (new entity)** — Support creating a new entity (e.g. place, item, person, quest, insight) and placing its marker in a single flow (modal or side panel). After creation via the appropriate repository, automatically create a `MapMarker` at the context menu location.
-- [ ] **Marker context menu** — When right-clicking on an existing marker (or long-press on touch), show a marker-specific context menu with actions including **Move marker** and **Delete marker** (with variations below).
-- [ ] **Move marker flow** — Choosing "Move marker" enters a move mode where the marker visually attaches to the cursor; panning is restricted to the middle mouse button. On the next click (mouse up or tap), the marker’s position is updated to the new location and move mode ends; ESC cancels and restores the original position.
-- [ ] **Delete marker only** — Provide an option to delete only the marker while leaving the underlying entity intact. This removes the `MapMarker` record but does not touch the entity or its threads.
-- [ ] **Delete marker and entity** — Provide an option to delete both the marker and the associated entity, with clear confirmation text describing cascading consequences. Reuse existing entity delete flows so all associated threads and discovery data are removed consistently.
+- [x] **Remove temporary debug** — Remove the Phase 4.5 temporary debug control from `MapView` (the "Add test marker" button and related state/handler). It is flagged in code with "REMOVE in Phase 4.6" and exists only to validate marker behavior before the context menu is implemented.
+- [x] **Pan vs move safeguards** — Default interactions prioritize safe panning: click-and-drag on the map pans, clicking a marker selects it. Moving a marker requires an explicit action (e.g. "Move marker" from a context menu) so markers are not accidentally dragged while panning. Middle mouse button always pans, with no selection behavior.
+- [x] **Map context menu** — Implement a right-click (or long-press on touch) context menu on the map background that anchors at the clicked location and lists actions relevant to that point.
+- [x] **Add marker here (existing entity)** — From the context menu, allow the user to "Add marker here" for an existing entity by opening a lightweight picker limited to eligible entity types. On selection, create a `MapMarker` at that location for the chosen entity.
+- [x] **Add marker here (new entity)** — Support creating a new entity (e.g. place, item, person, quest, insight) and placing its marker in a single flow (modal or side panel). After creation via the appropriate repository, automatically create a `MapMarker` at the context menu location.
+- [x] **Marker context menu** — When right-clicking on an existing marker (or long-press on touch), show a marker-specific context menu with actions including **Move marker** and **Delete marker** (with variations below).
+- [x] **Move marker flow** — Choosing "Move marker" enters a move mode where the marker visually attaches to the cursor; panning is restricted to the middle mouse button. On the next click (mouse up or tap), the marker’s position is updated to the new location and move mode ends; ESC cancels and restores the original position.
+- [x] **Delete marker only** — Provide an option to delete only the marker while leaving the underlying entity intact. This removes the `MapMarker` record but does not touch the entity or its threads.
+- [x] **Delete marker and entity** — Provide an option to delete both the marker and the associated entity, with clear confirmation text describing cascading consequences. Reuse existing entity delete flows so all associated threads and discovery data are removed consistently.
+
+Implemented: Debug control removed; `clientToLogical` helper added (no clamping, periphery supported). Pan only on left/middle on map background; middle always pans; left on marker does not pan. Reusable `ContextMenu` component; map context menu (right-click or 500 ms long-press) with "Add marker here (existing entity)" (modal: type + EntityPicker, then create marker) and "Add marker here (new entity)" (modal: type + name/title, optional location for Item, then create entity + marker). Marker context menu: Move marker (enters move mode), Delete marker only (ConfirmDialog, then `mapMarkerRepository.delete`), Delete marker and entity (ConfirmDialog danger, then entity repo delete). Move mode: marker follows cursor via `moveModePendingPosition`, commit on pointer up, ESC cancels. Long-press opens the same context menus on touch.
 
 ### 4.7 Definition of done (Phase 4)
 
@@ -283,9 +285,9 @@ Implemented: Standalone `MapMarker` type and `mapMarkers` Dexie table (schema v5
 - [x] Maps are represented in the Loom via associated top-level places; maps themselves do not appear as Loom nodes or thread endpoints.
 - [x] Each map has a top-level place that is created, renamed, and deleted in lockstep with the map, with Loom and thread data (including representative map threads from non–top-level places) updating accordingly.
 - [x] Map markers are stored as persistent data linked to maps and non-map/thread entities, rendered on the map with simple type-colored visuals and tooltips (Phase 4.5).
-- [ ] Users can add, move, and delete markers via deliberate interactions and a context menu, including flows that create new entities at a location or delete entities with full cascading behavior (Phase 4.6).
+- [x] Users can add, move, and delete markers via deliberate interactions and a context menu, including flows that create new entities at a location or delete entities with full cascading behavior (Phase 4.6).
 - [ ] All documentation pages are updated reflecting the latest state of the app.
-- [ ] All items left to do are documented for future action (Phase 4.6 debug removal and context menu).
+- [ ] All items left to do are documented for future action.
 - [ ] All affected code passes code standards, style, and lint.
 
 ---

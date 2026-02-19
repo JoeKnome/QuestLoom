@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { ContextMenu } from '../../components/ContextMenu'
+import { EntityPicker } from '../../components/EntityPicker'
 import {
   insightRepository,
   itemRepository,
@@ -12,9 +15,19 @@ import { useAppStore } from '../../stores/appStore'
 import { useGameViewStore } from '../../stores/gameViewStore'
 import type { Map } from '../../types/Map'
 import type { MapMarker } from '../../types/MapMarker'
-import type { GameId, MapId } from '../../types/ids'
+import type {
+  GameId,
+  InsightId,
+  ItemId,
+  MapId,
+  PersonId,
+  PlaceId,
+  QuestId,
+} from '../../types/ids'
 import { EntityType } from '../../types/EntityType'
+import { THREAD_ENDPOINT_ENTITY_TYPES } from '../../types/EntityType'
 import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
+import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
 import { MapMarkerBadge } from './MapMarkerBadge'
 
 /** Zoom-out limit as a multiple of fit-to-view scale (similar periphery across maps). */
@@ -27,6 +40,33 @@ const ZOOM_STEP = 1.25
 const MIN_MARKER_SCALE = 0.5
 /** Maximum effective scale for markers when zoomed in (prevents them dominating). */
 const MAX_MARKER_SCALE = 2.0
+
+/** Context menu state for map background (add marker here). */
+interface MapContextMenuState {
+  /** The type of context menu. */
+  type: 'map'
+  /** The X coordinate of the client. */
+  clientX: number
+  /** The Y coordinate of the client. */
+  clientY: number
+  /** The logical position of the context menu. */
+  logicalPosition: { x: number; y: number }
+}
+
+/** Context menu state for an existing marker. */
+interface MarkerContextMenuState {
+  /** The type of context menu. */
+  type: 'marker'
+  /** The marker that is being context-menued. */
+  marker: MapMarker
+  /** The X coordinate of the client. */
+  clientX: number
+  /** The Y coordinate of the client. */
+  clientY: number
+}
+
+/** Union of context menu states. */
+type ContextMenuState = MapContextMenuState | MarkerContextMenuState | null
 
 /**
  * Props for the MapView component.
@@ -83,6 +123,41 @@ function scaleLimitsFromFit(fitScale: number): {
 }
 
 /**
+ * Converts client coordinates to map logical coordinates (0–1 = image bounds;
+ * outside 0–1 = periphery). Does not clamp so markers can be placed in the periphery.
+ *
+ * @param clientX - Client X (e.g. from pointer event).
+ * @param clientY - Client Y (e.g. from pointer event).
+ * @param containerRect - Container getBoundingClientRect().
+ * @param translateX - Current pan X.
+ * @param translateY - Current pan Y.
+ * @param scale - Current zoom scale.
+ * @param imageWidth - Image intrinsic width.
+ * @param imageHeight - Image intrinsic height.
+ * @returns Logical position { x, y } in map coordinate space.
+ */
+function clientToLogical(
+  clientX: number,
+  clientY: number,
+  containerRect: DOMRect,
+  translateX: number,
+  translateY: number,
+  scale: number,
+  imageWidth: number,
+  imageHeight: number
+): { x: number; y: number } {
+  if (imageWidth <= 0 || imageHeight <= 0) {
+    return { x: 0, y: 0 }
+  }
+  const contentX = (clientX - containerRect.left - translateX) / scale
+  const contentY = (clientY - containerRect.top - translateY) / scale
+  return {
+    x: contentX / imageWidth,
+    y: contentY / imageHeight,
+  }
+}
+
+/**
  * Map view with zoom and pan. Loads the map and its image (URL or uploaded blob),
  * displays it in a pannable/zoomable area with toolbar controls, and persists
  * zoom/pan per map when switching tabs.
@@ -113,6 +188,22 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
   const [isPanning, setIsPanning] = useState(false)
   const panStartRef = useRef({ x: 0, y: 0, translateX: 0, translateY: 0 })
   const lastTransformRef = useRef({ scale: 1, x: 0, y: 0 })
+  /** Ref for pending position during move mode so commit in onPointerUp has latest value. */
+  const moveModePendingPositionRef = useRef<{ x: number; y: number } | null>(
+    null
+  )
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const longPressDataRef = useRef<{
+    clientX: number
+    clientY: number
+    target: EventTarget
+    translateX: number
+    translateY: number
+    scale: number
+    imageSize: { width: number; height: number } | null
+  } | null>(null)
+  const markersRef = useRef<MapMarker[]>([])
+  markersRef.current = markers
 
   const containerRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -121,94 +212,54 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
   const storedTransform = useGameViewStore((s) => s.mapViewTransform[mapId])
   const currentPlaythroughId = useAppStore((s) => s.currentPlaythroughId)
 
-  /** Temporary debug: loading state for "Add test marker" (remove in Phase 4.6). */
-  const [isAddingTestMarker, setIsAddingTestMarker] = useState(false)
-  /** Temporary debug: error message for test marker (remove in Phase 4.6). */
-  const [testMarkerError, setTestMarkerError] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null)
+  /** When set, the "Add marker here (existing entity)" modal is open with this logical position. */
+  const [addMarkerExistingModal, setAddMarkerExistingModal] = useState<{
+    logicalPosition: { x: number; y: number }
+  } | null>(null)
+  const [addMarkerEntityType, setAddMarkerEntityType] = useState<EntityType>(
+    EntityType.PLACE
+  )
+  const [addMarkerEntityId, setAddMarkerEntityId] = useState('')
 
-  /**
-   * Temporary debug: creates a marker for a random game entity at a random
-   * position so Phase 4.5 marker behavior can be validated without the
-   * Phase 4.6 context menu. REMOVE when Phase 4.6 is implemented.
-   */
-  const handleAddTestMarker = useCallback(async () => {
-    setTestMarkerError(null)
-    setIsAddingTestMarker(true)
+  /** When set, the "Add marker here (new entity)" modal is open with this logical position. */
+  const [addMarkerNewModal, setAddMarkerNewModal] = useState<{
+    logicalPosition: { x: number; y: number }
+  } | null>(null)
+  const [addMarkerNewEntityType, setAddMarkerNewEntityType] =
+    useState<EntityType>(EntityType.PLACE)
+  const [addMarkerNewName, setAddMarkerNewName] = useState('')
+  const [addMarkerNewItemLocation, setAddMarkerNewItemLocation] = useState('')
+  const [addMarkerNewSubmitting, setAddMarkerNewSubmitting] = useState(false)
+
+  /** When set, the "Delete marker only" confirm dialog is open for this marker ID. */
+  const [deleteMarkerOnlyTarget, setDeleteMarkerOnlyTarget] = useState<
+    string | null
+  >(null)
+  /** When set, the "Delete marker and entity" confirm dialog is open for this marker. */
+  const [deleteMarkerAndEntityTarget, setDeleteMarkerAndEntityTarget] =
+    useState<MapMarker | null>(null)
+  /** When set, we are in move mode for this marker. */
+  const [moveModeMarker, setMoveModeMarker] = useState<MapMarker | null>(null)
+  /** Pending position while moving a marker (logical coords). */
+  const [moveModePendingPosition, setMoveModePendingPosition] = useState<{
+    x: number
+    y: number
+  } | null>(null)
+
+  /** Reload markers from the repository. */
+  const loadMarkers = useCallback(async () => {
     try {
-      const [quests, insights, items, persons, places] = await Promise.all([
-        questRepository.getByGameId(gameId),
-        insightRepository.getByGameId(gameId),
-        itemRepository.getByGameId(gameId),
-        personRepository.getByGameId(gameId),
-        placeRepository.getByGameId(gameId),
-      ])
-      const candidates: Array<{
-        entityType: EntityType
-        entityId: string
-      }> = []
-      if (quests.length > 0)
-        candidates.push({
-          entityType: EntityType.QUEST,
-          entityId: quests[Math.floor(Math.random() * quests.length)].id,
-        })
-      if (insights.length > 0)
-        candidates.push({
-          entityType: EntityType.INSIGHT,
-          entityId: insights[Math.floor(Math.random() * insights.length)].id,
-        })
-      if (items.length > 0)
-        candidates.push({
-          entityType: EntityType.ITEM,
-          entityId: items[Math.floor(Math.random() * items.length)].id,
-        })
-      if (persons.length > 0)
-        candidates.push({
-          entityType: EntityType.PERSON,
-          entityId: persons[Math.floor(Math.random() * persons.length)].id,
-        })
-      if (places.length > 0)
-        candidates.push({
-          entityType: EntityType.PLACE,
-          entityId: places[Math.floor(Math.random() * places.length)].id,
-        })
-      if (candidates.length === 0) {
-        setTestMarkerError(
-          'Add at least one quest, insight, item, person, or place first.'
-        )
-        return
-      }
-      const pick = candidates[Math.floor(Math.random() * candidates.length)]
-      const position = {
-        x: Math.random() * 0.7 + 0.15,
-        y: Math.random() * 0.7 + 0.15,
-      }
-      const testLabelCount = markers.filter((m) =>
-        m.label?.startsWith('Test ')
-      ).length
-      const label = `Test ${testLabelCount + 1}`
-      await mapMarkerRepository.create({
-        gameId,
-        mapId,
-        playthroughId: currentPlaythroughId ?? undefined,
-        entityType: pick.entityType,
-        entityId: pick.entityId as MapMarker['entityId'],
-        label,
-        position,
-      })
-      const next = await mapMarkerRepository.getByMapId(
+      const list = await mapMarkerRepository.getByMapId(
         gameId,
         mapId,
         currentPlaythroughId
       )
-      setMarkers(next)
-    } catch (err) {
-      setTestMarkerError(
-        err instanceof Error ? err.message : 'Failed to add test marker'
-      )
-    } finally {
-      setIsAddingTestMarker(false)
+      setMarkers(list)
+    } catch {
+      setMarkers([])
     }
-  }, [gameId, mapId, currentPlaythroughId, markers])
+  }, [gameId, mapId, currentPlaythroughId])
 
   /** Apply a transform and persist it to the store. */
   const applyTransform = useCallback(
@@ -425,10 +476,83 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
     }
   }, [])
 
-  // Pan handlers
+  // Escape cancels move mode without saving.
+  useEffect(() => {
+    if (!moveModeMarker) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMoveModeMarker(null)
+        setMoveModePendingPosition(null)
+        moveModePendingPositionRef.current = null
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [moveModeMarker])
+
+  // Pan handlers: left button pans on map background; middle button always pans. Left click on marker does not pan. In move mode, left button does not pan.
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if (e.button !== 0 || !imageDisplayUrl) return
+      if (!imageDisplayUrl) return
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current)
+        longPressTimerRef.current = null
+      }
+      longPressDataRef.current = {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        target: e.target,
+        translateX,
+        translateY,
+        scale,
+        imageSize,
+      }
+      longPressTimerRef.current = setTimeout(() => {
+        longPressTimerRef.current = null
+        const data = longPressDataRef.current
+        if (!data || !containerRef.current) return
+        const isMarkerEl = (data.target as HTMLElement).closest?.(
+          '[data-marker-id]'
+        ) as HTMLElement | null
+        if (isMarkerEl) {
+          const markerId = isMarkerEl.getAttribute('data-marker-id')
+          const marker = markerId
+            ? (markersRef.current.find((m) => m.id === markerId) ?? null)
+            : null
+          if (marker) {
+            setContextMenu({
+              type: 'marker',
+              marker,
+              clientX: data.clientX,
+              clientY: data.clientY,
+            })
+          }
+        } else if (data.imageSize) {
+          const rect = containerRef.current.getBoundingClientRect()
+          const logicalPosition = clientToLogical(
+            data.clientX,
+            data.clientY,
+            rect,
+            data.translateX,
+            data.translateY,
+            data.scale,
+            data.imageSize.width,
+            data.imageSize.height
+          )
+          setContextMenu({
+            type: 'map',
+            clientX: data.clientX,
+            clientY: data.clientY,
+            logicalPosition,
+          })
+        }
+      }, 500)
+      if (e.button !== 0 && e.button !== 1) return
+      if (moveModeMarker && e.button === 0) return
+      const isMarker = (e.target as HTMLElement).closest?.(
+        '[data-marker-id]'
+      ) as HTMLElement | null
+      if (isMarker && e.button === 0) return
       e.currentTarget.setPointerCapture(e.pointerId)
       setIsPanning(true)
       panStartRef.current = {
@@ -438,11 +562,31 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
         translateY,
       }
     },
-    [imageDisplayUrl, translateX, translateY]
+    [imageDisplayUrl, moveModeMarker, translateX, translateY, scale, imageSize]
   )
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current)
+        longPressTimerRef.current = null
+      }
+      if (moveModeMarker && !isPanning && containerRef.current && imageSize) {
+        const rect = containerRef.current.getBoundingClientRect()
+        const pos = clientToLogical(
+          e.clientX,
+          e.clientY,
+          rect,
+          translateX,
+          translateY,
+          scale,
+          imageSize.width,
+          imageSize.height
+        )
+        moveModePendingPositionRef.current = pos
+        setMoveModePendingPosition(pos)
+        return
+      }
       if (!isPanning) return
       const dx = e.clientX - panStartRef.current.x
       const dy = e.clientY - panStartRef.current.y
@@ -452,24 +596,97 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
       setTranslateY(y)
       lastTransformRef.current = { scale, x, y }
     },
-    [isPanning, scale]
+    [moveModeMarker, isPanning, imageSize, scale, translateX, translateY]
   )
 
   const onPointerUp = useCallback(
     (e: React.PointerEvent) => {
-      if (e.button !== 0) return
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current)
+        longPressTimerRef.current = null
+      }
+      if (e.button !== 0 && e.button !== 1) return
       e.currentTarget.releasePointerCapture(e.pointerId)
+      if (moveModeMarker && e.button === 0) {
+        const pos =
+          moveModePendingPositionRef.current ?? moveModeMarker.position
+        mapMarkerRepository
+          .update({ ...moveModeMarker, position: pos })
+          .then(() => loadMarkers())
+        setMoveModeMarker(null)
+        setMoveModePendingPosition(null)
+        moveModePendingPositionRef.current = null
+        setIsPanning(false)
+        return
+      }
       if (isPanning) {
         setMapViewTransform(mapId, lastTransformRef.current)
       }
       setIsPanning(false)
     },
-    [isPanning, mapId, setMapViewTransform]
+    [isPanning, mapId, moveModeMarker, loadMarkers, setMapViewTransform]
   )
 
   const onPointerCancel = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
     setIsPanning(false)
   }, [])
+
+  /** Open map or marker context menu on right-click. */
+  const onContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      if (!imageDisplayUrl || imageLoadError || !containerRef.current) return
+      e.preventDefault()
+      const isMarkerEl = (e.target as HTMLElement).closest?.(
+        '[data-marker-id]'
+      ) as HTMLElement | null
+      if (isMarkerEl) {
+        const markerId = isMarkerEl.getAttribute('data-marker-id')
+        const marker = markerId
+          ? (markers.find((m) => m.id === markerId) ?? null)
+          : null
+        if (marker) {
+          setContextMenu({
+            type: 'marker',
+            marker,
+            clientX: e.clientX,
+            clientY: e.clientY,
+          })
+        }
+        return
+      }
+      if (!imageSize) return
+      const rect = containerRef.current.getBoundingClientRect()
+      const logicalPosition = clientToLogical(
+        e.clientX,
+        e.clientY,
+        rect,
+        translateX,
+        translateY,
+        scale,
+        imageSize.width,
+        imageSize.height
+      )
+      setContextMenu({
+        type: 'map',
+        clientX: e.clientX,
+        clientY: e.clientY,
+        logicalPosition,
+      })
+    },
+    [
+      imageDisplayUrl,
+      imageLoadError,
+      imageSize,
+      markers,
+      scale,
+      translateX,
+      translateY,
+    ]
+  )
 
   // Wheel zoom toward cursor
   const onWheel = useCallback(
@@ -562,25 +779,6 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
           >
             Zoom out
           </button>
-          {/* Temporary debug for Phase 4.5 validation. REMOVE in Phase 4.6 when context menu supports adding markers. */}
-          <span className="ml-2 border-l border-slate-300 pl-2 text-slate-400">
-            Debug:
-          </span>
-          <button
-            type="button"
-            onClick={handleAddTestMarker}
-            disabled={isAddingTestMarker}
-            className="rounded border border-amber-300 bg-amber-50 px-2 py-1 text-sm text-amber-800 hover:bg-amber-100 disabled:opacity-50"
-            aria-label="Add test marker (debug)"
-            title="Add a marker for a random entity at a random position. Remove in Phase 4.6."
-          >
-            {isAddingTestMarker ? 'Adding…' : 'Add test marker'}
-          </button>
-          {testMarkerError && (
-            <span className="text-sm text-amber-700" role="alert">
-              {testMarkerError}
-            </span>
-          )}
         </div>
       )}
 
@@ -593,6 +791,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
         onPointerCancel={onPointerCancel}
         onPointerLeave={onPointerCancel}
         onWheel={onWheel}
+        onContextMenu={onContextMenu}
         style={{ touchAction: 'none' }}
         role="img"
         aria-label={map?.name ?? 'Map'}
@@ -630,11 +829,15 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
               draggable={false}
             />
             {markers.map((marker) => {
-              // Position in image pixel space (logical 0–1 × intrinsic size).
+              // Position in image pixel space (logical 0–1 × intrinsic size). When in move mode, use pending position.
               const w = imageSize?.width ?? 0
               const h = imageSize?.height ?? 0
-              const left = w > 0 ? marker.position.x * w : marker.position.x
-              const top = h > 0 ? marker.position.y * h : marker.position.y
+              const pos =
+                moveModeMarker?.id === marker.id && moveModePendingPosition
+                  ? moveModePendingPosition
+                  : marker.position
+              const left = w > 0 ? pos.x * w : pos.x
+              const top = h > 0 ? pos.y * h : pos.y
 
               const entityName = markerLabels[marker.id] ?? ''
               const markerLabel = marker.label?.trim() ?? ''
@@ -685,12 +888,16 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
               return (
                 <div
                   key={marker.id}
+                  data-marker-id={marker.id}
                   className="absolute"
                   style={{
                     left,
                     top,
                     transformOrigin: '50% 50%',
                     transform: `translate(-50%, -50%) scale(${markerLocalScale})`,
+                  }}
+                  onPointerDown={(e) => {
+                    if (e.button === 0) e.stopPropagation()
                   }}
                 >
                   <MapMarkerBadge
@@ -704,6 +911,400 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
           </div>
         )}
       </div>
+
+      {contextMenu?.type === 'map' && (
+        <ContextMenu
+          position={{ x: contextMenu.clientX, y: contextMenu.clientY }}
+          aria-label="Map context menu"
+          items={[
+            {
+              label: 'Add marker here (existing entity)',
+              onClick: () => {
+                setAddMarkerExistingModal({
+                  logicalPosition: contextMenu.logicalPosition,
+                })
+                setContextMenu(null)
+              },
+            },
+            {
+              label: 'Add marker here (new entity)',
+              onClick: () => {
+                setAddMarkerNewModal({
+                  logicalPosition: contextMenu.logicalPosition,
+                })
+                setAddMarkerNewEntityType(EntityType.PLACE)
+                setAddMarkerNewName('')
+                setAddMarkerNewItemLocation('')
+                setContextMenu(null)
+              },
+            },
+          ]}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {contextMenu?.type === 'marker' && (
+        <ContextMenu
+          position={{ x: contextMenu.clientX, y: contextMenu.clientY }}
+          aria-label="Marker context menu"
+          items={[
+            {
+              label: 'Move marker',
+              onClick: () => {
+                setMoveModeMarker(contextMenu.marker)
+                const pos = { ...contextMenu.marker.position }
+                setMoveModePendingPosition(pos)
+                moveModePendingPositionRef.current = pos
+                setContextMenu(null)
+              },
+            },
+            {
+              label: 'Delete marker only',
+              onClick: () => {
+                setDeleteMarkerOnlyTarget(contextMenu.marker.id)
+                setContextMenu(null)
+              },
+            },
+            {
+              label: 'Delete marker and entity',
+              onClick: () => {
+                setDeleteMarkerAndEntityTarget(contextMenu.marker)
+                setContextMenu(null)
+              },
+            },
+          ]}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      <ConfirmDialog
+        isOpen={deleteMarkerOnlyTarget !== null}
+        title="Delete marker"
+        message="Remove only this marker from the map. The entity (quest, place, etc.) will remain."
+        confirmLabel="Delete marker"
+        variant="danger"
+        onConfirm={async () => {
+          if (deleteMarkerOnlyTarget === null) return
+          await mapMarkerRepository.delete(deleteMarkerOnlyTarget)
+          await loadMarkers()
+          setDeleteMarkerOnlyTarget(null)
+        }}
+        onCancel={() => setDeleteMarkerOnlyTarget(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteMarkerAndEntityTarget !== null}
+        title="Delete marker and entity"
+        message="This will remove the marker and the associated entity (quest, place, item, etc.) from the game. All threads and connections involving that entity will also be removed. This cannot be undone."
+        confirmLabel="Delete both"
+        variant="danger"
+        onConfirm={async () => {
+          if (deleteMarkerAndEntityTarget === null) return
+          const { entityType, entityId } = deleteMarkerAndEntityTarget
+          switch (entityType) {
+            case EntityType.QUEST:
+              await questRepository.delete(entityId as QuestId)
+              break
+            case EntityType.INSIGHT:
+              await insightRepository.delete(entityId as InsightId)
+              break
+            case EntityType.ITEM:
+              await itemRepository.delete(entityId as ItemId)
+              break
+            case EntityType.PERSON:
+              await personRepository.delete(entityId as PersonId)
+              break
+            case EntityType.PLACE:
+              await placeRepository.delete(entityId as PlaceId)
+              break
+            default:
+              return
+          }
+          await loadMarkers()
+          setDeleteMarkerAndEntityTarget(null)
+        }}
+        onCancel={() => setDeleteMarkerAndEntityTarget(null)}
+      />
+
+      {addMarkerExistingModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-marker-existing-title"
+          onClick={() => setAddMarkerExistingModal(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              id="add-marker-existing-title"
+              className="mb-3 text-lg font-semibold text-slate-900"
+            >
+              Add marker (existing entity)
+            </h2>
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor="add-marker-entity-type"
+                  className="mb-1 block text-sm font-medium text-slate-700"
+                >
+                  Entity type
+                </label>
+                <select
+                  id="add-marker-entity-type"
+                  value={addMarkerEntityType}
+                  onChange={(e) => {
+                    setAddMarkerEntityType(Number(e.target.value) as EntityType)
+                    setAddMarkerEntityId('')
+                  }}
+                  className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900"
+                >
+                  {THREAD_ENDPOINT_ENTITY_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {ENTITY_TYPE_LABELS[t]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="add-marker-entity-picker"
+                  className="mb-1 block text-sm font-medium text-slate-700"
+                >
+                  Entity
+                </label>
+                <EntityPicker
+                  id="add-marker-entity-picker"
+                  gameId={gameId}
+                  entityType={addMarkerEntityType}
+                  value={addMarkerEntityId}
+                  onChange={setAddMarkerEntityId}
+                  aria-label="Select entity"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setAddMarkerExistingModal(null)
+                  setAddMarkerEntityId('')
+                }}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!addMarkerEntityId}
+                onClick={async () => {
+                  if (!addMarkerEntityId || !addMarkerExistingModal) return
+                  await mapMarkerRepository.create({
+                    gameId,
+                    mapId,
+                    playthroughId: currentPlaythroughId ?? undefined,
+                    entityType: addMarkerEntityType,
+                    entityId: addMarkerEntityId as MapMarker['entityId'],
+                    position: addMarkerExistingModal.logicalPosition,
+                  })
+                  await loadMarkers()
+                  setAddMarkerExistingModal(null)
+                  setAddMarkerEntityId('')
+                }}
+                className="rounded border border-slate-300 bg-slate-700 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+              >
+                Add marker
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {addMarkerNewModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-marker-new-title"
+          onClick={() => !addMarkerNewSubmitting && setAddMarkerNewModal(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              id="add-marker-new-title"
+              className="mb-3 text-lg font-semibold text-slate-900"
+            >
+              Add marker (new entity)
+            </h2>
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor="add-marker-new-type"
+                  className="mb-1 block text-sm font-medium text-slate-700"
+                >
+                  Entity type
+                </label>
+                <select
+                  id="add-marker-new-type"
+                  value={addMarkerNewEntityType}
+                  onChange={(e) => {
+                    setAddMarkerNewEntityType(
+                      Number(e.target.value) as EntityType
+                    )
+                    setAddMarkerNewName('')
+                    setAddMarkerNewItemLocation('')
+                  }}
+                  className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900"
+                >
+                  {THREAD_ENDPOINT_ENTITY_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {ENTITY_TYPE_LABELS[t]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="add-marker-new-name"
+                  className="mb-1 block text-sm font-medium text-slate-700"
+                >
+                  'Name'
+                </label>
+                <input
+                  id="add-marker-new-name"
+                  type="text"
+                  value={addMarkerNewName}
+                  onChange={(e) => setAddMarkerNewName(e.target.value)}
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-slate-900"
+                />
+              </div>
+              {addMarkerNewEntityType === EntityType.ITEM && (
+                <div>
+                  <label
+                    htmlFor="add-marker-new-item-location"
+                    className="mb-1 block text-sm font-medium text-slate-700"
+                  >
+                    Location (place)
+                  </label>
+                  <EntityPicker
+                    id="add-marker-new-item-location"
+                    gameId={gameId}
+                    entityType={EntityType.PLACE}
+                    value={addMarkerNewItemLocation}
+                    onChange={setAddMarkerNewItemLocation}
+                    aria-label="Place where item is acquired"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={addMarkerNewSubmitting}
+                onClick={() => {
+                  setAddMarkerNewModal(null)
+                  setAddMarkerNewName('')
+                  setAddMarkerNewItemLocation('')
+                }}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={
+                  addMarkerNewSubmitting ||
+                  !addMarkerNewName.trim() ||
+                  (addMarkerNewEntityType === EntityType.ITEM &&
+                    !addMarkerNewItemLocation)
+                }
+                onClick={async () => {
+                  if (!addMarkerNewModal || !addMarkerNewName.trim()) return
+                  if (
+                    addMarkerNewEntityType === EntityType.ITEM &&
+                    !addMarkerNewItemLocation
+                  )
+                    return
+                  setAddMarkerNewSubmitting(true)
+                  try {
+                    let newEntityId: string
+                    const pos = addMarkerNewModal.logicalPosition
+                    switch (addMarkerNewEntityType) {
+                      case EntityType.QUEST: {
+                        const q = await questRepository.create({
+                          gameId,
+                          title: addMarkerNewName.trim(),
+                          giver: '',
+                        })
+                        newEntityId = q.id
+                        break
+                      }
+                      case EntityType.INSIGHT: {
+                        const i = await insightRepository.create({
+                          gameId,
+                          title: addMarkerNewName.trim(),
+                          content: '',
+                        })
+                        newEntityId = i.id
+                        break
+                      }
+                      case EntityType.ITEM: {
+                        const item = await itemRepository.create({
+                          gameId,
+                          name: addMarkerNewName.trim(),
+                          location: addMarkerNewItemLocation as PlaceId,
+                        })
+                        newEntityId = item.id
+                        break
+                      }
+                      case EntityType.PERSON: {
+                        const p = await personRepository.create({
+                          gameId,
+                          name: addMarkerNewName.trim(),
+                        })
+                        newEntityId = p.id
+                        break
+                      }
+                      case EntityType.PLACE: {
+                        const pl = await placeRepository.create({
+                          gameId,
+                          name: addMarkerNewName.trim(),
+                          map: mapId,
+                        })
+                        newEntityId = pl.id
+                        break
+                      }
+                      default:
+                        return
+                    }
+                    await mapMarkerRepository.create({
+                      gameId,
+                      mapId,
+                      playthroughId: currentPlaythroughId ?? undefined,
+                      entityType: addMarkerNewEntityType,
+                      entityId: newEntityId as MapMarker['entityId'],
+                      position: pos,
+                    })
+                    await loadMarkers()
+                    setAddMarkerNewModal(null)
+                    setAddMarkerNewName('')
+                    setAddMarkerNewItemLocation('')
+                  } finally {
+                    setAddMarkerNewSubmitting(false)
+                  }
+                }}
+                className="rounded border border-slate-300 bg-slate-700 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+              >
+                {addMarkerNewSubmitting ? 'Creating…' : 'Create and add marker'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
