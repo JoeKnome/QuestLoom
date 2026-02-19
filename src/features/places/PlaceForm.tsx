@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mapRepository, placeRepository } from '../../lib/repositories'
+import { mapRepository, placeRepository, threadRepository } from '../../lib/repositories'
 import type { GameId, MapId } from '../../types/ids'
 import type { Place } from '../../types/Place'
 import { MapPicker } from '../../components/MapPicker'
@@ -7,6 +7,7 @@ import {
   deriveMapNameFromTopLevelPlaceName,
   formatTopLevelPlaceName,
 } from '../../utils/mapNames'
+import { THREAD_LABEL_MAP } from '../../lib/repositories/threadLabels'
 
 /**
  * Props for PlaceForm when creating a new place.
@@ -91,6 +92,40 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
   }, [props])
 
   /**
+   * Syncs the representative map thread for a place: ensures there is a single
+   * Place → top-level Place thread (label "map") when the place has a map,
+   * and removes any such threads when the map is cleared.
+   */
+  const syncMapRepresentativeThread = useCallback(
+    async (gameId: GameId, placeId: string, mapValue: MapId | undefined) => {
+      const existing = await threadRepository.getThreadsFromEntity(
+        gameId,
+        placeId,
+        null
+      )
+      const mapThreads = existing.filter((t) => t.label === THREAD_LABEL_MAP)
+      await Promise.all(mapThreads.map((t) => threadRepository.delete(t.id)))
+
+      if (!mapValue) {
+        return
+      }
+
+      const map = await mapRepository.getById(mapValue)
+      if (!map || !map.topLevelPlaceId || map.topLevelPlaceId === placeId) {
+        return
+      }
+
+      await threadRepository.create({
+        gameId,
+        sourceId: placeId,
+        targetId: map.topLevelPlaceId,
+        label: THREAD_LABEL_MAP,
+      })
+    },
+    []
+  )
+
+  /**
    * Handles the submission of the place form.
    */
   const handleSubmit = useCallback(
@@ -106,12 +141,19 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
       try {
         const mapValue = mapId === '' ? undefined : mapId
         if (props.mode === 'create') {
-          await placeRepository.create({
+          const created = await placeRepository.create({
             gameId: props.gameId,
             name: trimmedName,
             notes: notes.trim() || undefined,
             map: mapValue,
           })
+          if (mapValue) {
+            await syncMapRepresentativeThread(
+              props.gameId,
+              created.id,
+              mapValue
+            )
+          }
         } else {
           const existingMapId = props.place.map
           const map =
@@ -131,6 +173,14 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
           }
           await placeRepository.update(updatedPlace)
 
+          if (!isTopLevel) {
+            await syncMapRepresentativeThread(
+              updatedPlace.gameId,
+              updatedPlace.id,
+              mapValue
+            )
+          }
+
           if (isTopLevel && map) {
             const mapName = deriveMapNameFromTopLevelPlaceName(effectivePlaceName)
             await mapRepository.update({
@@ -146,7 +196,7 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [name, notes, mapId, props]
+    [name, notes, mapId, props, syncMapRepresentativeThread]
   )
 
   return (
