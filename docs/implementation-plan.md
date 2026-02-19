@@ -241,14 +241,16 @@ Implemented: Extended `Map` and `CreateMapInput` with optional `imageSourceType`
 
 Implemented: Added `getMapImageDisplayUrl(mapId)` to `IMapRepository` and `MapRepository` to return a displayable URL for URL or uploaded blob (with optional revoke for object URLs). MapView loads the map and image via the repository, revokes object URLs on unmount or when switching maps, and shows loading / "No image set" / "Failed to load image" states. Zoom and pan use React state and CSS transform (scale, translate); wheel zooms toward cursor; pointer down/move/up with setPointerCapture for pan. Toolbar has Reset view, Zoom in, and Zoom out (keyboard-focusable, aria-labels). `gameViewStore` holds `mapViewTransform` per map and `setMapViewTransform`; MapView restores stored transform when re-entering a map and persists on pan end and zoom. Styling aligned with other feature tabs; pan/zoom area uses min-h-0 and flex-1 for responsiveness.
 
-### 4.4 Map entity and loom integration
+### 4.4 Map entity and loom integration ✅ Complete
 
-- [ ] **Map as view-only entity** — Clarify in `docs/data-models.md` and repository docs that the `Map` entity exists primarily to back the map view experience and should **not** appear as a node in the Loom or be directly connectable via threads.
-- [ ] **Place as map representative** — Establish `Place` as the entity type used in threads and the Loom to represent locations and maps. Ensure UI copy and tooltips reinforce that threads connect places (and other entities), not maps.
-- [ ] **Top-level place per map** — Extend map creation logic so that creating a map automatically creates a corresponding top-level `Place` (e.g. "Map: Tavern District") associated with that map. Store the association in the map and/or place records so it can be resolved efficiently.
-- [ ] **Loom node adjustments** — Update the Loom view configuration so that nodes of type `MAP` are no longer rendered; instead, the associated top-level `Place` is used to represent that map in the Loom.
-- [ ] **Cascade on map delete** — When a map is deleted, automatically delete its associated top-level `Place` and any child places that are scoped specifically to that map, reusing existing cascading delete patterns. Ensure that thread and discovery repositories clean up any connections involving those places, as in Phase 3.
-- [ ] **Name synchronization** — Implement two-way name syncing such that renaming a map also renames its associated top-level place, and renaming that place updates the map name. Log this coupling in docs to avoid accidental divergence.
+- [x] **Map as view-only entity** — Clarified in `docs/data-models.md` and types/repositories that the `Map` entity exists primarily to back the map view experience and markers, and does **not** appear as a node in the Loom or as a thread endpoint. The loom graph hook now omits `EntityType.MAP` nodes entirely.
+- [x] **Place as map representative** — Established `Place` as the entity type used in threads and the Loom to represent locations and maps. UI copy and behavior now reinforce that threads connect places (and other entities), not maps; maps are represented via their associated top-level place.
+- [x] **Top-level place per map** — Extended map creation logic so that creating a map automatically creates a corresponding top-level `Place` (e.g. "Map: Tavern District") associated with that map. The association is stored bidirectionally (`Map.topLevelPlaceId` ↔ `Place.map`), with Dexie schema v4 adding an index for `topLevelPlaceId` on the maps table.
+- [x] **Loom node adjustments** — Updated the Loom view configuration so that nodes of type `MAP` are no longer rendered; the existing place nodes represent all locations, including each map’s top-level place. Legacy map-related threads are ignored by the Loom since there are no map nodes.
+- [x] **Cascade on map delete** — When a map is deleted, the map repository now deletes any uploaded image blobs and all places scoped specifically to that map (including the associated top-level place), reusing existing cascading delete patterns so threads involving those places are cleaned up consistently.
+- [x] **Name synchronization** — Implemented two-way name syncing such that renaming a map also renames its associated top-level place (with a stable `"Map: "` prefix), and renaming that top-level place updates the underlying map name while keeping the prefix on the place only. Shared helpers in `src/utils/mapNames.ts` enforce consistent prefix handling and avoid duplicated prefixes.
+
+Implemented: The loom graph hook (`useLoomGraph`) now loads only quests, insights, items, people, and places as entities, omitting maps so they never appear as Loom nodes. The `Map` type gained a `topLevelPlaceId` field and Dexie schema v4 added an index on this field. `MapForm` orchestrates creation and editing of maps so that each map has exactly one top-level place with a normalized `"Map: "` prefix, and a shared utility ensures map names themselves never store the prefix. `PlaceForm` treats top-level places specially: when editing, it shows the underlying map name (without prefix), keeps the map link fixed, and maintains bidirectional name sync; for non–top-level places, assigning a map also creates a representative thread from that place to the map’s top-level place using the reserved `map` label. Tooltips on the disabled map picker clarify when a place is acting as the top-level representation of its map.
 
 ### 4.5 Map markers: data and display
 
@@ -271,12 +273,12 @@ Implemented: Added `getMapImageDisplayUrl(mapId)` to `IMapRepository` and `MapRe
 
 ### 4.7 Definition of done (Phase 4)
 
-- [ ] The Maps sidebar tab supports both a selection grid and a map view, with tab clicks behaving as specified (toggle selection/view; return to last viewed map when coming from other tabs).
-- [ ] The map selection experience is a grid of tiles showing map names and image previews, with create/edit/delete actions available.
-- [ ] Creating or editing a map allows setting the image via URL, file upload, or drag-and-drop, and the image is persisted via the map repository.
-- [ ] The map view renders the selected map image and supports smooth zoom and pan interactions.
-- [ ] Maps are represented in the Loom via associated top-level places; maps themselves do not appear as Loom nodes or thread endpoints.
-- [ ] Each map has a top-level place that is created, renamed, and deleted in lockstep with the map, with Loom and thread data updating accordingly.
+- [x] The Maps sidebar tab supports both a selection grid and a map view, with tab clicks behaving as specified (toggle selection/view; return to last viewed map when coming from other tabs).
+- [x] The map selection experience is a grid of tiles showing map names and image previews, with create/edit/delete actions available.
+- [x] Creating or editing a map allows setting the image via URL, file upload, or drag-and-drop, and the image is persisted via the map repository.
+- [x] The map view renders the selected map image and supports smooth zoom and pan interactions.
+- [x] Maps are represented in the Loom via associated top-level places; maps themselves do not appear as Loom nodes or thread endpoints.
+- [x] Each map has a top-level place that is created, renamed, and deleted in lockstep with the map, with Loom and thread data (including representative map threads from non–top-level places) updating accordingly.
 - [ ] Map markers are stored as persistent data linked to maps and non-map/thread entities, rendered on the map with simple type-colored visuals and tooltips.
 - [ ] Users can add, move, and delete markers via deliberate interactions and a context menu, including flows that create new entities at a location or delete entities with full cascading behavior.
 - [ ] All documentation pages are updated reflecting the latest state of the app.
