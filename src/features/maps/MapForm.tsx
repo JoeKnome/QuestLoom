@@ -268,10 +268,21 @@ export function MapForm(props: MapFormProps): JSX.Element {
           }
         } else {
           const mapId = props.map.id
-          await mapRepository.update({
+          const updatedMap: Map = {
             ...props.map,
             name: trimmedName,
-          })
+          }
+          await mapRepository.update(updatedMap)
+
+          if (updatedMap.topLevelPlaceId) {
+            const place = await placeRepository.getById(updatedMap.topLevelPlaceId)
+            if (place) {
+              await placeRepository.update({
+                ...place,
+                name: `Map: ${trimmedName}`,
+              })
+            }
+          }
           if (imageSourceUi === 'none') {
             await mapRepository.clearImage(mapId)
           } else if (imageSourceUi === 'url') {

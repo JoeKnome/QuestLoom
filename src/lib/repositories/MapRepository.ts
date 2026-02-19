@@ -56,6 +56,16 @@ class MapRepositoryImpl implements IMapRepository {
         await db.mapImages.delete(map.imageBlobId)
       }
       await deleteThreadsForEntity(map.gameId, id)
+
+      const scopedPlaces = await db.places
+        .where('gameId')
+        .equals(map.gameId)
+        .filter((place) => place.map === id)
+        .toArray()
+      for (const place of scopedPlaces) {
+        await deleteThreadsForEntity(place.gameId, place.id)
+        await db.places.delete(place.id)
+      }
     }
     await db.maps.delete(id)
   }

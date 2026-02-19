@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react'
-import { placeRepository, threadRepository } from '../../lib/repositories'
-import { THREAD_LABEL_MAP } from '../../lib/repositories/threadLabels'
+import { mapRepository, placeRepository } from '../../lib/repositories'
 import type { GameId, MapId } from '../../types/ids'
 import type { Place } from '../../types/Place'
 import { MapPicker } from '../../components/MapPicker'
@@ -40,8 +39,9 @@ export type PlaceFormProps = PlaceFormCreateProps | PlaceFormEditProps
 
 /**
  * Form to create or edit a place. In create mode requires gameId;
- * in edit mode requires the existing place. Uses placeRepository only.
- * Map picker can be added later for optional map link.
+ * in edit mode requires the existing place. Uses repositories so that the map
+ * picker links the place to a map via the place.map field; representative
+ * threads are not created for map links.
  *
  * @param props - Create or edit props; onSaved and onCancel are called on success or cancel
  * @returns A JSX element representing the PlaceForm component.
@@ -60,38 +60,6 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
   const [error, setError] = useState<string | null>(null)
 
   /**
-   * Syncs the "map" representative thread for a place: create/update if map set, delete if cleared.
-   */
-  const syncMapThread = useCallback(
-    async (gameId: GameId, placeId: string, mapValue: MapId | '') => {
-      const threads = await threadRepository.getThreadsFromEntity(
-        gameId,
-        placeId,
-        null
-      )
-      const mapThread = threads.find((t) => t.label === THREAD_LABEL_MAP)
-      if (mapValue) {
-        if (mapThread) {
-          await threadRepository.update({
-            ...mapThread,
-            targetId: mapValue,
-          })
-        } else {
-          await threadRepository.create({
-            gameId,
-            sourceId: placeId,
-            targetId: mapValue,
-            label: THREAD_LABEL_MAP,
-          })
-        }
-      } else if (mapThread) {
-        await threadRepository.delete(mapThread.id)
-      }
-    },
-    []
-  )
-
-  /**
    * Handles the submission of the place form.
    */
   const handleSubmit = useCallback(
@@ -107,21 +75,34 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
       try {
         const mapValue = mapId === '' ? undefined : mapId
         if (props.mode === 'create') {
-          const place = await placeRepository.create({
+          await placeRepository.create({
             gameId: props.gameId,
             name: trimmedName,
             notes: notes.trim() || undefined,
             map: mapValue,
           })
-          await syncMapThread(props.gameId, place.id, mapId)
         } else {
-          await syncMapThread(props.place.gameId, props.place.id, mapId)
-          await placeRepository.update({
+          const updatedPlace: Place = {
             ...props.place,
             name: trimmedName,
             notes: notes.trim(),
             map: mapValue,
-          })
+          }
+          await placeRepository.update(updatedPlace)
+
+          if (updatedPlace.map) {
+            const map = await mapRepository.getById(updatedPlace.map)
+            if (map && map.topLevelPlaceId === updatedPlace.id) {
+              const prefix = 'Map: '
+              const mapName = trimmedName.startsWith(prefix)
+                ? trimmedName.slice(prefix.length)
+                : trimmedName
+              await mapRepository.update({
+                ...map,
+                name: mapName,
+              })
+            }
+          }
         }
         props.onSaved()
       } catch (err) {
@@ -130,7 +111,7 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [name, notes, mapId, props, syncMapThread]
+    [name, notes, mapId, props]
   )
 
   return (
