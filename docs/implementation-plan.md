@@ -252,13 +252,15 @@ Implemented: Added `getMapImageDisplayUrl(mapId)` to `IMapRepository` and `MapRe
 
 Implemented: The loom graph hook (`useLoomGraph`) now loads only quests, insights, items, people, and places as entities, omitting maps so they never appear as Loom nodes. The `Map` type gained a `topLevelPlaceId` field and Dexie schema v4 added an index on this field. `MapForm` orchestrates creation and editing of maps so that each map has exactly one top-level place with a normalized `"Map: "` prefix, and a shared utility ensures map names themselves never store the prefix. `PlaceForm` treats top-level places specially: when editing, it shows the underlying map name (without prefix), keeps the map link fixed, and maintains bidirectional name sync; for non–top-level places, assigning a map also creates a representative thread from that place to the map’s top-level place using the reserved `map` label. Tooltips on the disabled map picker clarify when a place is acting as the top-level representation of its map.
 
-### 4.5 Map markers: data and display
+### 4.5 Map markers: data and display ✅ Complete
 
 - [x] **Marker model** — Introduce a `MapMarker` data model and repository keyed by game (and optionally playthrough) that links a `mapId` and an entity endpoint (`entityId`) with a persistent position stored in a map-local logical coordinate space. Coordinates are finite numbers but are **not** clamped to the image bounds so markers can exist at or beyond the map image’s periphery. Markers also support an optional short label/description so entities can have multiple differentiated markers (for example, multiple locations or narrative states). Existing markers are not automatically adjusted when map images change size or aspect ratio; robust re-alignment is deferred to a later phase.
 - [x] **Eligible entities** — Ensure that all entities except maps and threads can have markers (**same set as `THREAD_ENDPOINT_ENTITY_TYPES` from `EntityType.ts`**). Guardrails in the marker creation UI will be added in Phase 4.6; the repository already enforces eligibility.
 - [x] **Initial marker rendering** — In `MapView`, load markers for the current map and render them on top of the image at their logical positions, transforming them alongside zoom and pan so they remain correctly aligned within the map’s coordinate space.
 - [x] **Basic marker styling** — Implement simple, readable marker visuals for this phase: small circular badges where the **marker color is tied to the entity type** and the **first letter of the entity’s name** is displayed inside.
 - [x] **Tooltips** — On hover or focus, show a minimal tooltip via the native `title` attribute on the marker with the full entity name, resolved through `getEntityDisplayName`.
+
+Implemented: Standalone `MapMarker` type and `mapMarkers` Dexie table (schema v5); `IMapMarkerRepository` and `mapMarkerRepository` with getByMapId, create, update, delete, deleteByMapId, deleteByEntity. Map delete and entity deletes cascade to markers. Positions are stored as logical coordinates (0–1 or unbounded); MapView renders by scaling to the image’s intrinsic size so "Reset view" fits the map and markers stay aligned. MapView uses a transform wrapper sized to the image (not the viewport) so zoom/pan and fit-to-view behave correctly. Markers render as `MapMarkerBadge` (entity-type color, first letter of entity name, native tooltip; optional label in tooltip). Map and marker content use `select-none` to prevent text selection. A temporary debug "Add test marker" button creates a marker for a random entity at a random position for validation; remove in Phase 4.6.
 
 ### 4.6 Map markers: interaction and context menu
 
@@ -280,11 +282,11 @@ Implemented: The loom graph hook (`useLoomGraph`) now loads only quests, insight
 - [x] The map view renders the selected map image and supports smooth zoom and pan interactions.
 - [x] Maps are represented in the Loom via associated top-level places; maps themselves do not appear as Loom nodes or thread endpoints.
 - [x] Each map has a top-level place that is created, renamed, and deleted in lockstep with the map, with Loom and thread data (including representative map threads from non–top-level places) updating accordingly.
-- [ ] Map markers are stored as persistent data linked to maps and non-map/thread entities, rendered on the map with simple type-colored visuals and tooltips.
-- [ ] Users can add, move, and delete markers via deliberate interactions and a context menu, including flows that create new entities at a location or delete entities with full cascading behavior.
-- [ ] All documentation pages are updated reflecting the latest state of the app.
-- [ ] All items left to do are documented for future action.
-- [ ] All affected code passes code standards, style, and lint.
+- [x] Map markers are stored as persistent data linked to maps and non-map/thread entities, rendered on the map with simple type-colored visuals and tooltips (Phase 4.5).
+- [ ] Users can add, move, and delete markers via deliberate interactions and a context menu, including flows that create new entities at a location or delete entities with full cascading behavior (Phase 4.6).
+- [x] All documentation pages are updated reflecting the latest state of the app.
+- [x] All items left to do are documented for future action (Phase 4.6 debug removal and context menu).
+- [x] All affected code passes code standards, style, and lint.
 
 ---
 

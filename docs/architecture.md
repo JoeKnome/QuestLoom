@@ -30,7 +30,7 @@ Choices are aimed at: commercialization readiness, modern standards, strong supp
 
 All data access goes through repository interfaces in `src/lib/repositories/`. Scoping:
 
-- **Game-scoped** — `gameRepository`, `questRepository`, `insightRepository`, `itemRepository`, `personRepository`, `placeRepository`, `mapRepository`, `threadRepository`. Methods are keyed by `gameId`; create/update/delete operate on entities for that game. Thread can optionally be playthrough-scoped (`playthroughId` on create).
+- **Game-scoped** — `gameRepository`, `questRepository`, `insightRepository`, `itemRepository`, `personRepository`, `placeRepository`, `mapRepository`, `mapMarkerRepository`, `threadRepository`. Methods are keyed by `gameId`; create/update/delete operate on entities for that game. Thread and map markers can optionally be playthrough-scoped (`playthroughId` on create).
 - **Playthrough-scoped** — Progress/state/discovery: `questRepository` / `insightRepository` / `itemRepository` expose get/upsert/delete for quest progress, insight progress, and item state per playthrough; `entityDiscoveryRepository` for person/place/map discovery. `playthroughRepository` and `threadRepository.deleteByPlaythroughId` complete playthrough-scoped access. Deleting a game cascades to all game-scoped entity tables; deleting a playthrough cascades to progress, state, discovery, and playthrough-scoped threads.
 - **Debug helpers**: `src/lib/debug.ts` provides development-only utilities to purge the local database (clear all tables) and purge app localStorage (current game/playthrough selection).
 - **Backend (commercialization)**: Add when needed for auth, sync, or multi-device.
@@ -70,7 +70,7 @@ QuestLoom/
 │   │   ├── items/        # Item list and CRUD
 │   │   ├── people/       # Person list and CRUD
 │   │   ├── places/       # Place list and CRUD
-│   │   ├── maps/         # Map list and CRUD
+│   │   ├── maps/         # Map list, CRUD, MapView (zoom/pan, markers)
 │   │   ├── threads/      # Thread list and CRUD
 │   │   └── loom/         # Loom graph view (LoomView, EntityNode, useLoomGraph, loomLayout)
 │   ├── hooks/            # Shared hooks

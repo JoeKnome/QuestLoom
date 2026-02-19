@@ -124,6 +124,8 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | createdAt     | datetime | Creation timestamp                                                                                          |
 | updatedAt     | datetime | Last update timestamp                                                                                       |
 
+**Rendering:** In the map view, `position.x` and `position.y` are interpreted as fractions of the map image’s intrinsic width and height (e.g. 0.5, 0.5 = center). Values may be outside 0–1 for periphery markers. The map image and markers are non-selectable (`user-select: none`).
+
 ### Thread
 
 | Field      | Type     | Description                                 |
