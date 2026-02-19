@@ -1172,7 +1172,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                   htmlFor="add-marker-new-name"
                   className="mb-1 block text-sm font-medium text-slate-700"
                 >
-                  'Name'
+                  Name
                 </label>
                 <input
                   id="add-marker-new-name"

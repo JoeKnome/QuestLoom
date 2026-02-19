@@ -65,6 +65,7 @@ class MapRepositoryImpl implements IMapRepository {
         .filter((place) => place.map === id)
         .toArray()
       for (const place of scopedPlaces) {
+        await mapMarkerRepository.deleteByEntity(map.gameId, EntityType.PLACE, place.id)
         await deleteThreadsForEntity(place.gameId, place.id)
         await db.places.delete(place.id)
       }
