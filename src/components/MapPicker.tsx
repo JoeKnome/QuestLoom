@@ -17,6 +17,8 @@ export interface MapPickerProps {
   disabled?: boolean
   /** Optional id for the select element. */
   id?: string
+  /** Optional title for the select element (used for tooltips). */
+  title?: string
 }
 
 /**
@@ -36,6 +38,7 @@ export function MapPicker({
   onChange,
   disabled = false,
   id,
+  title,
 }: MapPickerProps): JSX.Element {
   const [maps, setMaps] = useState<Map[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -69,6 +72,7 @@ export function MapPicker({
       <select
         id={id}
         disabled
+        title={title}
         className="mt-1 w-full rounded border border-slate-300 bg-slate-100 px-3 py-2 text-slate-500"
         aria-label="Map (loading)"
       >
@@ -83,6 +87,7 @@ export function MapPicker({
       value={value}
       onChange={handleChange}
       disabled={disabled}
+      title={title}
       className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
       aria-label="Map"
     >

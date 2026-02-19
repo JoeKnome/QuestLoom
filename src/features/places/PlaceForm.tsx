@@ -186,12 +186,12 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
             isSubmitting ||
             (props.mode === 'edit' && isTopLevelPlaceForMap)
           }
+          title={
+            props.mode === 'edit' && isTopLevelPlaceForMap
+              ? 'This place is the top-level representation of its map.'
+              : undefined
+          }
         />
-        {props.mode === 'edit' && isTopLevelPlaceForMap && (
-          <p className="mt-1 text-xs text-slate-500">
-            This place is the top-level representation of its map.
-          </p>
-        )}
       </div>
       <div>
         <label
