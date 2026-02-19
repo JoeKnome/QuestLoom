@@ -23,8 +23,8 @@ function App() {
   )
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+      <header className="shrink-0 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
         <button
           type="button"
           onClick={handleLogoClick}
@@ -34,7 +34,7 @@ function App() {
           QuestLoom
         </button>
       </header>
-      <main className="p-4">
+      <main className="flex min-h-0 flex-1 flex-col p-4">
         {currentGameId !== null ? <GameView /> : <GameListScreen />}
       </main>
     </div>

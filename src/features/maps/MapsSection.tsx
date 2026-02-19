@@ -30,7 +30,11 @@ export function MapsSection({
   const lastViewedMapId = useGameViewStore((s) => s.lastViewedMapId)
 
   if (mapUiMode === 'view' && lastViewedMapId !== null) {
-    return <MapView gameId={gameId} mapId={lastViewedMapId} />
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <MapView gameId={gameId} mapId={lastViewedMapId} />
+      </div>
+    )
   }
 
   return <MapListScreen gameId={gameId} playthroughId={playthroughId} />

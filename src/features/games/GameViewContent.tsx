@@ -37,28 +37,36 @@ export function GameViewContent({
 }: GameViewContentProps): JSX.Element {
   const commonProps = { gameId, playthroughId }
 
-  switch (section) {
-    case EntityType.QUEST:
-      return <QuestListScreen {...commonProps} />
-    case EntityType.INSIGHT:
-      return <InsightListScreen {...commonProps} />
-    case EntityType.ITEM:
-      return <ItemListScreen {...commonProps} />
-    case EntityType.PERSON:
-      return <PersonListScreen {...commonProps} />
-    case EntityType.PLACE:
-      return <PlaceListScreen {...commonProps} />
-    case EntityType.MAP:
-      return <MapsSection {...commonProps} />
-    case EntityType.THREAD:
-      return <LoomView {...commonProps} />
-    default: {
-      const label = ENTITY_TYPE_PLURAL_LABELS[section]
-      return (
-        <p className="text-slate-500" aria-live="polite">
-          {label} — coming soon
-        </p>
-      )
+  const content = (() => {
+    switch (section) {
+      case EntityType.QUEST:
+        return <QuestListScreen {...commonProps} />
+      case EntityType.INSIGHT:
+        return <InsightListScreen {...commonProps} />
+      case EntityType.ITEM:
+        return <ItemListScreen {...commonProps} />
+      case EntityType.PERSON:
+        return <PersonListScreen {...commonProps} />
+      case EntityType.PLACE:
+        return <PlaceListScreen {...commonProps} />
+      case EntityType.MAP:
+        return <MapsSection {...commonProps} />
+      case EntityType.THREAD:
+        return <LoomView {...commonProps} />
+      default: {
+        const label = ENTITY_TYPE_PLURAL_LABELS[section]
+        return (
+          <p className="text-slate-500" aria-live="polite">
+            {label} — coming soon
+          </p>
+        )
+      }
     }
-  }
+  })()
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-auto">
+      {content}
+    </div>
+  )
 }
