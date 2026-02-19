@@ -262,6 +262,7 @@ Implemented: The loom graph hook (`useLoomGraph`) now loads only quests, insight
 
 ### 4.6 Map markers: interaction and context menu
 
+- [ ] **Remove temporary debug** — Remove the Phase 4.5 temporary debug control from `MapView` (the "Add test marker" button and related state/handler). It is flagged in code with "REMOVE in Phase 4.6" and exists only to validate marker behavior before the context menu is implemented.
 - [ ] **Pan vs move safeguards** — Default interactions prioritize safe panning: click-and-drag on the map pans, clicking a marker selects it. Moving a marker requires an explicit action (e.g. "Move marker" from a context menu) so markers are not accidentally dragged while panning. Middle mouse button always pans, with no selection behavior.
 - [ ] **Map context menu** — Implement a right-click (or long-press on touch) context menu on the map background that anchors at the clicked location and lists actions relevant to that point.
 - [ ] **Add marker here (existing entity)** — From the context menu, allow the user to "Add marker here" for an existing entity by opening a lightweight picker limited to eligible entity types. On selection, create a `MapMarker` at that location for the chosen entity.

@@ -33,7 +33,7 @@ export function MapMarkerBadge({
 
   return (
     <div
-      className={`flex h-6 w-6 items-center justify-center rounded-full border border-white shadow-md ${colorClasses}`}
+      className={`flex h-6 w-6 select-none items-center justify-center rounded-full border border-white shadow-md ${colorClasses}`}
       title={title}
       role="button"
       tabIndex={0}

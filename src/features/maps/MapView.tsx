@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mapMarkerRepository, mapRepository } from '../../lib/repositories'
+import {
+  insightRepository,
+  itemRepository,
+  mapMarkerRepository,
+  mapRepository,
+  personRepository,
+  placeRepository,
+  questRepository,
+} from '../../lib/repositories'
 import { useAppStore } from '../../stores/appStore'
 import { useGameViewStore } from '../../stores/gameViewStore'
 import type { Map } from '../../types/Map'
@@ -70,6 +78,9 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
   const [markers, setMarkers] = useState<MapMarker[]>([])
   const [markerLabels, setMarkerLabels] = useState<Record<string, string>>({})
 
+  /** Image intrinsic size (set on load) so the transform wrapper matches content size. */
+  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null)
+
   const [scale, setScale] = useState(1)
   const [translateX, setTranslateX] = useState(0)
   const [translateY, setTranslateY] = useState(0)
@@ -83,6 +94,100 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
   const setMapViewTransform = useGameViewStore((s) => s.setMapViewTransform)
   const storedTransform = useGameViewStore((s) => s.mapViewTransform[mapId])
   const currentPlaythroughId = useAppStore((s) => s.currentPlaythroughId)
+
+  /** Temporary debug: loading state for "Add test marker" (remove in Phase 4.6). */
+  const [isAddingTestMarker, setIsAddingTestMarker] = useState(false)
+  /** Temporary debug: error message for test marker (remove in Phase 4.6). */
+  const [testMarkerError, setTestMarkerError] = useState<string | null>(null)
+
+  /**
+   * Temporary debug: creates a marker for a random game entity at a random
+   * position so Phase 4.5 marker behavior can be validated without the
+   * Phase 4.6 context menu. REMOVE when Phase 4.6 is implemented.
+   */
+  const handleAddTestMarker = useCallback(async () => {
+    setTestMarkerError(null)
+    setIsAddingTestMarker(true)
+    try {
+      const [quests, insights, items, persons, places] = await Promise.all([
+        questRepository.getByGameId(gameId),
+        insightRepository.getByGameId(gameId),
+        itemRepository.getByGameId(gameId),
+        personRepository.getByGameId(gameId),
+        placeRepository.getByGameId(gameId),
+      ])
+      const candidates: Array<{
+        entityType: EntityType
+        entityId: string
+      }> = []
+      if (quests.length > 0)
+        candidates.push({
+          entityType: EntityType.QUEST,
+          entityId: quests[Math.floor(Math.random() * quests.length)].id,
+        })
+      if (insights.length > 0)
+        candidates.push({
+          entityType: EntityType.INSIGHT,
+          entityId: insights[Math.floor(Math.random() * insights.length)].id,
+        })
+      if (items.length > 0)
+        candidates.push({
+          entityType: EntityType.ITEM,
+          entityId: items[Math.floor(Math.random() * items.length)].id,
+        })
+      if (persons.length > 0)
+        candidates.push({
+          entityType: EntityType.PERSON,
+          entityId: persons[Math.floor(Math.random() * persons.length)].id,
+        })
+      if (places.length > 0)
+        candidates.push({
+          entityType: EntityType.PLACE,
+          entityId: places[Math.floor(Math.random() * places.length)].id,
+        })
+      if (candidates.length === 0) {
+        setTestMarkerError(
+          'Add at least one quest, insight, item, person, or place first.'
+        )
+        return
+      }
+      const pick = candidates[Math.floor(Math.random() * candidates.length)]
+      const position = {
+        x: Math.random() * 0.7 + 0.15,
+        y: Math.random() * 0.7 + 0.15,
+      }
+      const testLabelCount = markers.filter((m) =>
+        m.label?.startsWith('Test ')
+      ).length
+      const label = `Test ${testLabelCount + 1}`
+      await mapMarkerRepository.create({
+        gameId,
+        mapId,
+        playthroughId: currentPlaythroughId ?? undefined,
+        entityType: pick.entityType,
+        entityId: pick.entityId as MapMarker['entityId'],
+        label,
+        position,
+      })
+      const next = await mapMarkerRepository.getByMapId(
+        gameId,
+        mapId,
+        currentPlaythroughId
+      )
+      setMarkers(next)
+    } catch (err) {
+      setTestMarkerError(
+        err instanceof Error ? err.message : 'Failed to add test marker'
+      )
+    } finally {
+      setIsAddingTestMarker(false)
+    }
+  }, [
+    gameId,
+    mapId,
+    currentPlaythroughId,
+    markers,
+  ])
 
   /** Apply a transform and persist it to the store. */
   const applyTransform = useCallback(
@@ -136,6 +241,8 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
     const img = imgRef.current
     if (!container || !img || !img.naturalWidth || !img.naturalHeight) return
 
+    setImageSize({ width: img.naturalWidth, height: img.naturalHeight })
+
     if (storedTransform) {
       setScale(storedTransform.scale)
       setTranslateX(storedTransform.x)
@@ -163,6 +270,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
       setIsLoading(true)
       setImageLoadError(false)
       setImageDisplayUrl(null)
+      setImageSize(null)
       try {
         const result = await mapRepository.getById(mapId)
         if (cancelled) return
@@ -387,6 +495,25 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
           >
             Zoom out
           </button>
+          {/* Temporary debug for Phase 4.5 validation. REMOVE in Phase 4.6 when context menu supports adding markers. */}
+          <span className="ml-2 border-l border-slate-300 pl-2 text-slate-400">
+            Debug:
+          </span>
+          <button
+            type="button"
+            onClick={handleAddTestMarker}
+            disabled={isAddingTestMarker}
+            className="rounded border border-amber-300 bg-amber-50 px-2 py-1 text-sm text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+            aria-label="Add test marker (debug)"
+            title="Add a marker for a random entity at a random position. Remove in Phase 4.6."
+          >
+            {isAddingTestMarker ? 'Adding…' : 'Add test marker'}
+          </button>
+          {testMarkerError && (
+            <span className="text-sm text-amber-700" role="alert">
+              {testMarkerError}
+            </span>
+          )}
         </div>
       )}
 
@@ -417,8 +544,10 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
 
         {hasImage && (
           <div
-            className="absolute inset-0"
+            className="absolute left-0 top-0 select-none"
             style={{
+              width: imageSize?.width ?? 0,
+              height: imageSize?.height ?? 0,
               transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
               transformOrigin: '0 0',
             }}
@@ -427,16 +556,19 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
               ref={imgRef}
               src={imageDisplayUrl}
               alt={map?.name ?? 'Map'}
-              className="block"
-              style={{ display: 'block', width: 'auto', height: 'auto' }}
+              className="block h-full w-full select-none object-contain"
+              style={{ display: 'block' }}
               onLoad={handleImageLoad}
               onError={() => setImageLoadError(true)}
               draggable={false}
             />
             {markers.map((marker) => {
-              // For now, treat marker.position as image-space logical coordinates.
-              const left = marker.position.x
-              const top = marker.position.y
+              // Position in image pixel space (logical 0–1 × intrinsic size).
+              const w = imageSize?.width ?? 0
+              const h = imageSize?.height ?? 0
+              const left = w > 0 ? marker.position.x * w : marker.position.x
+              const top = h > 0 ? marker.position.y * h : marker.position.y
+
               const entityName = markerLabels[marker.id] ?? ''
               const markerLabel = marker.label?.trim() ?? ''
               const tooltip = markerLabel
@@ -444,8 +576,12 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                   ? `${markerLabel} — ${entityName}`
                   : markerLabel
                 : entityName
+
+              // Single-letter badge should prefer the entity name; fall back to
+              // the marker label and then to a type-based default.
               const initialSource =
-                (markerLabel || entityName) ||
+                entityName ||
+                markerLabel ||
                 (marker.entityType === EntityType.PLACE
                   ? 'P'
                   : marker.entityType === EntityType.ITEM
