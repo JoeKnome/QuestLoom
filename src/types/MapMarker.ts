@@ -44,6 +44,11 @@ export interface MapMarker {
    */
   entityId: QuestId | InsightId | ItemId | PersonId | PlaceId
   /**
+   * Optional short description used to distinguish multiple markers for the
+   * same entity (for example, different locations or narrative states).
+   */
+  label?: string
+  /**
    * Logical coordinates in the map's coordinate space.
    * Values are finite numbers but not clamped to image bounds so markers can
    * appear at or beyond the periphery of the image.

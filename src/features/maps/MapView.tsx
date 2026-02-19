@@ -437,9 +437,15 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
               // For now, treat marker.position as image-space logical coordinates.
               const left = marker.position.x
               const top = marker.position.y
-              const label = markerLabels[marker.id] ?? ''
+              const entityName = markerLabels[marker.id] ?? ''
+              const markerLabel = marker.label?.trim() ?? ''
+              const tooltip = markerLabel
+                ? entityName
+                  ? `${markerLabel} — ${entityName}`
+                  : markerLabel
+                : entityName
               const initialSource =
-                label ||
+                (markerLabel || entityName) ||
                 (marker.entityType === EntityType.PLACE
                   ? 'P'
                   : marker.entityType === EntityType.ITEM
@@ -465,7 +471,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                   <MapMarkerBadge
                     entityType={marker.entityType}
                     initial={initialSource}
-                    title={label}
+                    title={tooltip}
                   />
                 </div>
               )

@@ -78,6 +78,7 @@ class MapMarkerRepositoryImpl implements IMapMarkerRepository {
       playthroughId: input.playthroughId ?? undefined,
       entityType: input.entityType,
       entityId: input.entityId,
+      label: input.label?.trim() || undefined,
       position: {
         x: input.position.x,
         y: input.position.y,

@@ -37,6 +37,11 @@ export interface CreateMapMarkerInput {
    */
   entityId: QuestId | InsightId | ItemId | PersonId | PlaceId
   /**
+   * Optional short description used to differentiate markers for the same
+   * entity (for example, \"at bar\" vs \"after raid\").
+   */
+  label?: string
+  /**
    * Logical coordinates in the map's coordinate space.
    * Values must be finite numbers but are not clamped to the image bounds.
    */

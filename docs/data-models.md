@@ -119,6 +119,7 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | playthroughId | string   | Optional playthrough ID; when set, the marker is scoped to a specific playthrough, otherwise game-shared    |
 | entityType    | enum     | Entity type the marker represents: quest \| insight \| item \| person \| place                              |
 | entityId      | string   | ID of the entity this marker represents (must correspond to entityType)                                     |
+| label         | string   | Optional short description to distinguish multiple markers for the same entity (e.g. specific rooms/events) |
 | position      | object   | Logical coordinates in map space, e.g. `{ x: number, y: number }`; finite numbers not clamped to image size |
 | createdAt     | datetime | Creation timestamp                                                                                          |
 | updatedAt     | datetime | Last update timestamp                                                                                       |
