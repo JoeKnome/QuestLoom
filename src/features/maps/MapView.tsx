@@ -21,6 +21,11 @@ const MIN_SCALE = 0.1
 const MAX_SCALE = 10
 const ZOOM_STEP = 1.25
 
+/** Minimum effective scale for markers when zoomed out (keeps them visible). */
+const MIN_MARKER_SCALE = 0.75
+/** Maximum effective scale for markers when zoomed in (prevents them dominating). */
+const MAX_MARKER_SCALE = 3.0
+
 /**
  * Props for the MapView component.
  */
@@ -592,6 +597,16 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                           ? 'C'
                           : '?')
 
+              // Map marker scale proportionally over the map's zoom range so they
+              // grow evenly from min to max instead of staying flat at the caps.
+              const t = Math.max(
+                0,
+                Math.min(1, (scale - MIN_SCALE) / (MAX_SCALE - MIN_SCALE))
+              )
+              const effectiveMarkerScale =
+                MIN_MARKER_SCALE + t * (MAX_MARKER_SCALE - MIN_MARKER_SCALE)
+              const markerLocalScale = effectiveMarkerScale / scale
+
               return (
                 <div
                   key={marker.id}
@@ -599,7 +614,8 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                   style={{
                     left,
                     top,
-                    transform: 'translate(-50%, -100%)',
+                    transformOrigin: '50% 50%',
+                    transform: `translate(-50%, -50%) scale(${markerLocalScale})`,
                   }}
                 >
                   <MapMarkerBadge
