@@ -284,9 +284,9 @@ Implemented: Standalone `MapMarker` type and `mapMarkers` Dexie table (schema v5
 - [x] Each map has a top-level place that is created, renamed, and deleted in lockstep with the map, with Loom and thread data (including representative map threads from non–top-level places) updating accordingly.
 - [x] Map markers are stored as persistent data linked to maps and non-map/thread entities, rendered on the map with simple type-colored visuals and tooltips (Phase 4.5).
 - [ ] Users can add, move, and delete markers via deliberate interactions and a context menu, including flows that create new entities at a location or delete entities with full cascading behavior (Phase 4.6).
-- [x] All documentation pages are updated reflecting the latest state of the app.
-- [x] All items left to do are documented for future action (Phase 4.6 debug removal and context menu).
-- [x] All affected code passes code standards, style, and lint.
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action (Phase 4.6 debug removal and context menu).
+- [ ] All affected code passes code standards, style, and lint.
 
 ---
 
