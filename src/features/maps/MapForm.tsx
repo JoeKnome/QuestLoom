@@ -281,7 +281,9 @@ export function MapForm(props: MapFormProps): JSX.Element {
           await mapRepository.update(updatedMap)
 
           if (updatedMap.topLevelPlaceId) {
-            const place = await placeRepository.getById(updatedMap.topLevelPlaceId)
+            const place = await placeRepository.getById(
+              updatedMap.topLevelPlaceId
+            )
             if (place) {
               await placeRepository.update({
                 ...place,

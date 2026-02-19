@@ -1,5 +1,5 @@
 import type { GameId } from '../../types/ids'
-import type { MapImageSourceType, MapMarker } from '../../types/Map'
+import type { MapImageSourceType } from '../../types/Map'
 
 /**
  * Input for creating a map.
@@ -17,6 +17,4 @@ export interface CreateMapInput {
   imageUrl?: string
   /** Reference to uploaded image; used when imageSourceType === 'upload'. */
   imageBlobId?: string
-  /** Markers (placeId, position, label). */
-  markers?: MapMarker[]
 }

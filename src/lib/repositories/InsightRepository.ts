@@ -10,6 +10,7 @@ import type { GameId, InsightId, PlaythroughId } from '../../types/ids'
 import { generateId, generateEntityId } from '../../utils/generateId'
 import { db, type InsightProgressRow } from '../db'
 import { deleteThreadsForEntity } from './cascadeDeleteThreads'
+import { mapMarkerRepository } from './MapMarkerRepository'
 import type { CreateInsightInput } from './CreateInsightInput'
 import type { IInsightRepository } from './IInsightRepository'
 
@@ -51,6 +52,11 @@ class InsightRepositoryImpl implements IInsightRepository {
     const insight = await db.insights.get(id)
     if (insight) {
       await deleteThreadsForEntity(insight.gameId, id)
+      await mapMarkerRepository.deleteByEntity(
+        insight.gameId,
+        EntityType.INSIGHT,
+        id
+      )
     }
     await db.insights.delete(id)
   }

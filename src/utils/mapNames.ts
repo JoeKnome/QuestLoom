@@ -32,9 +32,7 @@ export function formatTopLevelPlaceName(mapName: string): string {
  * @param placeName - The place name to derive the map name from.
  * @returns The map name without the "Map: " prefix.
  */
-export function deriveMapNameFromTopLevelPlaceName(
-  placeName: string
-): string {
+export function deriveMapNameFromTopLevelPlaceName(placeName: string): string {
   let base = placeName.trim()
   while (base.startsWith(TOP_LEVEL_MAP_PLACE_PREFIX)) {
     const next = base.slice(TOP_LEVEL_MAP_PLACE_PREFIX.length).trim()
@@ -45,4 +43,3 @@ export function deriveMapNameFromTopLevelPlaceName(
   }
   return base
 }
-

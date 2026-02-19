@@ -9,6 +9,7 @@ import type { GameId, PlaceId } from '../../types/ids'
 import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
 import { deleteThreadsForEntity } from './cascadeDeleteThreads'
+import { mapMarkerRepository } from './MapMarkerRepository'
 import type { CreatePlaceInput } from './CreatePlaceInput'
 import type { IPlaceRepository } from './IPlaceRepository'
 
@@ -51,6 +52,11 @@ class PlaceRepositoryImpl implements IPlaceRepository {
     const place = await db.places.get(id)
     if (place) {
       await deleteThreadsForEntity(place.gameId, id)
+      await mapMarkerRepository.deleteByEntity(
+        place.gameId,
+        EntityType.PLACE,
+        id
+      )
     }
     await db.places.delete(id)
   }

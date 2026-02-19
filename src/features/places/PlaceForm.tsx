@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mapRepository, placeRepository, threadRepository } from '../../lib/repositories'
+import {
+  mapRepository,
+  placeRepository,
+  threadRepository,
+} from '../../lib/repositories'
 import type { GameId, MapId } from '../../types/ids'
 import type { Place } from '../../types/Place'
 import { MapPicker } from '../../components/MapPicker'
@@ -72,13 +76,13 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
       if (props.mode === 'edit' && props.place.map) {
         const map = await mapRepository.getById(props.place.map)
         if (!cancelled) {
-          const isTopLevel = Boolean(map && map.topLevelPlaceId === props.place.id)
+          const isTopLevel = Boolean(
+            map && map.topLevelPlaceId === props.place.id
+          )
           setIsTopLevelPlaceForMap(isTopLevel)
           if (isTopLevel && !hasInitializedTopLevelNameRef.current) {
             hasInitializedTopLevelNameRef.current = true
-            setName(
-              deriveMapNameFromTopLevelPlaceName(props.place.name)
-            )
+            setName(deriveMapNameFromTopLevelPlaceName(props.place.name))
           }
         }
       } else if (!cancelled) {
@@ -157,7 +161,9 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         } else {
           const existingMapId = props.place.map
           const map =
-            existingMapId != null ? await mapRepository.getById(existingMapId) : null
+            existingMapId != null
+              ? await mapRepository.getById(existingMapId)
+              : null
           const isTopLevel =
             map != null && map.topLevelPlaceId === props.place.id
 
@@ -182,7 +188,8 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
           }
 
           if (isTopLevel && map) {
-            const mapName = deriveMapNameFromTopLevelPlaceName(effectivePlaceName)
+            const mapName =
+              deriveMapNameFromTopLevelPlaceName(effectivePlaceName)
             await mapRepository.update({
               ...map,
               name: mapName,
@@ -233,8 +240,7 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
           value={mapId}
           onChange={setMapId}
           disabled={
-            isSubmitting ||
-            (props.mode === 'edit' && isTopLevelPlaceForMap)
+            isSubmitting || (props.mode === 'edit' && isTopLevelPlaceForMap)
           }
           title={
             props.mode === 'edit' && isTopLevelPlaceForMap

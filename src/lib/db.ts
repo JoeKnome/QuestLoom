@@ -13,6 +13,7 @@ import type { Item } from '../types/Item'
 import type { Person } from '../types/Person'
 import type { Place } from '../types/Place'
 import type { Map } from '../types/Map'
+import type { MapMarker } from '../types/MapMarker'
 import type { Thread } from '../types/Thread'
 import type { QuestProgress } from '../types/QuestProgress'
 import type { InsightProgress } from '../types/InsightProgress'
@@ -36,6 +37,15 @@ export interface ItemStateRow extends ItemState {
 }
 
 export interface EntityDiscoveryRow extends EntityDiscovery {
+  id: string
+}
+
+/**
+ * Stored row type for map markers.
+ * Mirrors the MapMarker type and is keyed by id.
+ */
+export interface MapMarkerRow extends MapMarker {
+  /** Primary key for Dexie; same as MapMarker.id. */
   id: string
 }
 
@@ -75,6 +85,7 @@ export class QuestLoomDB extends Dexie {
   itemState!: Table<ItemStateRow, string>
   entityDiscovery!: Table<EntityDiscoveryRow, string>
   mapImages!: Table<MapImageBlobRow, string>
+  mapMarkers!: Table<MapMarkerRow, string>
 
   constructor() {
     super('QuestLoomDB')
@@ -150,6 +161,26 @@ export class QuestLoomDB extends Dexie {
       entityDiscovery:
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
       mapImages: 'id, gameId, mapId',
+    })
+    // v5: map markers table (game/map/playthrough-scoped markers)
+    this.version(5).stores({
+      games: 'id',
+      playthroughs: 'id, gameId',
+      quests: 'id, gameId',
+      insights: 'id, gameId',
+      items: 'id, gameId',
+      persons: 'id, gameId',
+      places: 'id, gameId',
+      maps: 'id, gameId, topLevelPlaceId',
+      threads: 'id, gameId, playthroughId',
+      questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
+      insightProgress:
+        'id, playthroughId, insightId, [playthroughId+insightId]',
+      itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
+      entityDiscovery:
+        'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
+      mapImages: 'id, gameId, mapId',
+      mapMarkers: 'id, gameId, mapId, playthroughId, [gameId+mapId]',
     })
   }
 }

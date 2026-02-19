@@ -27,5 +27,8 @@ export type PlaceId = string
 /** Unique identifier for a map. */
 export type MapId = string
 
+/** Unique identifier for a map marker. */
+export type MapMarkerId = string
+
 /** Unique identifier for a thread (link between two entities). */
 export type ThreadId = string

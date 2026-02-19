@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mapRepository } from '../../lib/repositories'
+import { mapMarkerRepository, mapRepository } from '../../lib/repositories'
+import { useAppStore } from '../../stores/appStore'
 import { useGameViewStore } from '../../stores/gameViewStore'
 import type { Map } from '../../types/Map'
+import type { MapMarker } from '../../types/MapMarker'
 import type { GameId, MapId } from '../../types/ids'
+import { EntityType } from '../../types/EntityType'
+import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
+import { MapMarkerBadge } from './MapMarkerBadge'
 
 const MIN_SCALE = 0.1
 const MAX_SCALE = 10
@@ -62,6 +67,9 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
   const [imageLoadError, setImageLoadError] = useState(false)
   const imageRevokeRef = useRef<(() => void) | undefined>(undefined)
 
+  const [markers, setMarkers] = useState<MapMarker[]>([])
+  const [markerLabels, setMarkerLabels] = useState<Record<string, string>>({})
+
   const [scale, setScale] = useState(1)
   const [translateX, setTranslateX] = useState(0)
   const [translateY, setTranslateY] = useState(0)
@@ -74,6 +82,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
 
   const setMapViewTransform = useGameViewStore((s) => s.setMapViewTransform)
   const storedTransform = useGameViewStore((s) => s.mapViewTransform[mapId])
+  const currentPlaythroughId = useAppStore((s) => s.currentPlaythroughId)
 
   /** Apply a transform and persist it to the store. */
   const applyTransform = useCallback(
@@ -186,6 +195,67 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
       cancelled = true
     }
   }, [gameId, mapId])
+
+  // Load markers for the current map.
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadMarkers() {
+      try {
+        const list = await mapMarkerRepository.getByMapId(
+          gameId,
+          mapId,
+          currentPlaythroughId
+        )
+        if (cancelled) return
+        setMarkers(list)
+      } catch {
+        if (!cancelled) {
+          setMarkers([])
+        }
+      }
+    }
+
+    loadMarkers()
+
+    return () => {
+      cancelled = true
+    }
+  }, [gameId, mapId, currentPlaythroughId])
+
+  // Resolve display names for markers to use as tooltip text and initials.
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadLabels() {
+      const entries: Array<[string, string]> = []
+      for (const marker of markers) {
+        const id = marker.entityId as string
+        // Map markers are restricted to endpoint entity types; THREAD and MAP are never used.
+        const name = await getEntityDisplayName(id)
+        if (cancelled) return
+        entries.push([marker.id, name || id])
+      }
+      if (!cancelled) {
+        const next: Record<string, string> = {}
+        for (const [id, label] of entries) {
+          next[id] = label
+        }
+        setMarkerLabels(next)
+      }
+    }
+
+    if (markers.length === 0) {
+      setMarkerLabels({})
+      return
+    }
+
+    loadLabels()
+
+    return () => {
+      cancelled = true
+    }
+  }, [markers])
 
   // Revoke object URL only on real unmount (navigate away). Use a delay so that in
   // React Strict Mode the "unmount" cleanup runs but we revoke after the next tick;
@@ -363,6 +433,43 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
               onError={() => setImageLoadError(true)}
               draggable={false}
             />
+            {markers.map((marker) => {
+              // For now, treat marker.position as image-space logical coordinates.
+              const left = marker.position.x
+              const top = marker.position.y
+              const label = markerLabels[marker.id] ?? ''
+              const initialSource =
+                label ||
+                (marker.entityType === EntityType.PLACE
+                  ? 'P'
+                  : marker.entityType === EntityType.ITEM
+                    ? 'I'
+                    : marker.entityType === EntityType.QUEST
+                      ? 'Q'
+                      : marker.entityType === EntityType.INSIGHT
+                        ? 'N'
+                        : marker.entityType === EntityType.PERSON
+                          ? 'C'
+                          : '?')
+
+              return (
+                <div
+                  key={marker.id}
+                  className="absolute"
+                  style={{
+                    left,
+                    top,
+                    transform: 'translate(-50%, -100%)',
+                  }}
+                >
+                  <MapMarkerBadge
+                    entityType={marker.entityType}
+                    initial={initialSource}
+                    title={label}
+                  />
+                </div>
+              )
+            })}
           </div>
         )}
       </div>

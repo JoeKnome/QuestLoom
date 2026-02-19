@@ -254,11 +254,11 @@ Implemented: The loom graph hook (`useLoomGraph`) now loads only quests, insight
 
 ### 4.5 Map markers: data and display
 
-- [ ] **Marker model** — Introduce a `MapMarker` data model and repository keyed by game (and optionally playthrough) that links a `mapId` and an entity endpoint (`entityId`) with a persistent position stored relative to the map (e.g. normalized `x`/`y` between 0 and 1).
-- [ ] **Eligible entities** — Ensure that all entities except maps and threads can have markers (**same set as `THREAD_ENDPOINT_ENTITY_TYPES` from `EntityType.ts`**). Add guardrails in the marker creation UI to restrict selection to this set.
-- [ ] **Initial marker rendering** — In `MapView`, load markers for the current map and render them on top of the image at their relative positions, transforming them alongside zoom and pan so they remain correctly aligned.
-- [ ] **Basic marker styling** — Implement simple, readable marker visuals for this phase: small circular or pill-shaped badges where the **marker color is tied to the entity type** and the **first letter of the entity’s name** is displayed inside.
-- [ ] **Tooltips** — On hover or focus, show a minimal tooltip near the marker with the full entity name. Follow existing tooltip patterns/components where available.
+- [x] **Marker model** — Introduce a `MapMarker` data model and repository keyed by game (and optionally playthrough) that links a `mapId` and an entity endpoint (`entityId`) with a persistent position stored in a map-local logical coordinate space. Coordinates are finite numbers but are **not** clamped to the image bounds so markers can exist at or beyond the map image’s periphery. Existing markers are not automatically adjusted when map images change size or aspect ratio; robust re-alignment is deferred to a later phase.
+- [x] **Eligible entities** — Ensure that all entities except maps and threads can have markers (**same set as `THREAD_ENDPOINT_ENTITY_TYPES` from `EntityType.ts`**). Guardrails in the marker creation UI will be added in Phase 4.6; the repository already enforces eligibility.
+- [x] **Initial marker rendering** — In `MapView`, load markers for the current map and render them on top of the image at their logical positions, transforming them alongside zoom and pan so they remain correctly aligned within the map’s coordinate space.
+- [x] **Basic marker styling** — Implement simple, readable marker visuals for this phase: small circular badges where the **marker color is tied to the entity type** and the **first letter of the entity’s name** is displayed inside.
+- [x] **Tooltips** — On hover or focus, show a minimal tooltip via the native `title` attribute on the marker with the full entity name, resolved through `getEntityDisplayName`.
 
 ### 4.6 Map markers: interaction and context menu
 

@@ -9,6 +9,7 @@ import type { GameId, PersonId } from '../../types/ids'
 import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
 import { deleteThreadsForEntity } from './cascadeDeleteThreads'
+import { mapMarkerRepository } from './MapMarkerRepository'
 import type { CreatePersonInput } from './CreatePersonInput'
 import type { IPersonRepository } from './IPersonRepository'
 
@@ -50,6 +51,11 @@ class PersonRepositoryImpl implements IPersonRepository {
     const person = await db.persons.get(id)
     if (person) {
       await deleteThreadsForEntity(person.gameId, id)
+      await mapMarkerRepository.deleteByEntity(
+        person.gameId,
+        EntityType.PERSON,
+        id
+      )
     }
     await db.persons.delete(id)
   }

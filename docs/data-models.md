@@ -102,11 +102,26 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | --------------- | -------- | --------------------------------------------------------------- |
 | id              | string   | Unique identifier                                               |
 | name            | string   | Map label                                                       |
-| imageUrl        | string   | URL or blob reference to map image (URL or upload-backed)       |
-| markers         | array    | Markers (placeId, position, label)                              |
+| imageSourceType | enum     | How the image is provided: url \| upload                        |
+| imageUrl        | string   | HTTP(S) URL for the map image (when imageSourceType === url)    |
+| imageBlobId     | string   | ID of uploaded image blob (when imageSourceType === upload)     |
 | topLevelPlaceId | string   | ID of the top-level place representing this map in threads/loom |
 | createdAt       | datetime | Creation timestamp                                              |
 | updatedAt       | datetime | Last update timestamp                                           |
+
+### MapMarker
+
+| Field         | Type     | Description                                                                                                 |
+| ------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| id            | string   | Unique identifier                                                                                           |
+| gameId        | string   | ID of the game this marker belongs to                                                                       |
+| mapId         | string   | ID of the map this marker is placed on                                                                      |
+| playthroughId | string   | Optional playthrough ID; when set, the marker is scoped to a specific playthrough, otherwise game-shared    |
+| entityType    | enum     | Entity type the marker represents: quest \| insight \| item \| person \| place                              |
+| entityId      | string   | ID of the entity this marker represents (must correspond to entityType)                                     |
+| position      | object   | Logical coordinates in map space, e.g. `{ x: number, y: number }`; finite numbers not clamped to image size |
+| createdAt     | datetime | Creation timestamp                                                                                          |
+| updatedAt     | datetime | Last update timestamp                                                                                       |
 
 ### Thread
 

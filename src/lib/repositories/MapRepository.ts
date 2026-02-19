@@ -11,6 +11,7 @@ import { db, type MapImageBlobRow } from '../db'
 import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import type { CreateMapInput } from './CreateMapInput'
 import type { IMapRepository } from './IMapRepository'
+import { mapMarkerRepository } from './MapMarkerRepository'
 
 /**
  * Dexie-backed implementation of IMapRepository.
@@ -33,7 +34,6 @@ class MapRepositoryImpl implements IMapRepository {
       imageSourceType: input.imageSourceType,
       imageUrl: input.imageUrl ?? '',
       imageBlobId: input.imageBlobId,
-      markers: input.markers ?? [],
       createdAt: now,
       updatedAt: now,
     }
@@ -57,6 +57,8 @@ class MapRepositoryImpl implements IMapRepository {
       }
       await deleteThreadsForEntity(map.gameId, id)
 
+      await mapMarkerRepository.deleteByMapId(map.gameId, id)
+
       const scopedPlaces = await db.places
         .where('gameId')
         .equals(map.gameId)
@@ -71,6 +73,7 @@ class MapRepositoryImpl implements IMapRepository {
   }
 
   async deleteByGameId(gameId: GameId): Promise<void> {
+    await db.mapMarkers.where('gameId').equals(gameId).delete()
     await db.mapImages.where('gameId').equals(gameId).delete()
     await db.maps.where('gameId').equals(gameId).delete()
   }

@@ -10,6 +10,7 @@ import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
 import { generateId, generateEntityId } from '../../utils/generateId'
 import { db, type ItemStateRow } from '../db'
 import { deleteThreadsForEntity } from './cascadeDeleteThreads'
+import { mapMarkerRepository } from './MapMarkerRepository'
 import type { CreateItemInput } from './CreateItemInput'
 import type { IItemRepository } from './IItemRepository'
 
@@ -52,6 +53,7 @@ class ItemRepositoryImpl implements IItemRepository {
     const item = await db.items.get(id)
     if (item) {
       await deleteThreadsForEntity(item.gameId, id)
+      await mapMarkerRepository.deleteByEntity(item.gameId, EntityType.ITEM, id)
     }
     await db.items.delete(id)
   }
