@@ -79,7 +79,10 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
   const [markerLabels, setMarkerLabels] = useState<Record<string, string>>({})
 
   /** Image intrinsic size (set on load) so the transform wrapper matches content size. */
-  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null)
+  const [imageSize, setImageSize] = useState<{
+    width: number
+    height: number
+  } | null>(null)
 
   const [scale, setScale] = useState(1)
   const [translateX, setTranslateX] = useState(0)
@@ -182,12 +185,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
     } finally {
       setIsAddingTestMarker(false)
     }
-  }, [
-    gameId,
-    mapId,
-    currentPlaythroughId,
-    markers,
-  ])
+  }, [gameId, mapId, currentPlaythroughId, markers])
 
   /** Apply a transform and persist it to the store. */
   const applyTransform = useCallback(
