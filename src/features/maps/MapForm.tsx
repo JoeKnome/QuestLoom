@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mapRepository } from '../../lib/repositories'
+import { mapRepository, placeRepository } from '../../lib/repositories'
 import type { GameId } from '../../types/ids'
 import type { Map } from '../../types/Map'
 
@@ -73,8 +73,10 @@ function validateUrl(url: string): string | null {
 }
 
 /**
- * Form to create or edit a map. Supports image from URL, file upload, or drag-and-drop.
- * Uses mapRepository only; blob storage is encapsulated in the repository.
+ * Form to create or edit a map. Supports image from URL, file upload, or
+ * drag-and-drop. Uses repositories so that creating a map also creates a
+ * top-level place representing it for threads and the loom, while blob storage
+ * remains encapsulated in the map repository.
  *
  * @param props - Create or edit props; onSaved and onCancel are called on success or cancel.
  * @returns A JSX element representing the MapForm component.
@@ -237,26 +239,32 @@ export function MapForm(props: MapFormProps): JSX.Element {
       setIsSubmitting(true)
       try {
         if (props.mode === 'create') {
-          if (imageSourceUi === 'none') {
-            await mapRepository.create({
-              gameId: props.gameId,
-              name: trimmedName,
-            })
-          } else if (imageSourceUi === 'url') {
-            await mapRepository.create({
-              gameId: props.gameId,
-              name: trimmedName,
-              imageSourceType: 'url',
-              imageUrl: imageUrlInput.trim(),
-            })
-          } else {
-            const created = await mapRepository.create({
-              gameId: props.gameId,
-              name: trimmedName,
-            })
-            if (selectedFile) {
-              await mapRepository.setImageFromUpload(created.id, selectedFile)
-            }
+          let created = await mapRepository.create({
+            gameId: props.gameId,
+            name: trimmedName,
+            ...(imageSourceUi === 'url'
+              ? {
+                  imageSourceType: 'url' as const,
+                  imageUrl: imageUrlInput.trim(),
+                }
+              : {}),
+          })
+
+          const topLevelPlace = await placeRepository.create({
+            gameId: props.gameId,
+            name: `Map: ${trimmedName}`,
+            notes: '',
+            map: created.id,
+          })
+
+          created = {
+            ...created,
+            topLevelPlaceId: topLevelPlace.id,
+          }
+          await mapRepository.update(created)
+
+          if (imageSourceUi === 'upload' && selectedFile) {
+            await mapRepository.setImageFromUpload(created.id, selectedFile)
           }
         } else {
           const mapId = props.map.id

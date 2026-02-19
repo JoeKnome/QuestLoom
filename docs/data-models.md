@@ -87,25 +87,26 @@ Entity and schema design must distinguish which fields (or which entities) belon
 
 ### Place
 
-| Field     | Type     | Description                                                                      |
-| --------- | -------- | -------------------------------------------------------------------------------- |
-| id        | string   | Unique identifier                                                                |
-| name      | string   | Location name                                                                    |
-| notes     | string   | Optional notes                                                                   |
-| map       | id       | Optional link to Map (also represented by a thread Place → Map with label `map`) |
-| createdAt | datetime | Creation timestamp                                                               |
-| updatedAt | datetime | Last update timestamp                                                            |
+| Field     | Type     | Description                                                  |
+| --------- | -------- | ------------------------------------------------------------ |
+| id        | string   | Unique identifier                                            |
+| name      | string   | Location name                                                |
+| notes     | string   | Optional notes                                               |
+| map       | id       | Optional link to the map this place belongs to (for markers) |
+| createdAt | datetime | Creation timestamp                                           |
+| updatedAt | datetime | Last update timestamp                                        |
 
 ### Map
 
-| Field     | Type     | Description                        |
-| --------- | -------- | ---------------------------------- |
-| id        | string   | Unique identifier                  |
-| name      | string   | Map label                          |
-| imageUrl  | string   | URL or blob reference to map image |
-| markers   | array    | Markers (placeId, position, label) |
-| createdAt | datetime | Creation timestamp                 |
-| updatedAt | datetime | Last update timestamp              |
+| Field           | Type     | Description                                                     |
+| --------------- | -------- | --------------------------------------------------------------- |
+| id              | string   | Unique identifier                                               |
+| name            | string   | Map label                                                       |
+| imageUrl        | string   | URL or blob reference to map image (URL or upload-backed)       |
+| markers         | array    | Markers (placeId, position, label)                              |
+| topLevelPlaceId | string   | ID of the top-level place representing this map in threads/loom |
+| createdAt       | datetime | Creation timestamp                                              |
+| updatedAt       | datetime | Last update timestamp                                           |
 
 ### Thread
 
@@ -130,7 +131,7 @@ Threads link entities. When viewed as a network or graph, this view is called th
 - **Person ↔ Person** — Optional: relationships between characters
 - **Place ↔ Place** — Optional: adjacency or containment
 - **Item ↔ Place** — Items may be found at places
-- **Map ↔ Place** — Places can have map positions (markers or regions)
+- **Map and Place** — Maps are view-only containers for images and markers; Places (including the map's top-level place) are the entities that appear in threads and the loom.
 
 ## Session / Game Container
 

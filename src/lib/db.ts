@@ -132,6 +132,25 @@ export class QuestLoomDB extends Dexie {
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
       mapImages: 'id, gameId, mapId',
     })
+    // v4: top-level place per map (topLevelPlaceId index)
+    this.version(4).stores({
+      games: 'id',
+      playthroughs: 'id, gameId',
+      quests: 'id, gameId',
+      insights: 'id, gameId',
+      items: 'id, gameId',
+      persons: 'id, gameId',
+      places: 'id, gameId',
+      maps: 'id, gameId, topLevelPlaceId',
+      threads: 'id, gameId, playthroughId',
+      questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
+      insightProgress:
+        'id, playthroughId, insightId, [playthroughId+insightId]',
+      itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
+      entityDiscovery:
+        'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
+      mapImages: 'id, gameId, mapId',
+    })
   }
 }
 

@@ -23,7 +23,10 @@ export interface MapMarker {
 export type MapImageSourceType = 'url' | 'upload'
 
 /**
- * Map definition (game-scoped).
+ * Map definition (game-scoped). Maps are view-only containers for images and
+ * markers; locations in threads and the loom are represented by places,
+ * including a single top-level place per map.
+ *
  * Discovery state lives in EntityDiscovery per playthrough.
  *
  * @property id - Unique identifier
@@ -33,6 +36,7 @@ export type MapImageSourceType = 'url' | 'upload'
  * @property imageUrl - Used only when imageSourceType === 'url'; HTTP(S) URL to the map image
  * @property imageBlobId - Used only when imageSourceType === 'upload'; references an uploaded image stored by the repository
  * @property markers - Markers (placeId, position, label)
+ * @property topLevelPlaceId - ID of the top-level place representing this map in threads and the loom
  * @property createdAt - Creation timestamp (ISO 8601)
  * @property updatedAt - Last update timestamp (ISO 8601)
  */
@@ -51,6 +55,11 @@ export interface Map {
   imageBlobId?: string
   /** Markers (placeId, position, label). */
   markers: MapMarker[]
+  /**
+   * ID of the top-level place that represents this map in threads and the loom.
+   * May be undefined for legacy maps created before this association existed.
+   */
+  topLevelPlaceId?: PlaceId
   /** Creation timestamp (ISO 8601). */
   createdAt: string
   /** Last update timestamp (ISO 8601). */

@@ -10,7 +10,6 @@ import type { GameId, PlaythroughId } from '../../types/ids'
 import {
   insightRepository,
   itemRepository,
-  mapRepository,
   personRepository,
   placeRepository,
   questRepository,
@@ -61,14 +60,13 @@ export function useLoomGraph(
     setIsLoading(true)
     setError(null)
     try {
-      const [quests, insights, items, people, places, maps, threads] =
+      const [quests, insights, items, people, places, threads] =
         await Promise.all([
           questRepository.getByGameId(gameId),
           insightRepository.getByGameId(gameId),
           itemRepository.getByGameId(gameId),
           personRepository.getByGameId(gameId),
           placeRepository.getByGameId(gameId),
-          mapRepository.getByGameId(gameId),
           threadRepository.getByGameId(gameId, playthroughId),
         ])
 
@@ -111,9 +109,6 @@ export function useLoomGraph(
           entityType: EntityType.PLACE,
           label: p.name,
         })
-      )
-      maps.forEach((m) =>
-        entityList.push({ id: m.id, entityType: EntityType.MAP, label: m.name })
       )
 
       const nodeIds = entityList.map((e) => e.id)

@@ -286,10 +286,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
   const hasImage = imageDisplayUrl && !imageLoadError
 
   return (
-    <div
-      className="flex min-h-0 flex-1 flex-col gap-2"
-      aria-label="Map view"
-    >
+    <div className="flex min-h-0 flex-1 flex-col gap-2" aria-label="Map view">
       <header className="shrink-0 border-b border-slate-200 pb-2">
         <h3 className="text-base font-medium text-slate-800">{map?.name}</h3>
       </header>
