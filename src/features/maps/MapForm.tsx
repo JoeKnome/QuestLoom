@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { mapRepository, placeRepository } from '../../lib/repositories'
 import type { GameId } from '../../types/ids'
 import type { Map } from '../../types/Map'
+import {
+  formatTopLevelPlaceName,
+  deriveMapNameFromTopLevelPlaceName,
+} from '../../utils/mapNames'
 
 /** UI-only image source; 'none' means no image. */
 type ImageSourceUi = 'none' | 'url' | 'upload'
@@ -238,10 +242,12 @@ export function MapForm(props: MapFormProps): JSX.Element {
 
       setIsSubmitting(true)
       try {
+        const baseMapName = deriveMapNameFromTopLevelPlaceName(trimmedName)
+
         if (props.mode === 'create') {
           let created = await mapRepository.create({
             gameId: props.gameId,
-            name: trimmedName,
+            name: baseMapName,
             ...(imageSourceUi === 'url'
               ? {
                   imageSourceType: 'url' as const,
@@ -252,7 +258,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
 
           const topLevelPlace = await placeRepository.create({
             gameId: props.gameId,
-            name: `Map: ${trimmedName}`,
+            name: formatTopLevelPlaceName(baseMapName),
             notes: '',
             map: created.id,
           })
@@ -270,7 +276,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
           const mapId = props.map.id
           const updatedMap: Map = {
             ...props.map,
-            name: trimmedName,
+            name: baseMapName,
           }
           await mapRepository.update(updatedMap)
 
@@ -279,7 +285,7 @@ export function MapForm(props: MapFormProps): JSX.Element {
             if (place) {
               await placeRepository.update({
                 ...place,
-                name: `Map: ${trimmedName}`,
+                name: formatTopLevelPlaceName(trimmedName),
               })
             }
           }

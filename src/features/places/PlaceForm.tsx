@@ -1,8 +1,12 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { mapRepository, placeRepository } from '../../lib/repositories'
 import type { GameId, MapId } from '../../types/ids'
 import type { Place } from '../../types/Place'
 import { MapPicker } from '../../components/MapPicker'
+import {
+  deriveMapNameFromTopLevelPlaceName,
+  formatTopLevelPlaceName,
+} from '../../utils/mapNames'
 
 /**
  * Props for PlaceForm when creating a new place.
@@ -58,6 +62,33 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isTopLevelPlaceForMap, setIsTopLevelPlaceForMap] = useState(false)
+  const hasInitializedTopLevelNameRef = useRef(false)
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      if (props.mode === 'edit' && props.place.map) {
+        const map = await mapRepository.getById(props.place.map)
+        if (!cancelled) {
+          const isTopLevel = Boolean(map && map.topLevelPlaceId === props.place.id)
+          setIsTopLevelPlaceForMap(isTopLevel)
+          if (isTopLevel && !hasInitializedTopLevelNameRef.current) {
+            hasInitializedTopLevelNameRef.current = true
+            setName(
+              deriveMapNameFromTopLevelPlaceName(props.place.name)
+            )
+          }
+        }
+      } else if (!cancelled) {
+        setIsTopLevelPlaceForMap(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [props])
 
   /**
    * Handles the submission of the place form.
@@ -82,26 +113,30 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
             map: mapValue,
           })
         } else {
+          const existingMapId = props.place.map
+          const map =
+            existingMapId != null ? await mapRepository.getById(existingMapId) : null
+          const isTopLevel =
+            map != null && map.topLevelPlaceId === props.place.id
+
+          const effectivePlaceName = isTopLevel
+            ? formatTopLevelPlaceName(trimmedName)
+            : trimmedName
+
           const updatedPlace: Place = {
             ...props.place,
-            name: trimmedName,
+            name: effectivePlaceName,
             notes: notes.trim(),
-            map: mapValue,
+            map: isTopLevel ? existingMapId : mapValue,
           }
           await placeRepository.update(updatedPlace)
 
-          if (updatedPlace.map) {
-            const map = await mapRepository.getById(updatedPlace.map)
-            if (map && map.topLevelPlaceId === updatedPlace.id) {
-              const prefix = 'Map: '
-              const mapName = trimmedName.startsWith(prefix)
-                ? trimmedName.slice(prefix.length)
-                : trimmedName
-              await mapRepository.update({
-                ...map,
-                name: mapName,
-              })
-            }
+          if (isTopLevel && map) {
+            const mapName = deriveMapNameFromTopLevelPlaceName(effectivePlaceName)
+            await mapRepository.update({
+              ...map,
+              name: mapName,
+            })
           }
         }
         props.onSaved()
@@ -147,8 +182,16 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
           gameId={props.mode === 'create' ? props.gameId : props.place.gameId}
           value={mapId}
           onChange={setMapId}
-          disabled={isSubmitting}
+          disabled={
+            isSubmitting ||
+            (props.mode === 'edit' && isTopLevelPlaceForMap)
+          }
         />
+        {props.mode === 'edit' && isTopLevelPlaceForMap && (
+          <p className="mt-1 text-xs text-slate-500">
+            This place is the top-level representation of its map.
+          </p>
+        )}
       </div>
       <div>
         <label
