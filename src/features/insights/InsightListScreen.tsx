@@ -19,8 +19,8 @@ export interface InsightListScreenProps {
 }
 
 const INSIGHT_STATUS_LABELS: Record<InsightStatus, string> = {
-  [InsightStatus.ACTIVE]: 'Active',
-  [InsightStatus.RESOLVED]: 'Resolved',
+  [InsightStatus.UNKNOWN]: 'Unknown',
+  [InsightStatus.KNOWN]: 'Known',
   [InsightStatus.IRRELEVANT]: 'Irrelevant',
 }
 
@@ -153,7 +153,7 @@ export function InsightListScreen({
         <ul className="space-y-2">
           {insights.map((insight) => {
             const progress = progressByInsight[insight.id]
-            const status = progress?.status ?? InsightStatus.ACTIVE
+            const status = progress?.status ?? InsightStatus.UNKNOWN
             const isExpanded = expandedId === insight.id
             return (
               <li
@@ -181,8 +181,8 @@ export function InsightListScreen({
                         aria-label={`Status for ${insight.title}`}
                       >
                         {[
-                          InsightStatus.ACTIVE,
-                          InsightStatus.RESOLVED,
+                          InsightStatus.UNKNOWN,
+                          InsightStatus.KNOWN,
                           InsightStatus.IRRELEVANT,
                         ].map((s) => (
                           <option key={s} value={s}>

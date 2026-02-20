@@ -30,6 +30,7 @@ export async function purgeDatabase(): Promise<void> {
   await db.questProgress.clear()
   await db.insightProgress.clear()
   await db.itemState.clear()
+  await db.personProgress.clear()
   await db.entityDiscovery.clear()
 }
 

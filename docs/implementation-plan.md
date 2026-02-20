@@ -298,15 +298,15 @@ Implemented: Debug control removed; `clientToLogical` helper added (no clamping,
 
 **Goal:** Surface "what you can do next" from current items/insights and position; support progression-gated availability and place connectivity (Paths and direct Place–Place); unified status and requirement model; hide information until the user has the right progression (spoiler-friendly).
 
-### 5.1 Playthrough-scoped status enums (Item, Insight, Quest, Person)
+### 5.1 Playthrough-scoped status enums (Item, Insight, Quest, Person) ✅ Complete
 
 Assume no legacy content; status changes are breaking and can be applied directly.
 
-- [ ] **Item status** — **Not acquired** (default for new items and new playthroughs), **acquired** (renamed from "possessed"; only this status counts as owned for fulfilling requirements), **used**, **lost**. Remove the "other" status entirely.
-- [ ] **Insight status** — **Unknown** (default; renamed from "active"), **known** (renamed from "resolved"; only this status qualifies for requirements targeting the insight), **irrelevant**. Only "known" satisfies requirement checks.
-- [ ] **Quest status** — **Available** (new; quest is available but not yet active; default), **active** (in progress), **completed**, **abandoned** (new; failed/forfeit/uncompletable). Remove "blocked"; use the generalized requirement logic (5.2) instead so unavailability is derived from requirements.
-- [ ] **Person status** — **Alive** (default), **dead**, **unknown**. Person status is playthrough-scoped (e.g. PersonProgress or similar) so it can change during a playthrough.
-- [ ] **Data and UI** — Update `ItemStatus`, `InsightStatus`, `QuestStatus` and add Person status type and playthrough-scoped storage; ensure repositories and UI use the new values and defaults. New playthroughs and new entities get the specified defaults.
+- [x] **Item status** — **Not acquired** (default for new items and new playthroughs), **acquired** (renamed from "possessed"; only this status counts as owned for fulfilling requirements), **used**, **lost**. Remove the "other" status entirely.
+- [x] **Insight status** — **Unknown** (default; renamed from "active"), **known** (renamed from "resolved"; only this status qualifies for requirements targeting the insight), **irrelevant**. Only "known" satisfies requirement checks.
+- [x] **Quest status** — **Available** (new; quest is available but not yet active; default), **active** (in progress), **completed**, **abandoned** (new; failed/forfeit/uncompletable). Remove "blocked"; use the generalized requirement logic (5.2) instead so unavailability is derived from requirements.
+- [x] **Person status** — **Alive** (default), **dead**, **unknown**. Person status is playthrough-scoped (e.g. PersonProgress or similar) so it can change during a playthrough.
+- [x] **Data and UI** — Update `ItemStatus`, `InsightStatus`, `QuestStatus` and add Person status type and playthrough-scoped storage; ensure repositories and UI use the new values and defaults. New playthroughs and new entities get the specified defaults.
 
 ### 5.2 Entity requirements (thread-based) and availability
 

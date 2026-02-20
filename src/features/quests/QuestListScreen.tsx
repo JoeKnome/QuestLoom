@@ -20,9 +20,10 @@ export interface QuestListScreenProps {
 }
 
 const QUEST_STATUS_LABELS: Record<QuestStatus, string> = {
+  [QuestStatus.AVAILABLE]: 'Available',
   [QuestStatus.ACTIVE]: 'Active',
   [QuestStatus.COMPLETED]: 'Completed',
-  [QuestStatus.BLOCKED]: 'Blocked',
+  [QuestStatus.ABANDONED]: 'Abandoned',
 }
 
 /**
@@ -160,7 +161,7 @@ export function QuestListScreen({
         <ul className="space-y-2">
           {quests.map((quest) => {
             const progress = progressByQuest[quest.id]
-            const status = progress?.status ?? QuestStatus.ACTIVE
+            const status = progress?.status ?? QuestStatus.AVAILABLE
             const isExpanded = expandedId === quest.id
             return (
               <li
@@ -186,9 +187,10 @@ export function QuestListScreen({
                         aria-label={`Status for ${quest.title}`}
                       >
                         {[
+                          QuestStatus.AVAILABLE,
                           QuestStatus.ACTIVE,
                           QuestStatus.COMPLETED,
-                          QuestStatus.BLOCKED,
+                          QuestStatus.ABANDONED,
                         ].map((s) => (
                           <option key={s} value={s}>
                             {QUEST_STATUS_LABELS[s]}

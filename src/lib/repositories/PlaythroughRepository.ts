@@ -12,6 +12,7 @@ import { entityDiscoveryRepository } from './EntityDiscoveryRepository'
 import type { IPlaythroughRepository } from './IPlaythroughRepository'
 import { insightRepository } from './InsightRepository'
 import { itemRepository } from './ItemRepository'
+import { personRepository } from './PersonRepository'
 import { questRepository } from './QuestRepository'
 import { threadRepository } from './ThreadRepository'
 
@@ -53,6 +54,7 @@ class PlaythroughRepositoryImpl implements IPlaythroughRepository {
     await questRepository.deleteProgressByPlaythroughId(id)
     await insightRepository.deleteProgressByPlaythroughId(id)
     await itemRepository.deleteStateByPlaythroughId(id)
+    await personRepository.deleteProgressByPlaythroughId(id)
     await entityDiscoveryRepository.deleteByPlaythroughId(id)
     await threadRepository.deleteByPlaythroughId(id)
     await db.playthroughs.delete(id)

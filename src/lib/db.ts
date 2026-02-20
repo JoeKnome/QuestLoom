@@ -18,6 +18,7 @@ import type { Thread } from '../types/Thread'
 import type { QuestProgress } from '../types/QuestProgress'
 import type { InsightProgress } from '../types/InsightProgress'
 import type { ItemState } from '../types/ItemState'
+import type { PersonProgress } from '../types/PersonProgress'
 import type { EntityDiscovery } from '../types/EntityDiscovery'
 
 /**
@@ -33,6 +34,10 @@ export interface InsightProgressRow extends InsightProgress {
 }
 
 export interface ItemStateRow extends ItemState {
+  id: string
+}
+
+export interface PersonProgressRow extends PersonProgress {
   id: string
 }
 
@@ -83,6 +88,7 @@ export class QuestLoomDB extends Dexie {
   questProgress!: Table<QuestProgressRow, string>
   insightProgress!: Table<InsightProgressRow, string>
   itemState!: Table<ItemStateRow, string>
+  personProgress!: Table<PersonProgressRow, string>
   entityDiscovery!: Table<EntityDiscoveryRow, string>
   mapImages!: Table<MapImageBlobRow, string>
   mapMarkers!: Table<MapMarkerRow, string>
@@ -177,6 +183,27 @@ export class QuestLoomDB extends Dexie {
       insightProgress:
         'id, playthroughId, insightId, [playthroughId+insightId]',
       itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
+      entityDiscovery:
+        'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
+      mapImages: 'id, gameId, mapId',
+      mapMarkers: 'id, gameId, mapId, playthroughId, [gameId+mapId]',
+    })
+    // v6: person progress (playthrough-scoped person status)
+    this.version(6).stores({
+      games: 'id',
+      playthroughs: 'id, gameId',
+      quests: 'id, gameId',
+      insights: 'id, gameId',
+      items: 'id, gameId',
+      persons: 'id, gameId',
+      places: 'id, gameId',
+      maps: 'id, gameId, topLevelPlaceId',
+      threads: 'id, gameId, playthroughId',
+      questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
+      insightProgress:
+        'id, playthroughId, insightId, [playthroughId+insightId]',
+      itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
+      personProgress: 'id, playthroughId, personId, [playthroughId+personId]',
       entityDiscovery:
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
       mapImages: 'id, gameId, mapId',

@@ -4,10 +4,11 @@
  */
 
 import type { Person } from '../../types/Person'
+import type { PersonProgress } from '../../types/PersonProgress'
 import { EntityType } from '../../types/EntityType'
-import type { GameId, PersonId } from '../../types/ids'
-import { generateEntityId } from '../../utils/generateId'
-import { db } from '../db'
+import type { GameId, PersonId, PlaythroughId } from '../../types/ids'
+import { generateId, generateEntityId } from '../../utils/generateId'
+import { db, type PersonProgressRow } from '../db'
 import { deleteThreadsForEntity } from './cascadeDeleteThreads'
 import { mapMarkerRepository } from './MapMarkerRepository'
 import type { CreatePersonInput } from './CreatePersonInput'
@@ -62,6 +63,63 @@ class PersonRepositoryImpl implements IPersonRepository {
 
   async deleteByGameId(gameId: GameId): Promise<void> {
     await db.persons.where('gameId').equals(gameId).delete()
+  }
+
+  async getProgress(
+    playthroughId: PlaythroughId,
+    personId: PersonId
+  ): Promise<PersonProgress | undefined> {
+    const row = await db.personProgress
+      .where('[playthroughId+personId]')
+      .equals([playthroughId, personId])
+      .first()
+    return row ? toPersonProgress(row) : undefined
+  }
+
+  async getAllProgressForPlaythrough(
+    playthroughId: PlaythroughId
+  ): Promise<PersonProgress[]> {
+    const rows = await db.personProgress
+      .where('playthroughId')
+      .equals(playthroughId)
+      .toArray()
+    return rows.map(toPersonProgress)
+  }
+
+  async upsertProgress(progress: PersonProgress): Promise<void> {
+    const row: PersonProgressRow = {
+      id: progress.id ?? generateId(),
+      playthroughId: progress.playthroughId,
+      personId: progress.personId,
+      status: progress.status,
+      notes: progress.notes,
+    }
+    await db.personProgress.put(row)
+  }
+
+  async deleteProgressByPlaythroughId(
+    playthroughId: PlaythroughId
+  ): Promise<void> {
+    await db.personProgress
+      .where('playthroughId')
+      .equals(playthroughId)
+      .delete()
+  }
+}
+
+/**
+ * Convert a PersonProgressRow to a PersonProgress.
+ *
+ * @param row - The PersonProgressRow to convert.
+ * @returns The PersonProgress.
+ */
+function toPersonProgress(row: PersonProgressRow): PersonProgress {
+  return {
+    id: row.id,
+    playthroughId: row.playthroughId,
+    personId: row.personId,
+    status: row.status,
+    notes: row.notes,
   }
 }
 

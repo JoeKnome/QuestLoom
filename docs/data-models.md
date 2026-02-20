@@ -6,10 +6,10 @@ Data models must support the product differentiators: **thread-oriented** (threa
 
 **Architecture must separate two tiers of data.** Persistence and APIs must reflect this; playthrough data must never be persisted or shared across playthroughs.
 
-| Tier                        | Description                                                                                                                                                                                           | Persistence                                | On "Clear progress / New playthrough"                         |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------- |
-| **Game data (intrinsic)**   | Data that defines the game world: same across users and playthroughs. Quest definitions, places, people, map structure, threads (world connections), insight/item definitions — the authored "world." | Persisted with the game.                   | **Remains.** Not tied to a single playthrough.                |
-| **Playthrough data (user)** | Data that tracks one user’s progress and input for one playthrough: quest progress (status, completed steps), inventory state (possessed, used), personal notes, running investigations.              | Scoped to a specific playthrough and user. | **Cleared or replaced.** Never persisted across playthroughs. |
+| Tier                        | Description                                                                                                                                                                                                                                    | Persistence                                | On "Clear progress / New playthrough"                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------- |
+| **Game data (intrinsic)**   | Data that defines the game world: same across users and playthroughs. Quest definitions, places, people, map structure, threads (world connections), insight/item definitions — the authored "world."                                          | Persisted with the game.                   | **Remains.** Not tied to a single playthrough.                |
+| **Playthrough data (user)** | Data that tracks one user’s progress and input for one playthrough: quest progress (status, completed steps), inventory state (not acquired/acquired/used/lost), insight and person progress (status), personal notes, running investigations. | Scoped to a specific playthrough and user. | **Cleared or replaced.** Never persisted across playthroughs. |
 
 - **Game data** survives when a user clears progress to start a new playthrough; it is the shared definition of the game.
 - **Playthrough data** is constrained to that playthrough only; it must never leak between playthroughs or be retained when the user starts over.
@@ -37,30 +37,30 @@ Entity and schema design must distinguish which fields (or which entities) belon
 
 ### Quest
 
-| Field      | Type     | Description                                 |
-| ---------- | -------- | ------------------------------------------- |
-| id         | string   | Unique identifier                           |
-| title      | string   | Quest name                                  |
-| status     | enum     | active \| completed \| blocked              |
-| giver      | id       | Reference to the source that gave the quest |
-| objectives | array    | Optional sub-objectives with completion     |
-| notes      | string   | Optional free-form notes                    |
-| createdAt  | datetime | Creation timestamp                          |
-| updatedAt  | datetime | Last update timestamp                       |
+| Field      | Type     | Description                                   |
+| ---------- | -------- | --------------------------------------------- |
+| id         | string   | Unique identifier                             |
+| title      | string   | Quest name                                    |
+| status     | enum     | available \| active \| completed \| abandoned |
+| giver      | id       | Reference to the source that gave the quest   |
+| objectives | array    | Optional sub-objectives with completion       |
+| notes      | string   | Optional free-form notes                      |
+| createdAt  | datetime | Creation timestamp                            |
+| updatedAt  | datetime | Last update timestamp                         |
 
 **Note:** In the implementation, status and notes are playthrough-scoped (stored in `QuestProgress`). Objective completion is currently on the quest definition; for strict data separation it could later move to QuestProgress (e.g. `completedObjectives: boolean[]`). The giver link is also represented by a thread (Quest → Person|Place) with reserved label `giver`; the UI dual-writes so the field and thread stay in sync.
 
 ### Insight
 
-| Field     | Type     | Description                                        |
-| --------- | -------- | -------------------------------------------------- |
-| id        | string   | Unique identifier                                  |
-| title     | string   | Short label                                        |
-| content   | string   | Full insight text (key info, lore, or description) |
-| status    | enum     | active \| resolved \| irrelevant                   |
-| notes     | string   | Optional notes                                     |
-| createdAt | datetime | Creation timestamp                                 |
-| updatedAt | datetime | Last update timestamp                              |
+| Field     | Type     | Description                                                            |
+| --------- | -------- | ---------------------------------------------------------------------- |
+| id        | string   | Unique identifier                                                      |
+| title     | string   | Short label                                                            |
+| content   | string   | Full insight text (key info, lore, or description)                     |
+| status    | enum     | unknown \| known \| irrelevant (playthrough-scoped in InsightProgress) |
+| notes     | string   | Optional notes                                                         |
+| createdAt | datetime | Creation timestamp                                                     |
+| updatedAt | datetime | Last update timestamp                                                  |
 
 ### Item
 
@@ -70,7 +70,7 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | name        | string   | Item name                                                                                              |
 | location    | id       | The place where the item is acquired (also represented by a thread Item → Place with label `location`) |
 | description | string   | Optional description                                                                                   |
-| status      | enum     | possessed \| used \| lost \| other                                                                     |
+| status      | enum     | not acquired \| acquired \| used \| lost (playthrough-scoped in ItemState)                             |
 | notes       | string   | Optional notes                                                                                         |
 | createdAt   | datetime | Creation timestamp                                                                                     |
 | updatedAt   | datetime | Last update timestamp                                                                                  |
@@ -84,6 +84,8 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | notes     | string   | Optional notes        |
 | createdAt | datetime | Creation timestamp    |
 | updatedAt | datetime | Last update timestamp |
+
+**Note:** Person status (alive \| dead \| unknown) is playthrough-scoped and stored in `PersonProgress`; see Playthrough data below.
 
 ### Place
 
@@ -166,3 +168,14 @@ For multiple games and playthroughs:
 | updatedAt | datetime | Last update timestamp |
 
 Entities must be scoped to either the game (intrinsic) or a playthrough (user). Design schemas and references (e.g. `gameId`, `playthroughId`) so storage can enforce the separation.
+
+## Playthrough-scoped progress
+
+Status and notes for quests, insights, items, and persons are stored in playthrough-scoped tables (cleared when the playthrough is deleted or the user starts a new playthrough):
+
+- **QuestProgress** — `playthroughId`, `questId`, `status` (available \| active \| completed \| abandoned), `notes`
+- **InsightProgress** — `playthroughId`, `insightId`, `status` (unknown \| known \| irrelevant), `notes`
+- **ItemState** — `playthroughId`, `itemId`, `status` (not acquired \| acquired \| used \| lost), `notes`
+- **PersonProgress** — `playthroughId`, `personId`, `status` (alive \| dead \| unknown), `notes`
+
+Only **acquired** items count as owned for requirement checks; only **known** insights qualify for requirement checks. Quest "blocked" is replaced by derived unavailability from requirements (Phase 5.2).

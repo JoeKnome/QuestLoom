@@ -1,5 +1,6 @@
 import type { Person } from '../../types/Person'
-import type { GameId, PersonId } from '../../types/ids'
+import type { PersonProgress } from '../../types/PersonProgress'
+import type { GameId, PersonId, PlaythroughId } from '../../types/ids'
 import type { CreatePersonInput } from './CreatePersonInput'
 
 /**
@@ -51,4 +52,40 @@ export interface IPersonRepository {
    * @param gameId - The ID of the game to delete.
    */
   deleteByGameId(gameId: GameId): Promise<void>
+
+  /**
+   * Returns progress for a person in a playthrough.
+   *
+   * @param playthroughId - The playthrough ID.
+   * @param personId - The person ID.
+   * @returns The progress, or undefined if none.
+   */
+  getProgress(
+    playthroughId: PlaythroughId,
+    personId: PersonId
+  ): Promise<PersonProgress | undefined>
+
+  /**
+   * Returns all person progress for a playthrough.
+   *
+   * @param playthroughId - The playthrough ID.
+   * @returns All person progress for the playthrough.
+   */
+  getAllProgressForPlaythrough(
+    playthroughId: PlaythroughId
+  ): Promise<PersonProgress[]>
+
+  /**
+   * Creates or updates person progress.
+   *
+   * @param progress - The progress to upsert.
+   */
+  upsertProgress(progress: PersonProgress): Promise<void>
+
+  /**
+   * Deletes all person progress for a playthrough (cascade when deleting playthrough).
+   *
+   * @param playthroughId - The playthrough ID.
+   */
+  deleteProgressByPlaythroughId(playthroughId: PlaythroughId): Promise<void>
 }

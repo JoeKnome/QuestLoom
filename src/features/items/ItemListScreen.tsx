@@ -19,10 +19,10 @@ export interface ItemListScreenProps {
 }
 
 const ITEM_STATUS_LABELS: Record<ItemStatus, string> = {
-  [ItemStatus.POSSESSED]: 'Possessed',
+  [ItemStatus.NOT_ACQUIRED]: 'Not acquired',
+  [ItemStatus.ACQUIRED]: 'Acquired',
   [ItemStatus.USED]: 'Used',
   [ItemStatus.LOST]: 'Lost',
-  [ItemStatus.OTHER]: 'Other',
 }
 
 /**
@@ -157,7 +157,7 @@ export function ItemListScreen({
         <ul className="space-y-2">
           {items.map((item) => {
             const state = stateByItem[item.id]
-            const status = state?.status ?? ItemStatus.POSSESSED
+            const status = state?.status ?? ItemStatus.NOT_ACQUIRED
             const isExpanded = expandedId === item.id
             return (
               <li
@@ -188,10 +188,10 @@ export function ItemListScreen({
                         aria-label={`Status for ${item.name}`}
                       >
                         {[
-                          ItemStatus.POSSESSED,
+                          ItemStatus.NOT_ACQUIRED,
+                          ItemStatus.ACQUIRED,
                           ItemStatus.USED,
                           ItemStatus.LOST,
-                          ItemStatus.OTHER,
                         ].map((s) => (
                           <option key={s} value={s}>
                             {ITEM_STATUS_LABELS[s]}
