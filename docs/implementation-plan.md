@@ -296,22 +296,87 @@ Implemented: Debug control removed; `clientToLogical` helper added (no clamping,
 
 ## Phase 5: Contextual Progression and Spoiler Safety
 
-**Goal:** Surface "what you can do next" from current items/insights; hide information until the user has the right progression (spoiler-friendly).
+**Goal:** Surface "what you can do next" from current items/insights and position; support progression-gated availability and place connectivity (Paths and direct Place–Place); unified status and requirement model; hide information until the user has the right progression (spoiler-friendly).
 
-### 5.1 Contextual progression
+### 5.1 Playthrough-scoped status enums (Item, Insight, Quest, Person)
 
-- **Logic** — Implement in `utils/` or `lib/`: given current playthrough state (items possessed, insights resolved, quest progress), compute "actionable" threads or next steps. Consume from a hook or store; display in a dedicated section or in the loom (e.g. highlight actionable edges).
+Assume no legacy content; status changes are breaking and can be applied directly.
 
-### 5.2 Spoiler visibility
+- [ ] **Item status** — **Not acquired** (default for new items and new playthroughs), **acquired** (renamed from "possessed"; only this status counts as owned for fulfilling requirements), **used**, **lost**. Remove the "other" status entirely.
+- [ ] **Insight status** — **Unknown** (default; renamed from "active"), **known** (renamed from "resolved"; only this status qualifies for requirements targeting the insight), **irrelevant**. Only "known" satisfies requirement checks.
+- [ ] **Quest status** — **Available** (new; quest is available but not yet active; default), **active** (in progress), **completed**, **abandoned** (new; failed/forfeit/uncompletable). Remove "blocked"; use the generalized requirement logic (5.2) instead so unavailability is derived from requirements.
+- [ ] **Person status** — **Alive** (default), **dead**, **unknown**. Person status is playthrough-scoped (e.g. PersonProgress or similar) so it can change during a playthrough.
+- [ ] **Data and UI** — Update `ItemStatus`, `InsightStatus`, `QuestStatus` and add Person status type and playthrough-scoped storage; ensure repositories and UI use the new values and defaults. New playthroughs and new entities get the specified defaults.
 
-- **Rules** — Define which entities/insights/threads are visible only after certain conditions (e.g. insight resolved, item acquired). Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the loom (hide or grey out not-yet-visible nodes/edges).
+### 5.2 Entity requirements (thread-based) and availability
 
-### 5.3 Definition of done (Phase 5)
+- [ ] **Requirements tracked with threads** — Requirements are **tracked with threads** so they are **visible on the Loom**. For example: a thread from entity A to entity B with a reserved label (e.g. `requires`) means "A requires B." Requirement evaluation: for item requirements, only **acquired** items count; for insight requirements, only **known** insights count; for quest/person/path conditions, use the corresponding status and requirement logic.
+- [ ] **Unavailable (derived)** — If the player does not meet an entity’s requirements, that entity is **unavailable**. Unavailability is a **derived boolean** (computed from playthrough state and requirement threads), not a stored status; it updates automatically when playthrough state or requirements change.
+- [ ] **Scope** — Apply to quests (e.g. insight/item required to start), items (item required to acquire), Path unlock/traversal, and optionally visibility. Replacing "blocked" quest status with derived unavailability from requirements (5.1).
+- [ ] **Quest objectives as requirement-like** — **Quest objectives** can act similarly to requirements: an objective is tied to the **status of another entity** (e.g. item acquired, person dead, insight known). That status is needed for the objective to be **completable**. Model so objectives reference entities and the required state; completion is derived when the referenced entity is in the required state.
 
-- [ ] "What I can do next" (or similar) is visible and driven by current items/insights.
-- [ ] Spoiler gating hides or softens content until progression conditions are met.
-- [ ] Data and logic remain local; repository interface unchanged.
-- [ ] All documentation pages are updated reflecting the latest state of the app.
+### 5.3 Path entity: data model, status, and connectivity
+
+- [ ] **New entity: Path** — Introduce a **Path** entity that connects **only** to **Places**. Connectivity is expressed as: Place ↔ Thread ↔ Path ↔ Thread ↔ Place. Paths are game-scoped (intrinsic world structure).
+- [ ] **Path status** — Paths have a **status** (game- or playthrough-scoped as appropriate) with three values:
+  - [ ] **Restricted** — Untraversable unless requirements are met (e.g. locked door; key required to pass).
+  - [ ] **Opened** — Traversable regardless of requirements (e.g. door unlocked; can pass freely).
+  - [ ] **Blocked** — Untraversable regardless of requirements (e.g. bridge collapsed; no longer crossable).
+- [ ] **Cardinality** — A Path can be connected to **two or more** Places (multiple Threads from the same Path to different Places).
+- [ ] **Per-connection traversal** — Paths may have **different traversal requirements per connection/thread** (e.g. ledge requiring grappling hook to go up, trivial to jump down). Each Place–Path thread can carry optional traversal conditions; evaluation is directional.
+- [ ] **Map markers** — Paths can have map markers (same mechanism as other marker-eligible entities).
+- [ ] **Map-to-map transitions** — Paths can connect top-level map places to other top-level map places, acting as transitions between maps.
+- [ ] **Location rule** — Other entities can only be **located at** a **Place**, not at a Path.
+- [ ] **Place–Place direct connectivity** — **Places can be connected directly to other Places** (Place ↔ Thread ↔ Place) **without** an intermediate Path. Direct Place–Place links imply unimpeded movement with **no requirements**; the player can move between them freely. To introduce requirements between places, use a Path (with status and requirement semantics) instead.
+
+### 5.4 Path: repository, Loom, and UI
+
+- [ ] **Repository and types** — Add Path type, PathId, Path status enum, and PathRepository (CRUD, scoped by gameId). Threads can reference Path as source or target (extend EntityType to include Path). Cascade: deleting a Path removes its threads; deleting a Place removes threads that involved that Place (existing behavior).
+- [ ] **Loom behavior** — Paths appear as nodes; edges are Threads (Place–Path, Path–Place) and **direct Place–Place** threads (unimpeded). Traversability: direct Place–Place links are always traversable; for Paths, only **opened** Paths, or **restricted** Paths whose requirements are met, are traversable (per-connection conditions apply). **Blocked** Paths are never traversable. Non-traversable Paths are greyed out, or otherwise marked so they do not contribute to reachable Places.
+- [ ] **UI** — Feature module for Paths: list, create, edit, delete. When editing a Path: name/description, **status** (restricted / opened / blocked), requirement(s) for restricted Paths, and per-connection traversal requirements. UI to attach Paths to Places via threads and to create direct Place–Place threads where no Path is needed. Map marker creation supports Path as an eligible entity type.
+
+### 5.5 Current position and reachability
+
+- [ ] **Current position** — Playthrough has a **current position** (a Place). The user can **freely update** it to any Place. Current position is the **start location** for Loom traversal.
+- [ ] **Reachability** — From current position, follow **direct Place–Place** links (always traversable) and **traversable Paths** (opened, or restricted with requirements met; per-connection conditions applied). The set of **reachable Places** is derived from this graph.
+- [ ] **Unreachable Place → unavailable** — If a Place cannot be reached, any entity located at that Place is **unavailable** (in addition to requirement-based unavailability from 5.2).
+
+### 5.6 Location at Place and availability
+
+- [ ] **Eligibility** — Any entity that can have a map marker can be **located at** a Place (via thread/location semantics). If a Place is **unreachable** (per 5.5), everything located at that Place is **unavailable**. An entity is unavailable if (1) its requirements are not met (5.2), or (2) it is located at an unreachable Place.
+
+### 5.7 Contextual progression
+
+- [ ] **Logic** — Given current playthrough state (item/insight/quest/person statuses, current position, reachable Places, Path status and traversability), compute "actionable" threads or next steps. Display in a dedicated section or in the Loom (e.g. highlight actionable edges, "what you can do next").
+- [ ] **Integration** — Use availability (5.2, 5.6) and reachability (5.5); only suggest entities and threads that are available and (where relevant) reachable. Use **acquired** items, **known** insights, and new status enums consistently.
+
+### 5.8 Spoiler visibility
+
+- [ ] **Rules** — Define which entities/insights/threads (and optionally Paths) are visible only after certain conditions. Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the Loom (hide or grey out not-yet-visible nodes/edges).
+
+### 5.9 Place regions on the map
+
+- [ ] **Polygonal regions** — In addition to map markers, **Places** can be represented as **polygonal regions** on the map. A region has **any number of points** (e.g. default 4). Regions render as **faint outlines** with the **place name** printed faintly at the center.
+- [ ] **Hover** — When mousing over the region, the outline and name become **more visible**.
+- [ ] **Undiscovered** — Places that are **undiscovered** (playthrough discovery state) can render as **blacked out** so the underlying map is obscured.
+- [ ] **Editing region points** — Region points are editable similar to map markers:
+  - [ ] **Enter edit mode** — Right-click **within** the region; context menu option **Edit region points**. Points become visible and can be clicked and dragged to move.
+  - [ ] **Delete point** — Right-click a **point**; context option to **delete** that point.
+  - [ ] **Add point** — Right-click a **region edge**; context option to **add a point** at that position on the edge.
+  - [ ] **Exit edit mode** — **Escape** or a context menu option **finish editing**; shows confirmation dialog before saving or discarding the updated polygon and exits edit mode.
+- [ ] **Data** — Extend Place (or a related map-specific structure) to store one polygonal region per (Place, Map): ordered list of logical coordinates. Persist and load with the map view; support create/edit/delete of regions.
+
+### 5.10 Definition of done (Phase 5)
+
+- [ ] Item status: not acquired (default), acquired (renamed from possessed), used, lost; "other" removed. Only acquired items fulfill item requirements. Insight: unknown (default), known (only one qualifying for requirements), irrelevant. Quest: available (default), active, completed, abandoned; blocked removed. Person: alive (default), dead, unknown (5.1).
+- [ ] Requirements are tracked with threads (visible on Loom); unavailability is derived from requirement threads and playthrough state. Quest objectives can be tied to entity status for completability (5.2).
+- [ ] Path entity exists with status: restricted, opened, blocked. Place–Place direct links allowed (unimpeded); requirements only via Paths. Paths support per-connection traversal, map markers, map-to-map transitions (5.3, 5.4).
+- [ ] Playthrough has current position (Place); user can set it; it is the start for reachability; direct Place–Place and traversable Paths define reachable Places; unreachable Place ⇒ entities there unavailable (5.5, 5.6).
+- [ ] "What I can do next" is visible and driven by statuses, position, reachability, and Path traversability (5.7).
+- [ ] Spoiler gating hides or softens content until conditions are met (5.8).
+- [ ] Places can be represented as polygonal regions on the map; faint outline and name; hover more visible; undiscovered blacked out; region points editable (right-click in region/point/edge, add/delete/move, save/exit) (5.9).
+- [ ] Data and logic remain local; repository interfaces updated only for Path, playthrough position, status enums, and place regions as specified.
+- [ ] All documentation pages (including data-models.md, design-spec.md, features.md) are updated.
 - [ ] All items left to do are documented for future action.
 - [ ] All affected code passes code standards, style, and lint.
 
