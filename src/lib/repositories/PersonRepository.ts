@@ -87,8 +87,16 @@ class PersonRepositoryImpl implements IPersonRepository {
   }
 
   async upsertProgress(progress: PersonProgress): Promise<void> {
+    let id = progress.id
+    if (id === undefined) {
+      const existing = await db.personProgress
+        .where('[playthroughId+personId]')
+        .equals([progress.playthroughId, progress.personId])
+        .first()
+      id = existing?.id ?? generateId()
+    }
     const row: PersonProgressRow = {
-      id: progress.id ?? generateId(),
+      id,
       playthroughId: progress.playthroughId,
       personId: progress.personId,
       status: progress.status,

@@ -92,6 +92,7 @@ export function PersonListScreen({
       if (playthroughId === null) return
       const existing = progressByPerson[personId]
       await personRepository.upsertProgress({
+        id: existing?.id,
         playthroughId,
         personId,
         status: newStatus,
