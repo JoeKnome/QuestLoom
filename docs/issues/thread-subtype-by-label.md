@@ -1,0 +1,3 @@
+# Thread Subtype By Label
+
+In the current implementation, the subtypes of Threads are determined by string matching their label (i.e. "requires", "objective_requires"). Hard-coded string matches are never preferable, especially at scale. This also overloads the purpose of the label, where now the visual label to display has exception cases that make it inconsistent. This would be better accomplished by a numeric enum of the possible subtypes of Threads. The suer-facing label would then be looked up from this and use consistent formatting.

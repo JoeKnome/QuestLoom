@@ -1,10 +1,17 @@
 import { useCallback, useState } from 'react'
+import { EntityPicker } from '../../components/EntityPicker'
 import { GiverPicker } from '../../components/GiverPicker'
 import { questRepository, threadRepository } from '../../lib/repositories'
-import { THREAD_LABEL_GIVER } from '../../lib/repositories/threadLabels'
+import {
+  THREAD_LABEL_GIVER,
+  THREAD_LABEL_OBJECTIVE_REQUIRES,
+} from '../../lib/repositories/threadLabels'
+import { EntityType } from '../../types/EntityType'
 import type { GameId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
 import type { QuestObjective } from '../../types/QuestObjective'
+import { getEntityTypeFromId } from '../../utils/parseEntityId'
+import { STATUS_OPTIONS } from '../../utils/requirementStatusOptions'
 
 /**
  * Props for QuestForm when creating a new quest.
@@ -55,8 +62,60 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
   const [objectives, setObjectives] = useState<QuestObjective[]>(
     props.mode === 'edit' ? props.quest.objectives : []
   )
+  const [linkingObjectiveIndex, setLinkingObjectiveIndex] = useState<
+    number | null
+  >(null)
+  const [linkEntityType, setLinkEntityType] = useState<EntityType>(
+    EntityType.ITEM
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const gameId = props.mode === 'create' ? props.gameId : props.quest.gameId
+
+  /**
+   * Syncs objective-dependency threads for the Loom: one thread per objective that has entityId.
+   * Removes any existing objective_requires threads for this quest, then creates new ones.
+   *
+   * @param gameId - The game ID.
+   * @param questId - The quest ID.
+   * @param objectives - The objectives to sync.
+   * @returns A promise that resolves when the threads are synced.
+   */
+  const syncObjectiveThreads = useCallback(
+    async (gameId: GameId, questId: string, objectives: QuestObjective[]) => {
+      const existing = await threadRepository.getThreadsFromEntity(
+        gameId,
+        questId,
+        null
+      )
+
+      // Get all objective_requires threads to delete.
+      const toDelete = existing.filter(
+        (t) => t.label === THREAD_LABEL_OBJECTIVE_REQUIRES
+      )
+
+      // Delete all objective_requires threads.
+      await Promise.all(toDelete.map((t) => threadRepository.delete(t.id)))
+
+      // Create new objective_requires threads for each objective that has an entityId.
+      for (let i = 0; i < objectives.length; i++) {
+        const obj = objectives[i]
+        if (!obj.entityId) continue
+        await threadRepository.create({
+          gameId,
+          sourceId: questId,
+          targetId: obj.entityId,
+          label: THREAD_LABEL_OBJECTIVE_REQUIRES,
+          objectiveIndex: i,
+          requirementAllowedStatuses:
+            obj.allowedStatuses && obj.allowedStatuses.length > 0
+              ? obj.allowedStatuses
+              : undefined,
+        })
+      }
+    },
+    []
+  )
 
   /**
    * Syncs the "giver" representative thread for a quest: create/update if giver set, delete if cleared.
@@ -113,6 +172,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
             objectives: objectives.length > 0 ? objectives : undefined,
           })
           await syncGiverThread(props.gameId, quest.id, giverValue)
+          await syncObjectiveThreads(props.gameId, quest.id, objectives)
         } else {
           await syncGiverThread(props.quest.gameId, props.quest.id, giverValue)
           await questRepository.update({
@@ -121,6 +181,11 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
             giver: giverValue,
             objectives,
           })
+          await syncObjectiveThreads(
+            props.quest.gameId,
+            props.quest.id,
+            objectives
+          )
         }
         props.onSaved()
       } catch (err) {
@@ -129,7 +194,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [title, giver, objectives, props, syncGiverThread]
+    [title, giver, objectives, props, syncGiverThread, syncObjectiveThreads]
   )
 
   /**
@@ -153,9 +218,67 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
   /**
    * Removes an objective from the quest.
    */
-  const removeObjective = useCallback((index: number) => {
-    setObjectives((prev) => prev.filter((_, i) => i !== index))
-  }, [])
+  const removeObjective = useCallback(
+    (index: number) => {
+      setObjectives((prev) => prev.filter((_, i) => i !== index))
+      if (linkingObjectiveIndex === index) setLinkingObjectiveIndex(null)
+    },
+    [linkingObjectiveIndex]
+  )
+
+  /**
+   * Toggles completed status for an objective.
+   */
+  const setObjectiveCompleted = useCallback(
+    (index: number, completed: boolean) => {
+      setObjectives((prev) => {
+        const next = [...prev]
+        next[index] = { ...next[index], completed }
+        return next
+      })
+    },
+    []
+  )
+
+  /**
+   * Sets entity link for an objective (entityId and optional allowedStatuses).
+   */
+  const setObjectiveEntityLink = useCallback(
+    (index: number, entityId: string, allowedStatuses?: number[]) => {
+      setObjectives((prev) => {
+        const next = [...prev]
+        next[index] = {
+          ...next[index],
+          entityId: entityId || undefined,
+          allowedStatuses: allowedStatuses ?? undefined,
+        }
+        return next
+      })
+      setLinkingObjectiveIndex(null)
+    },
+    []
+  )
+
+  /**
+   * Toggles the allowed status for an objective.
+   */
+  const toggleObjectiveAllowedStatus = useCallback(
+    (index: number, statusValue: number, checked: boolean) => {
+      setObjectives((prev) => {
+        const next = [...prev]
+        const obj = next[index]
+        const current = obj.allowedStatuses ?? []
+        next[index] = {
+          ...obj,
+          allowedStatuses: checked
+            ? [...current, statusValue]
+            : current.filter((v) => v !== statusValue),
+        }
+        return next
+      })
+    },
+    []
+  )
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -208,27 +331,168 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
             Add objective
           </button>
         </div>
-        <ul className="mt-1 space-y-1">
-          {objectives.map((obj, i) => (
-            <li key={i} className="flex gap-2">
-              <input
-                type="text"
-                value={obj.label}
-                onChange={(e) => updateObjective(i, e.target.value)}
-                placeholder="Objective"
-                disabled={isSubmitting}
-                className="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
-              />
-              <button
-                type="button"
-                onClick={() => removeObjective(i)}
-                disabled={isSubmitting}
-                className="rounded border border-slate-300 px-2 text-sm text-slate-600 hover:bg-slate-50"
-              >
-                Remove
-              </button>
-            </li>
-          ))}
+
+        {/* Show objectives. */}
+        <ul className="mt-1 space-y-2">
+          {objectives.map((objective, index) => {
+            const entityType = objective.entityId
+              ? getEntityTypeFromId(objective.entityId)
+              : null
+            const statusOptions =
+              entityType !== null ? STATUS_OPTIONS[entityType] : []
+            const isLinking = linkingObjectiveIndex === index
+            return (
+              <li key={index} className="rounded border border-slate-200 p-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Show completed checkbox. */}
+                  <input
+                    type="checkbox"
+                    checked={objective.completed}
+                    onChange={(e) =>
+                      setObjectiveCompleted(index, e.target.checked)
+                    }
+                    disabled={isSubmitting}
+                    aria-label={`Objective ${index + 1} completed`}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+
+                  {/* Show objective label. */}
+                  <input
+                    type="text"
+                    value={objective.label}
+                    onChange={(e) => updateObjective(index, e.target.value)}
+                    placeholder="Objective"
+                    disabled={isSubmitting}
+                    className="flex-1 min-w-0 rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
+                  />
+
+                  {/* Show remove button. */}
+                  <button
+                    type="button"
+                    onClick={() => removeObjective(index)}
+                    disabled={isSubmitting}
+                    className="rounded border border-slate-300 px-2 text-sm text-slate-600 hover:bg-slate-50"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                {/* Show entity link if an entity is linked. */}
+                {objective.entityId ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+                    <span className="text-sm text-slate-600">
+                      Linked to entity
+                    </span>
+
+                    {/* Show clear link button. */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setObjectiveEntityLink(index, '', undefined)
+                      }
+                      disabled={isSubmitting}
+                      className="text-sm text-slate-600 underline hover:text-slate-800"
+                    >
+                      Clear link
+                    </button>
+
+                    {/* Show allowed statuses if any are set. */}
+                    {Object.keys(statusOptions).length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs text-slate-500">
+                          Completable when:
+                        </span>
+                        {Object.entries(statusOptions).map(([key, value]) => (
+                          <label
+                            key={key}
+                            className="flex items-center gap-1 text-sm"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={(
+                                objective.allowedStatuses ?? []
+                              ).includes(Number(key))}
+                              onChange={(e) =>
+                                toggleObjectiveAllowedStatus(
+                                  index,
+                                  Number(key),
+                                  e.target.checked
+                                )
+                              }
+                              disabled={isSubmitting}
+                              className="rounded border-slate-300"
+                            />
+                            {value}
+                          </label>
+                        ))}
+                        <span className="text-xs text-slate-400">
+                          (none = default)
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : isLinking ? (
+                  // Show entity picker and cancel button.
+                  <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+                    {/* Show entity type selector. */}
+                    <select
+                      value={linkEntityType}
+                      onChange={(e) =>
+                        setLinkEntityType(Number(e.target.value) as EntityType)
+                      }
+                      disabled={isSubmitting}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-sm"
+                    >
+                      {[
+                        EntityType.QUEST,
+                        EntityType.INSIGHT,
+                        EntityType.ITEM,
+                        EntityType.PERSON,
+                      ].map((t) => (
+                        <option key={t} value={t}>
+                          {['Quest', 'Insight', 'Item', 'Person'][t]}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Show entity picker. */}
+                    <EntityPicker
+                      gameId={gameId}
+                      entityType={linkEntityType}
+                      value=""
+                      onChange={(entityId) =>
+                        setObjectiveEntityLink(index, entityId, undefined)
+                      }
+                      disabled={isSubmitting}
+                      aria-label="Entity for objective"
+                    />
+
+                    {/* Show cancel button. */}
+                    <button
+                      type="button"
+                      onClick={() => setLinkingObjectiveIndex(null)}
+                      className="text-sm text-slate-600 hover:text-slate-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  // Show link to entity button.
+                  <div className="mt-2 border-t border-slate-100 pt-2">
+                    {/* Show link to entity button. */}
+                    <button
+                      type="button"
+                      onClick={() => setLinkingObjectiveIndex(index)}
+                      disabled={isSubmitting}
+                      className="text-sm text-slate-600 hover:text-slate-800"
+                    >
+                      Link to entity
+                    </button>
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       </div>
       {error && (

@@ -48,7 +48,7 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | createdAt  | datetime | Creation timestamp                            |
 | updatedAt  | datetime | Last update timestamp                         |
 
-**Note:** In the implementation, status and notes are playthrough-scoped (stored in `QuestProgress`). Objective completion is currently on the quest definition; for strict data separation it could later move to QuestProgress (e.g. `completedObjectives: boolean[]`). The giver link is also represented by a thread (Quest → Person|Place) with reserved label `giver`; the UI dual-writes so the field and thread stay in sync.
+**Note:** In the implementation, status and notes are playthrough-scoped (stored in `QuestProgress`). Objectives can optionally reference an entity (`entityId`) and allowed statuses (`allowedStatuses`): **completability** is then derived (objective is completable when that entity is in the allowed set); **completion** remains manual (user checks the box). Objective dependencies are dual-written to threads (label `objective_requires`) so they appear in the Loom. The giver link is also represented by a thread (Quest → Person|Place) with reserved label `giver`; the UI dual-writes so the field and thread stay in sync.
 
 ### Insight
 
@@ -130,15 +130,19 @@ Entity and schema design must distinguish which fields (or which entities) belon
 
 ### Thread
 
-| Field      | Type     | Description                                 |
-| ---------- | -------- | ------------------------------------------- |
-| id         | string   | Unique identifier                           |
-| sourceId   | id       | ID of source entity                         |
-| sourceType | enum     | quest \| insight \| item \| person \| place |
-| targetId   | id       | ID of target entity                         |
-| targetType | enum     | quest \| insight \| item \| person \| place |
-| label      | string   | Optional relationship label                 |
-| createdAt  | datetime | Creation timestamp                          |
+| Field                      | Type     | Description                                                                                                                                |
+| -------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| id                         | string   | Unique identifier                                                                                                                          |
+| sourceId                   | id       | ID of source entity                                                                                                                        |
+| sourceType                 | enum     | quest \| insight \| item \| person \| place                                                                                                |
+| targetId                   | id       | ID of target entity                                                                                                                        |
+| targetType                 | enum     | quest \| insight \| item \| person \| place                                                                                                |
+| label                      | string   | Optional relationship label                                                                                                                |
+| requirementAllowedStatuses | number[] | For labels `requires` and `objective_requires`: set of status enum values (target type) that satisfy the requirement. Omit = type default. |
+| objectiveIndex             | number   | For label `objective_requires`: 0-based index of the quest objective this dependency belongs to.                                           |
+| createdAt                  | datetime | Creation timestamp                                                                                                                         |
+
+**Reserved thread labels:** `giver` (Quest → Person|Place), `location` (Item → Place), `map` (Place → Map), **`requires`** (entity-level requirement: source is unavailable until target is in allowed status set), **`objective_requires`** (quest objective dependency: objective is completable when target entity is in allowed status set; appears in Loom with distinct label). Requirement/dependency threads are game-scoped. Default allowed sets per type: Item → [acquired], Insight → [known], Quest → [completed], Person → [alive].
 
 ## Relationships (Threads)
 
@@ -178,4 +182,4 @@ Status and notes for quests, insights, items, and persons are stored in playthro
 - **ItemState** — `playthroughId`, `itemId`, `status` (not acquired \| acquired \| used \| lost), `notes`
 - **PersonProgress** — `playthroughId`, `personId`, `status` (alive \| dead \| unknown), `notes`
 
-Only **acquired** items count as owned for requirement checks; only **known** insights qualify for requirement checks. Quest "blocked" is replaced by derived unavailability from requirements (Phase 5.2).
+Requirement and objective-completability checks use a **configurable allowed status set** per type (defaults: Item → [acquired], Insight → [known], Quest → [completed], Person → [alive]). Unavailability is derived from requirement threads (label `requires`), not stored. Quest "blocked" is replaced by derived unavailability (Phase 5.2).

@@ -10,6 +10,7 @@ import { generateEntityId } from '../../utils/generateId'
 import { db } from '../db'
 import type { CreateThreadInput } from './CreateThreadInput'
 import type { IThreadRepository } from './IThreadRepository'
+import { THREAD_LABEL_REQUIRES } from './threadLabels'
 
 /**
  * Dexie-backed implementation of IThreadRepository.
@@ -46,6 +47,12 @@ class ThreadRepositoryImpl implements IThreadRepository {
       targetId: input.targetId,
       label: input.label ?? '',
       createdAt: now,
+      ...(input.requirementAllowedStatuses != null && {
+        requirementAllowedStatuses: input.requirementAllowedStatuses,
+      }),
+      ...(input.objectiveIndex != null && {
+        objectiveIndex: input.objectiveIndex,
+      }),
     }
     await db.threads.add(thread)
     return thread
@@ -84,6 +91,16 @@ class ThreadRepositoryImpl implements IThreadRepository {
   ): Promise<void> {
     const threads = await this.getThreadsFromEntity(gameId, entityId)
     await Promise.all(threads.map((t) => this.delete(t.id)))
+  }
+
+  async getRequirementThreadsFromEntity(
+    gameId: GameId,
+    entityId: string
+  ): Promise<Thread[]> {
+    const threads = await this.getByGameId(gameId, null)
+    return threads.filter(
+      (t) => t.sourceId === entityId && t.label === THREAD_LABEL_REQUIRES
+    )
   }
 }
 

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EntityConnections } from '../../components/EntityConnections'
+import { checkEntityAvailability } from '../../lib/requirements'
 import { itemRepository, placeRepository } from '../../lib/repositories'
 import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
 import type { Item } from '../../types/Item'
 import type { ItemState } from '../../types/ItemState'
 import { ItemStatus } from '../../types/ItemStatus'
+import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
 import { ItemForm } from './ItemForm'
 
 /**
@@ -40,6 +42,12 @@ export function ItemListScreen({
   const [items, setItems] = useState<Item[]>([])
   const [placeNames, setPlaceNames] = useState<Record<string, string>>({})
   const [stateByItem, setStateByItem] = useState<Record<string, ItemState>>({})
+  const [availabilityByItem, setAvailabilityByItem] = useState<
+    Record<string, { available: boolean; unmetRequirementTargetIds: string[] }>
+  >({})
+  const [unmetRequirementNames, setUnmetRequirementNames] = useState<
+    Record<string, string>
+  >({})
   const [isLoading, setIsLoading] = useState(true)
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; item: Item } | null
@@ -71,6 +79,53 @@ export function ItemListScreen({
         byItem[s.itemId] = s
       })
       setStateByItem(byItem)
+
+      // Check availability of items based on current playthrough.
+      if (playthroughId && list.length > 0) {
+        const results = await Promise.all(
+          list.map(async (item) => {
+            const result = await checkEntityAvailability(
+              gameId,
+              playthroughId,
+              item.id
+            )
+            return { itemId: item.id, ...result }
+          })
+        )
+
+        const byItemId: Record<
+          string,
+          { available: boolean; unmetRequirementTargetIds: string[] }
+        > = {}
+        const allUnmetIds = new Set<string>()
+
+        // Group results by item ID.
+        results.forEach((r) => {
+          byItemId[r.itemId] = {
+            available: r.available,
+            unmetRequirementTargetIds: r.unmetRequirementTargetIds,
+          }
+          r.unmetRequirementTargetIds.forEach((id) => allUnmetIds.add(id))
+        })
+
+        // Set availability by item ID.
+        setAvailabilityByItem(byItemId)
+
+        // Get names of unmet requirement targets.
+        const nameEntries = await Promise.all(
+          Array.from(allUnmetIds).map(async (id) => {
+            const name = await getEntityDisplayName(id)
+            return [id, name] as const
+          })
+        )
+
+        // Set names of unmet requirement targets.
+        setUnmetRequirementNames(Object.fromEntries(nameEntries))
+      } else {
+        // No playthrough selected, so no availability to check.
+        setAvailabilityByItem({})
+        setUnmetRequirementNames({})
+      }
     } finally {
       setIsLoading(false)
     }
@@ -166,7 +221,29 @@ export function ItemListScreen({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-slate-900">{item.name}</p>
+                    {/* Show item name and availability. */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium text-slate-900">{item.name}</p>
+                      {playthroughId !== null &&
+                        availabilityByItem[item.id]?.available === false && (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
+                            Unavailable
+                          </span>
+                        )}
+                    </div>
+
+                    {/* Show unmet requirements if the item is unavailable. */}
+                    {playthroughId !== null &&
+                      availabilityByItem[item.id]?.available === false &&
+                      availabilityByItem[item.id].unmetRequirementTargetIds
+                        .length > 0 && (
+                        <p className="text-sm text-slate-600">
+                          Requires:{' '}
+                          {availabilityByItem[item.id].unmetRequirementTargetIds
+                            .map((id) => unmetRequirementNames[id] ?? id)
+                            .join(', ')}
+                        </p>
+                      )}
                     <p className="text-sm text-slate-600">
                       Location: {placeNames[item.location] ?? item.location}
                     </p>

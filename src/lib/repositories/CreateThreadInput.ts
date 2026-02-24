@@ -16,4 +16,12 @@ export interface CreateThreadInput {
   targetId: string
   /** Optional relationship label. */
   label?: string
+  /**
+   * For labels 'requires' and 'objective_requires': set of status enum values (target entity type) that satisfy the requirement. Omit for default.
+   */
+  requirementAllowedStatuses?: number[]
+  /**
+   * For label 'objective_requires': 0-based index of the quest objective this dependency belongs to.
+   */
+  objectiveIndex?: number
 }

@@ -89,4 +89,17 @@ export interface IThreadRepository {
    * @param entityId - Typed entity ID (source or target).
    */
   deleteThreadsInvolvingEntity(gameId: GameId, entityId: string): Promise<void>
+
+  /**
+   * Returns entity-level requirement threads (label 'requires') where the given entity is the source.
+   * Game-level threads only (no playthrough filter). Used for availability evaluation.
+   *
+   * @param gameId - The ID of the game.
+   * @param entityId - Typed entity ID (source of the requirement).
+   * @returns Threads where sourceId === entityId and label === THREAD_LABEL_REQUIRES.
+   */
+  getRequirementThreadsFromEntity(
+    gameId: GameId,
+    entityId: string
+  ): Promise<Thread[]>
 }

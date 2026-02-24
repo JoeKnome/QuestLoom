@@ -308,12 +308,14 @@ Assume no legacy content; status changes are breaking and can be applied directl
 - [x] **Person status** — **Alive** (default), **dead**, **unknown**. Person status is playthrough-scoped (e.g. PersonProgress or similar) so it can change during a playthrough.
 - [x] **Data and UI** — Update `ItemStatus`, `InsightStatus`, `QuestStatus` and add Person status type and playthrough-scoped storage; ensure repositories and UI use the new values and defaults. New playthroughs and new entities get the specified defaults.
 
-### 5.2 Entity requirements (thread-based) and availability
+### 5.2 Entity requirements (thread-based) and availability ✅ Complete
 
-- [ ] **Requirements tracked with threads** — Requirements are **tracked with threads** so they are **visible on the Loom**. For example: a thread from entity A to entity B with a reserved label (e.g. `requires`) means "A requires B." Requirement evaluation: for item requirements, only **acquired** items count; for insight requirements, only **known** insights count; for quest/person/path conditions, use the corresponding status and requirement logic.
-- [ ] **Unavailable (derived)** — If the player does not meet an entity’s requirements, that entity is **unavailable**. Unavailability is a **derived boolean** (computed from playthrough state and requirement threads), not a stored status; it updates automatically when playthrough state or requirements change.
-- [ ] **Scope** — Apply to quests (e.g. insight/item required to start), items (item required to acquire), Path unlock/traversal, and optionally visibility. Replacing "blocked" quest status with derived unavailability from requirements (5.1).
-- [ ] **Quest objectives as requirement-like** — **Quest objectives** can act similarly to requirements: an objective is tied to the **status of another entity** (e.g. item acquired, person dead, insight known). That status is needed for the objective to be **completable**. Model so objectives reference entities and the required state; completion is derived when the referenced entity is in the required state.
+- [x] **Requirements tracked with threads** — Requirements are tracked with threads (labels `requires` and `objective_requires`) and visible on the Loom. Satisfaction uses a configurable allowed status set per target type (defaults: Item → [acquired], Insight → [known], Quest → [completed], Person → [alive]).
+- [x] **Unavailable (derived)** — If the player does not meet an entity’s requirements, that entity is **unavailable**. Unavailability is a **derived boolean** (computed from playthrough state and requirement threads), not a stored status; it updates automatically when playthrough state or requirements change.
+- [x] **Scope** — Apply to quests (e.g. insight/item required to start), items (item required to acquire), Path unlock/traversal, and optionally visibility. Replacing "blocked" quest status with derived unavailability from requirements (5.1).
+- [x] **Quest objectives as requirement-like** — Objectives can have `entityId` and `allowedStatuses`; completability is derived, completion is manual (checkbox). Objective dependencies are dual-written to threads (label `objective_requires`) and appear in the Loom. Thread form supports "Requires" and "Objective requirement" with allowed-status configuration.
+
+Implemented: Reserved labels `requires` and `objective_requires`; Thread `requirementAllowedStatuses` and `objectiveIndex`; default allowed sets; `getRequirementThreadsFromEntity`; requirement evaluation and `checkEntityAvailability`; quest/item list Unavailable and Requires; Loom distinct edge labels/styling; QuestObjective entityId/allowedStatuses, getObjectiveCompletability, sync to threads on quest save; ThreadForm reserved labels and allowed-statuses UI.
 
 ### 5.3 Path entity: data model, status, and connectivity
 

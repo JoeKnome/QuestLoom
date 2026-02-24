@@ -13,7 +13,8 @@
 
 - Create and name quests
 - Add steps or sub-objectives to a quest
-- Link insights and required items to quests
+- Link insights and required items to quests (entity-level "requires" threads; configurable allowed status set per type)
+- Quest objectives can link to an entity: completability is derived when that entity is in an allowed status set; completion remains manual (checkbox). Objective dependencies appear in the Loom as "Objective" edges.
 - Mark quests or steps as complete
 
 ### Insight Management
@@ -52,6 +53,7 @@
 ### Threads
 
 - Create bidirectional or directional links (threads) between entities
+- Reserved labels: "Requires" (entity-level requirement; source unavailable until target is in allowed status set), "Objective requirement" (quest objective dependency). Both appear in the Loom with distinct labels/styling.
 - Thread types: Person ↔ Place, Insight → Quest, Item → Insight, etc.
 - View entities by thread (e.g., "all people at this place")
 - **Loom** — View threads as a network/graph; set a target and follow a thread to reach it; clear visualization of relationships and pathways

@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EntityConnections } from '../../components/EntityConnections'
+import {
+  checkEntityAvailability,
+  getObjectiveCompletability,
+} from '../../lib/requirements'
 import { questRepository } from '../../lib/repositories'
 import type { GameId, PlaythroughId, QuestId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
@@ -43,6 +47,15 @@ export function QuestListScreen({
   const [progressByQuest, setProgressByQuest] = useState<
     Record<string, QuestProgress>
   >({})
+  const [availabilityByQuest, setAvailabilityByQuest] = useState<
+    Record<string, { available: boolean; unmetRequirementTargetIds: string[] }>
+  >({})
+  const [unmetRequirementNames, setUnmetRequirementNames] = useState<
+    Record<string, string>
+  >({})
+  const [objectiveCompletability, setObjectiveCompletability] = useState<
+    Record<string, boolean>
+  >({})
   const [isLoading, setIsLoading] = useState(true)
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; quest: Quest } | null
@@ -75,6 +88,63 @@ export function QuestListScreen({
         }))
       )
       setGiverNames(Object.fromEntries(names.map(({ id, name }) => [id, name])))
+
+      // Check availability of quests based on current playthrough.
+      if (playthroughId && list.length > 0) {
+        const results = await Promise.all(
+          list.map(async (q) => {
+            const result = await checkEntityAvailability(
+              gameId,
+              playthroughId,
+              q.id
+            )
+            return { questId: q.id, ...result }
+          })
+        )
+
+        // Group results by quest ID.
+        const byQuest: Record<
+          string,
+          { available: boolean; unmetRequirementTargetIds: string[] }
+        > = {}
+
+        // Get all unmet requirement target IDs.
+        const allUnmetIds = new Set<string>()
+        results.forEach((r) => {
+          byQuest[r.questId] = {
+            available: r.available,
+            unmetRequirementTargetIds: r.unmetRequirementTargetIds,
+          }
+          r.unmetRequirementTargetIds.forEach((id) => allUnmetIds.add(id))
+        })
+        setAvailabilityByQuest(byQuest)
+
+        // Get names of unmet requirement targets.
+        const nameEntries = await Promise.all(
+          Array.from(allUnmetIds).map(async (id) => {
+            const name = await getEntityDisplayName(id)
+            return [id, name] as const
+          })
+        )
+        setUnmetRequirementNames(Object.fromEntries(nameEntries))
+
+        // Check completability of objectives based on current playthrough.
+        const completabilityEntries: [string, boolean][] = []
+        for (const q of list) {
+          for (let i = 0; i < (q.objectives?.length ?? 0); i++) {
+            if (q.objectives[i].entityId && playthroughId) {
+              const ok = await getObjectiveCompletability(playthroughId, q, i)
+              completabilityEntries.push([`${q.id}-${i}`, ok])
+            }
+          }
+        }
+        setObjectiveCompletability(Object.fromEntries(completabilityEntries))
+      } else {
+        // No playthrough selected, so no availability to check.
+        setAvailabilityByQuest({})
+        setUnmetRequirementNames({})
+        setObjectiveCompletability({})
+      }
     } finally {
       setIsLoading(false)
     }
@@ -93,6 +163,26 @@ export function QuestListScreen({
     setDeleteTarget(null)
     loadQuests()
   }, [deleteTarget, loadQuests])
+
+  /**
+   * Toggles objective completed and saves the quest.
+   *
+   * @param quest - The quest to update.
+   * @param objectiveIndex - The index of the objective to update.
+   * @param completed - Whether the objective is completed.
+   * @returns A promise that resolves when the objective is updated.
+   */
+  const handleObjectiveCompletedChange = useCallback(
+    async (quest: Quest, objectiveIndex: number, completed: boolean) => {
+      const next = [...(quest.objectives ?? [])]
+      if (next[objectiveIndex]) {
+        next[objectiveIndex] = { ...next[objectiveIndex], completed }
+        await questRepository.update({ ...quest, objectives: next })
+        loadQuests()
+      }
+    },
+    [loadQuests]
+  )
 
   /**
    * Handles the change of status for a quest.
@@ -170,7 +260,42 @@ export function QuestListScreen({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-slate-900">{quest.title}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium text-slate-900">
+                        {quest.title}
+                      </p>
+                      {/* Show unavailable badge if the quest is not available. */}
+                      {playthroughId !== null &&
+                        availabilityByQuest[quest.id]?.available === false && (
+                          <span
+                            className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800"
+                            title={
+                              availabilityByQuest[
+                                quest.id
+                              ].unmetRequirementTargetIds
+                                .map((id) => unmetRequirementNames[id] ?? id)
+                                .join(', ') || 'Unmet requirements'
+                            }
+                          >
+                            Unavailable
+                          </span>
+                        )}
+                    </div>
+                    {/* Show unmet requirement names if the quest is not
+                    available. */}
+                    {playthroughId !== null &&
+                      availabilityByQuest[quest.id]?.available === false &&
+                      availabilityByQuest[quest.id].unmetRequirementTargetIds
+                        .length > 0 && (
+                        <p className="text-sm text-slate-600">
+                          Requires:{' '}
+                          {availabilityByQuest[
+                            quest.id
+                          ].unmetRequirementTargetIds
+                            .map((id) => unmetRequirementNames[id] ?? id)
+                            .join(', ')}
+                        </p>
+                      )}
                     <p className="text-sm text-slate-600">
                       Giver: {(giverNames[quest.id] ?? '').trim() || '—'}
                     </p>
@@ -226,6 +351,56 @@ export function QuestListScreen({
                     </button>
                   </div>
                 </div>
+
+                {/* Show objectives if there are any. */}
+                {(quest.objectives?.length ?? 0) > 0 && (
+                  <ul className="mt-2 space-y-1 border-t border-slate-100 pt-2">
+                    {/* Show objectives. */}
+                    {(quest.objectives ?? []).map((obj, oi) => (
+                      <li
+                        key={oi}
+                        className="flex flex-wrap items-center gap-2 text-sm"
+                      >
+                        {/* Show objective checkbox. */}
+                        <input
+                          type="checkbox"
+                          checked={obj.completed}
+                          onChange={(e) =>
+                            handleObjectiveCompletedChange(
+                              quest,
+                              oi,
+                              e.target.checked
+                            )
+                          }
+                          disabled={!playthroughId}
+                          aria-label={`Objective: ${obj.label}`}
+                          className="h-3.5 w-3.5 rounded border-slate-300"
+                        />
+
+                        {/* Show objective label. */}
+                        <span
+                          className={
+                            obj.completed
+                              ? 'text-slate-500 line-through'
+                              : 'text-slate-700'
+                          }
+                        >
+                          {obj.label || 'Objective'}
+                        </span>
+
+                        {/* Show ready badge if the objective is completable. */}
+                        {obj.entityId &&
+                          playthroughId !== null &&
+                          objectiveCompletability[`${quest.id}-${oi}`] ===
+                            true && (
+                            <span className="rounded bg-green-100 px-1 text-xs text-green-800">
+                              Ready
+                            </span>
+                          )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {isExpanded ? (
                   <div className="mt-2">
                     <EntityConnections

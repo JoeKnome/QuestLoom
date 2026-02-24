@@ -15,6 +15,10 @@ import {
   questRepository,
   threadRepository,
 } from '../../lib/repositories'
+import {
+  THREAD_LABEL_OBJECTIVE_REQUIRES,
+  THREAD_LABEL_REQUIRES,
+} from '../../lib/repositories/threadLabels'
 import { runForceLayout } from './loomLayout'
 
 /** Data passed to the custom entity node. */
@@ -140,14 +144,30 @@ export function useLoomGraph(
 
       const flowEdges: Edge[] = threads
         .filter((t) => idToEntity.has(t.sourceId) && idToEntity.has(t.targetId))
-        .map((t) => ({
-          id: t.id,
-          source: t.sourceId,
-          target: t.targetId,
-          label: t.label || undefined,
-          type: 'default',
-          pathOptions: { curvature: 0.1 },
-        }))
+        .map((t) => {
+          const isRequires = t.label === THREAD_LABEL_REQUIRES
+          const isObjectiveReq = t.label === THREAD_LABEL_OBJECTIVE_REQUIRES
+          const displayLabel = isRequires
+            ? 'Requires'
+            : isObjectiveReq
+              ? 'Objective'
+              : t.label || undefined
+          const style =
+            isRequires || isObjectiveReq
+              ? {
+                  strokeDasharray: isRequires ? '8,4' : '2,3',
+                }
+              : undefined
+          return {
+            id: t.id,
+            source: t.sourceId,
+            target: t.targetId,
+            label: displayLabel,
+            type: 'default',
+            pathOptions: { curvature: 0.1 },
+            ...(style && { style }),
+          }
+        })
 
       setNodes(flowNodes)
       setEdges(flowEdges)

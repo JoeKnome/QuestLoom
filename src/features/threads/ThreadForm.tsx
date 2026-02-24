@@ -2,6 +2,10 @@ import { useCallback, useState } from 'react'
 import { EntityPicker } from '../../components/EntityPicker'
 import { threadRepository } from '../../lib/repositories'
 import {
+  THREAD_LABEL_OBJECTIVE_REQUIRES,
+  THREAD_LABEL_REQUIRES,
+} from '../../lib/repositories/threadLabels'
+import {
   EntityType,
   THREAD_ENDPOINT_ENTITY_TYPES,
 } from '../../types/EntityType'
@@ -9,6 +13,7 @@ import type { GameId, PlaythroughId } from '../../types/ids'
 import type { Thread } from '../../types/Thread'
 import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
 import { getEntityTypeFromId } from '../../utils/parseEntityId'
+import { STATUS_OPTIONS } from '../../utils/requirementStatusOptions'
 
 /**
  * Props for ThreadForm when creating a new thread.
@@ -72,13 +77,31 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
     isCreate ? '' : props.thread.targetId
   )
   const [label, setLabel] = useState(isCreate ? '' : props.thread.label)
+  const [labelPreset, setLabelPreset] = useState<
+    '' | 'requires' | 'objective_requires'
+  >(() => {
+    if (!isCreate) {
+      if (props.thread.label === THREAD_LABEL_REQUIRES) return 'requires'
+      if (props.thread.label === THREAD_LABEL_OBJECTIVE_REQUIRES)
+        return 'objective_requires'
+    }
+    return ''
+  })
+  const [requirementAllowedStatuses, setRequirementAllowedStatuses] = useState<
+    number[]
+  >(() => (isCreate ? [] : (props.thread.requirementAllowedStatuses ?? [])))
+  const [objectiveIndex, setObjectiveIndex] = useState<number>(() =>
+    isCreate ? 0 : (props.thread.objectiveIndex ?? 0)
+  )
   const [playthroughOnly, setPlaythroughOnly] = useState(
     isCreate ? false : Boolean(props.thread.playthroughId)
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
   const gameId = isCreate ? props.gameId : props.thread.gameId
+  const isRequirementLabel =
+    labelPreset === 'requires' || labelPreset === 'objective_requires'
+  const statusOptions = STATUS_OPTIONS[targetType]
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -95,23 +118,53 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
         setError('Source and target must be different.')
         return
       }
+      const resolvedLabel =
+        labelPreset === 'requires'
+          ? THREAD_LABEL_REQUIRES
+          : labelPreset === 'objective_requires'
+            ? THREAD_LABEL_OBJECTIVE_REQUIRES
+            : label.trim() || undefined
+
+      // Check if the thread is a requirement thread and playthrough-only is set,
+      // and if so, set an error.
+      if (isRequirementLabel && playthroughOnly) {
+        setError(
+          'Requirement threads must be game-level (not playthrough-only).'
+        )
+        return
+      }
+
       setError(null)
       setIsSubmitting(true)
       try {
         if (isCreate) {
           await threadRepository.create({
             gameId: props.gameId,
-            playthroughId: playthroughOnly
-              ? (props.playthroughId ?? undefined)
-              : null,
+            playthroughId: isRequirementLabel
+              ? null
+              : playthroughOnly
+                ? (props.playthroughId ?? undefined)
+                : null,
             sourceId,
             targetId,
-            label: label.trim() || undefined,
+            label: resolvedLabel ?? '',
+            requirementAllowedStatuses:
+              isRequirementLabel && requirementAllowedStatuses.length > 0
+                ? requirementAllowedStatuses
+                : undefined,
+            objectiveIndex:
+              labelPreset === 'objective_requires' ? objectiveIndex : undefined,
           })
         } else {
           await threadRepository.update({
             ...props.thread,
-            label: label.trim(),
+            label: resolvedLabel ?? props.thread.label,
+            requirementAllowedStatuses:
+              isRequirementLabel && requirementAllowedStatuses.length > 0
+                ? requirementAllowedStatuses
+                : undefined,
+            objectiveIndex:
+              labelPreset === 'objective_requires' ? objectiveIndex : undefined,
           })
         }
         props.onSaved()
@@ -121,11 +174,35 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [sourceId, targetId, label, playthroughOnly, isCreate, props]
+    [
+      sourceId,
+      targetId,
+      label,
+      labelPreset,
+      playthroughOnly,
+      requirementAllowedStatuses,
+      objectiveIndex,
+      isRequirementLabel,
+      isCreate,
+      props,
+    ]
   )
 
   const clearSourceId = useCallback(() => setSourceId(''), [])
   const clearTargetId = useCallback(() => setTargetId(''), [])
+
+  /**
+   * Toggles the allowed status for a requirement thread.
+   *
+   * @param value - The value to toggle.
+   * @param checked - Whether the value is checked.
+   * @returns A promise that resolves when the allowed status is toggled.
+   */
+  const toggleAllowedStatus = useCallback((value: number, checked: boolean) => {
+    setRequirementAllowedStatuses((prev) =>
+      checked ? [...prev, value] : prev.filter((v) => v !== value)
+    )
+  }, [])
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -198,23 +275,101 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
             />
           </div>
           <div>
-            <label
-              htmlFor="thread-label"
-              className="block text-sm font-medium text-slate-700"
-            >
+            <label className="block text-sm font-medium text-slate-700">
               Label
             </label>
-            <input
-              id="thread-label"
-              type="text"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="Optional relationship label"
+
+            {/* Show label preset select. */}
+            <select
+              value={labelPreset}
+              onChange={(e) => {
+                const v = e.target.value as
+                  | ''
+                  | 'requires'
+                  | 'objective_requires'
+                setLabelPreset(v)
+                if (v === '') setLabel('')
+                if (v === 'requires') setLabel(THREAD_LABEL_REQUIRES)
+                if (v === 'objective_requires')
+                  setLabel(THREAD_LABEL_OBJECTIVE_REQUIRES)
+              }}
               disabled={isSubmitting}
-              className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
-            />
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
+            >
+              <option value="">Custom (enter below)</option>
+              <option value="requires">
+                Requires (entity-level requirement)
+              </option>
+              <option value="objective_requires">
+                Objective requirement (quest objective dependency)
+              </option>
+            </select>
+
+            {/* Show custom label input if no preset is selected. */}
+            {labelPreset === '' ? (
+              <input
+                id="thread-label"
+                type="text"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="Optional relationship label"
+                disabled={isSubmitting}
+                className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
+              />
+            ) : null}
           </div>
-          {props.playthroughId ? (
+
+          {/* Show allowed statuses for target if the thread is a requirement thread. */}
+          {isRequirementLabel && Object.keys(statusOptions).length > 0 ? (
+            <div>
+              <span className="block text-sm font-medium text-slate-700">
+                Allowed statuses for target (none = default for type)
+              </span>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {Object.entries(statusOptions).map(([key, value]) => (
+                  <label
+                    key={key}
+                    className="flex items-center gap-1 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={requirementAllowedStatuses.includes(Number(key))}
+                      onChange={(e) =>
+                        toggleAllowedStatus(Number(key), e.target.checked)
+                      }
+                      disabled={isSubmitting}
+                      className="rounded border-slate-300"
+                    />
+                    {value}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Show objective index input if the thread is an objective requirement thread. */}
+          {labelPreset === 'objective_requires' ? (
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Objective index (0-based)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={objectiveIndex}
+                onChange={(e) =>
+                  setObjectiveIndex(
+                    Math.max(0, parseInt(e.target.value, 10) || 0)
+                  )
+                }
+                disabled={isSubmitting}
+                className="mt-1 w-24 rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:bg-slate-100"
+              />
+            </div>
+          ) : null}
+
+          {/* Show playthrough-only checkbox if the thread is not a requirement thread. */}
+          {props.playthroughId && !isRequirementLabel ? (
             <div className="flex items-center gap-2">
               <input
                 id="thread-playthrough-only"
@@ -234,23 +389,100 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
           ) : null}
         </>
       ) : (
-        <div>
-          <label
-            htmlFor="thread-label-edit"
-            className="block text-sm font-medium text-slate-700"
-          >
-            Label
-          </label>
-          <input
-            id="thread-label-edit"
-            type="text"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="Optional relationship label"
-            disabled={isSubmitting}
-            className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
-          />
-        </div>
+        // Show edit form.
+        <>
+          {/* Show label preset select. */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Label preset
+            </label>
+            <select
+              value={labelPreset}
+              onChange={(e) => {
+                const v = e.target.value as
+                  | ''
+                  | 'requires'
+                  | 'objective_requires'
+                setLabelPreset(v)
+                setLabel(
+                  v === 'requires'
+                    ? THREAD_LABEL_REQUIRES
+                    : v === 'objective_requires'
+                      ? THREAD_LABEL_OBJECTIVE_REQUIRES
+                      : props.thread.label
+                )
+              }}
+              disabled={isSubmitting}
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:bg-slate-100"
+            >
+              <option value="">Custom</option>
+              <option value="requires">Requires</option>
+              <option value="objective_requires">Objective requirement</option>
+            </select>
+
+            {/* Show custom label input if no preset is selected. */}
+            {labelPreset === '' ? (
+              <input
+                id="thread-label-edit"
+                type="text"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="Optional relationship label"
+                disabled={isSubmitting}
+                className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
+              />
+            ) : null}
+          </div>
+
+          {/* Show allowed statuses for target if the thread is a requirement thread. */}
+          {isRequirementLabel && Object.keys(statusOptions).length > 0 ? (
+            <div className="mt-2">
+              <span className="block text-sm font-medium text-slate-700">
+                Allowed statuses for target
+              </span>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {Object.entries(statusOptions).map(([key, value]) => (
+                  <label
+                    key={key}
+                    className="flex items-center gap-1 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={requirementAllowedStatuses.includes(Number(key))}
+                      onChange={(e) =>
+                        toggleAllowedStatus(Number(key), e.target.checked)
+                      }
+                      disabled={isSubmitting}
+                      className="rounded border-slate-300"
+                    />
+                    {value}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Show objective index input if the thread is an objective requirement thread. */}
+          {labelPreset === 'objective_requires' ? (
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Objective index
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={objectiveIndex}
+                onChange={(e) =>
+                  setObjectiveIndex(
+                    Math.max(0, parseInt(e.target.value, 10) || 0)
+                  )
+                }
+                disabled={isSubmitting}
+                className="mt-1 w-24 rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:bg-slate-100"
+              />
+            </div>
+          ) : null}
+        </>
       )}
       {error && (
         <p className="text-sm text-red-600" role="alert">

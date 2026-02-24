@@ -13,6 +13,8 @@ import type { GameId, PlaythroughId, ThreadId } from './ids'
  * @property targetId - Typed ID of the target entity
  * @property label - Optional relationship label
  * @property createdAt - Creation timestamp (ISO 8601)
+ * @property requirementAllowedStatuses - For labels 'requires' and 'objective_requires': set of status enum values (target entity type) that satisfy the requirement. If absent, default for target type is used.
+ * @property objectiveIndex - For label 'objective_requires': 0-based index of the quest objective this dependency belongs to.
  */
 export interface Thread {
   /** Unique identifier. */
@@ -29,4 +31,13 @@ export interface Thread {
   label: string
   /** Creation timestamp (ISO 8601). */
   createdAt: string
+  /**
+   * For labels 'requires' and 'objective_requires': set of status enum values (in context of
+   * target entity type) that satisfy the requirement. If absent or empty, default for target type is used.
+   */
+  requirementAllowedStatuses?: number[]
+  /**
+   * For label 'objective_requires': 0-based index of the quest objective (of the source quest) this dependency belongs to.
+   */
+  objectiveIndex?: number
 }
