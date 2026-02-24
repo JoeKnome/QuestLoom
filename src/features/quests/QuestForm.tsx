@@ -201,7 +201,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
    * Adds an objective to the quest.
    */
   const addObjective = useCallback(() => {
-    setObjectives((prev) => [...prev, { label: '', completed: false }])
+    setObjectives((prev) => [...prev, { label: '' }])
   }, [])
 
   /**
@@ -224,20 +224,6 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
       if (linkingObjectiveIndex === index) setLinkingObjectiveIndex(null)
     },
     [linkingObjectiveIndex]
-  )
-
-  /**
-   * Toggles completed status for an objective.
-   */
-  const setObjectiveCompleted = useCallback(
-    (index: number, completed: boolean) => {
-      setObjectives((prev) => {
-        const next = [...prev]
-        next[index] = { ...next[index], completed }
-        return next
-      })
-    },
-    []
   )
 
   /**
@@ -344,18 +330,6 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
             return (
               <li key={index} className="rounded border border-slate-200 p-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Show completed checkbox. */}
-                  <input
-                    type="checkbox"
-                    checked={objective.completed}
-                    onChange={(e) =>
-                      setObjectiveCompleted(index, e.target.checked)
-                    }
-                    disabled={isSubmitting}
-                    aria-label={`Objective ${index + 1} completed`}
-                    className="h-4 w-4 rounded border-slate-300"
-                  />
-
                   {/* Show objective label. */}
                   <input
                     type="text"

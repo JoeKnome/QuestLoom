@@ -3,13 +3,15 @@ import type { QuestStatus } from './QuestStatus'
 
 /**
  * Quest progress (playthrough-scoped).
- * Tracks status and user notes for a quest in a specific playthrough.
+ * Tracks status, objective completion, and user notes for a quest in a
+ * specific playthrough.
  * Cleared on "new playthrough."
  *
  * @property id - Optional unique identifier (for Dexie primary key)
  * @property playthroughId - ID of the playthrough
  * @property questId - ID of the quest
  * @property status - Quest completion status
+ * @property completedObjectiveIndexes - Indexes of objectives completed in this playthrough
  * @property notes - Optional user notes
  */
 export interface QuestProgress {
@@ -21,6 +23,11 @@ export interface QuestProgress {
   questId: QuestId
   /** Quest completion status. */
   status: QuestStatus
+  /**
+   * Indexes of objectives completed in this playthrough.
+   * Each index corresponds to an entry in the quest's objectives array.
+   */
+  completedObjectiveIndexes: number[]
   /** Optional user notes. */
   notes: string
 }

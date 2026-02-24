@@ -43,12 +43,12 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | title      | string   | Quest name                                    |
 | status     | enum     | available \| active \| completed \| abandoned |
 | giver      | id       | Reference to the source that gave the quest   |
-| objectives | array    | Optional sub-objectives with completion       |
+| objectives | array    | Optional sub-objectives (labels and links)    |
 | notes      | string   | Optional free-form notes                      |
 | createdAt  | datetime | Creation timestamp                            |
 | updatedAt  | datetime | Last update timestamp                         |
 
-**Note:** In the implementation, status and notes are playthrough-scoped (stored in `QuestProgress`). Objectives can optionally reference an entity (`entityId`) and allowed statuses (`allowedStatuses`): **completability** is then derived (objective is completable when that entity is in the allowed set); **completion** remains manual (user checks the box). Objective dependencies are dual-written to threads (label `objective_requires`) so they appear in the Loom. The giver link is also represented by a thread (Quest → Person|Place) with reserved label `giver`; the UI dual-writes so the field and thread stay in sync.
+**Note:** In the implementation, status, objective completion, and notes are playthrough-scoped (stored in `QuestProgress`). Objectives can optionally reference an entity (`entityId`) and allowed statuses (`allowedStatuses`): **completability** is then derived (objective is completable when that entity is in the allowed set); **completion** remains manual (user checks the box) and is tracked per playthrough via `completedObjectiveIndexes` in `QuestProgress`, not on the quest definition itself. Objective dependencies are dual-written to threads (label `objective_requires`) so they appear in the Loom. The giver link is also represented by a thread (Quest → Person|Place) with reserved label `giver`; the UI dual-writes so the field and thread stay in sync.
 
 ### Insight
 
@@ -175,9 +175,9 @@ Entities must be scoped to either the game (intrinsic) or a playthrough (user). 
 
 ## Playthrough-scoped progress
 
-Status and notes for quests, insights, items, and persons are stored in playthrough-scoped tables (cleared when the playthrough is deleted or the user starts a new playthrough):
+Status, objective completion, and notes for quests, and status/notes for insights, items, and persons are stored in playthrough-scoped tables (cleared when the playthrough is deleted or the user starts a new playthrough):
 
-- **QuestProgress** — `playthroughId`, `questId`, `status` (available \| active \| completed \| abandoned), `notes`
+- **QuestProgress** — `playthroughId`, `questId`, `status` (available \| active \| completed \| abandoned), `completedObjectiveIndexes` (number[] of completed objective indexes), `notes`
 - **InsightProgress** — `playthroughId`, `insightId`, `status` (unknown \| known \| irrelevant), `notes`
 - **ItemState** — `playthroughId`, `itemId`, `status` (not acquired \| acquired \| used \| lost), `notes`
 - **PersonProgress** — `playthroughId`, `personId`, `status` (alive \| dead \| unknown), `notes`

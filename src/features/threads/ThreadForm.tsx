@@ -327,10 +327,7 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               </span>
               <div className="mt-1 flex flex-wrap gap-2">
                 {Object.entries(statusOptions).map(([key, value]) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-1 text-sm"
-                  >
+                  <label key={key} className="flex items-center gap-1 text-sm">
                     <input
                       type="checkbox"
                       checked={requirementAllowedStatuses.includes(Number(key))}
@@ -442,10 +439,7 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               </span>
               <div className="mt-1 flex flex-wrap gap-2">
                 {Object.entries(statusOptions).map(([key, value]) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-1 text-sm"
-                  >
+                  <label key={key} className="flex items-center gap-1 text-sm">
                     <input
                       type="checkbox"
                       checked={requirementAllowedStatuses.includes(Number(key))}

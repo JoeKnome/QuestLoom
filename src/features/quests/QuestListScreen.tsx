@@ -165,23 +165,46 @@ export function QuestListScreen({
   }, [deleteTarget, loadQuests])
 
   /**
-   * Toggles objective completed and saves the quest.
+   * Toggles objective completion for a quest within the current playthrough.
    *
-   * @param quest - The quest to update.
+   * @param questId - The quest whose objective to update.
    * @param objectiveIndex - The index of the objective to update.
    * @param completed - Whether the objective is completed.
-   * @returns A promise that resolves when the objective is updated.
+   * @returns A promise that resolves when the objective progress is updated.
    */
   const handleObjectiveCompletedChange = useCallback(
-    async (quest: Quest, objectiveIndex: number, completed: boolean) => {
-      const next = [...(quest.objectives ?? [])]
-      if (next[objectiveIndex]) {
-        next[objectiveIndex] = { ...next[objectiveIndex], completed }
-        await questRepository.update({ ...quest, objectives: next })
-        loadQuests()
+    async (questId: QuestId, objectiveIndex: number, completed: boolean) => {
+      // If no playthrough is selected, do nothing.
+      if (playthroughId === null) return
+
+      // Get the existing quest progress.
+      const existing = progressByQuest[questId]
+
+      // Get the current completed objective indexes.
+      const currentIndexes = new Set(existing?.completedObjectiveIndexes ?? [])
+      
+      // Add or remove the objective index from the completed objective indexes.
+      if (completed) {
+        currentIndexes.add(objectiveIndex)
+      } else {
+        currentIndexes.delete(objectiveIndex)
       }
+
+      // Upsert the quest progress.
+      await questRepository.upsertProgress({
+        playthroughId,
+        questId,
+        status: existing?.status ?? QuestStatus.AVAILABLE,
+        completedObjectiveIndexes: Array.from(currentIndexes).sort(
+          (a, b) => a - b
+        ),
+        notes: existing?.notes ?? '',
+      })
+
+      // Reload the quests.
+      loadQuests()
     },
-    [loadQuests]
+    [playthroughId, progressByQuest, loadQuests]
   )
 
   /**
@@ -195,6 +218,7 @@ export function QuestListScreen({
         playthroughId,
         questId,
         status: newStatus,
+        completedObjectiveIndexes: existing?.completedObjectiveIndexes ?? [],
         notes: existing?.notes ?? '',
       })
       loadQuests()
@@ -253,6 +277,8 @@ export function QuestListScreen({
             const progress = progressByQuest[quest.id]
             const status = progress?.status ?? QuestStatus.AVAILABLE
             const isExpanded = expandedId === quest.id
+            const completedObjectiveIndexes =
+              progress?.completedObjectiveIndexes ?? []
             return (
               <li
                 key={quest.id}
@@ -356,49 +382,52 @@ export function QuestListScreen({
                 {(quest.objectives?.length ?? 0) > 0 && (
                   <ul className="mt-2 space-y-1 border-t border-slate-100 pt-2">
                     {/* Show objectives. */}
-                    {(quest.objectives ?? []).map((obj, oi) => (
-                      <li
-                        key={oi}
-                        className="flex flex-wrap items-center gap-2 text-sm"
-                      >
-                        {/* Show objective checkbox. */}
-                        <input
-                          type="checkbox"
-                          checked={obj.completed}
-                          onChange={(e) =>
-                            handleObjectiveCompletedChange(
-                              quest,
-                              oi,
-                              e.target.checked
-                            )
-                          }
-                          disabled={!playthroughId}
-                          aria-label={`Objective: ${obj.label}`}
-                          className="h-3.5 w-3.5 rounded border-slate-300"
-                        />
-
-                        {/* Show objective label. */}
-                        <span
-                          className={
-                            obj.completed
-                              ? 'text-slate-500 line-through'
-                              : 'text-slate-700'
-                          }
+                    {(quest.objectives ?? []).map((obj, oi) => {
+                      const isCompleted = completedObjectiveIndexes.includes(oi)
+                      return (
+                        <li
+                          key={oi}
+                          className="flex flex-wrap items-center gap-2 text-sm"
                         >
-                          {obj.label || 'Objective'}
-                        </span>
+                          {/* Show objective checkbox. */}
+                          <input
+                            type="checkbox"
+                            checked={isCompleted}
+                            onChange={(e) =>
+                              handleObjectiveCompletedChange(
+                                quest.id,
+                                oi,
+                                e.target.checked
+                              )
+                            }
+                            disabled={!playthroughId}
+                            aria-label={`Objective: ${obj.label}`}
+                            className="h-3.5 w-3.5 rounded border-slate-300"
+                          />
 
-                        {/* Show ready badge if the objective is completable. */}
-                        {obj.entityId &&
-                          playthroughId !== null &&
-                          objectiveCompletability[`${quest.id}-${oi}`] ===
-                            true && (
-                            <span className="rounded bg-green-100 px-1 text-xs text-green-800">
-                              Ready
-                            </span>
-                          )}
-                      </li>
-                    ))}
+                          {/* Show objective label. */}
+                          <span
+                            className={
+                              isCompleted
+                                ? 'text-slate-500 line-through'
+                                : 'text-slate-700'
+                            }
+                          >
+                            {obj.label || 'Objective'}
+                          </span>
+
+                          {/* Show ready badge if the objective is completable. */}
+                          {obj.entityId &&
+                            playthroughId !== null &&
+                            objectiveCompletability[`${quest.id}-${oi}`] ===
+                              true && (
+                              <span className="rounded bg-green-100 px-1 text-xs text-green-800">
+                                Ready
+                              </span>
+                            )}
+                        </li>
+                      )
+                    })}
                   </ul>
                 )}
                 {isExpanded ? (

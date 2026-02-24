@@ -92,6 +92,7 @@ class QuestRepositoryImpl implements IQuestRepository {
       id: progress.id ?? generateId(),
       playthroughId: progress.playthroughId,
       questId: progress.questId,
+      completedObjectiveIndexes: progress.completedObjectiveIndexes ?? [],
       status: progress.status,
       notes: progress.notes,
     }
@@ -116,6 +117,7 @@ function toQuestProgress(row: QuestProgressRow): QuestProgress {
     id: row.id,
     playthroughId: row.playthroughId,
     questId: row.questId,
+    completedObjectiveIndexes: row.completedObjectiveIndexes ?? [],
     status: row.status,
     notes: row.notes,
   }
