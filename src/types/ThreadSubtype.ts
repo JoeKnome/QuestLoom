@@ -18,7 +18,7 @@ export enum ThreadSubtype {
 
   /** Entity-level requirement: source unavailable until target is in allowed status set. */
   REQUIRES = 4,
-  
+
   /** Quest objective dependency: objective completable when target is in allowed status set. */
   OBJECTIVE_REQUIRES = 5,
 }

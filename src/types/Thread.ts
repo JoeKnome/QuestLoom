@@ -49,7 +49,7 @@ export interface Thread {
    * that satisfy the requirement. If absent or empty, default for target type is used.
    */
   requirementAllowedStatuses?: number[]
-  
+
   /**
    * For ObjectiveRequires: 0-based index of the quest objective (of the source quest) this dependency belongs to.
    */

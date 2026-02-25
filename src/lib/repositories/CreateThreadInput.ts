@@ -18,7 +18,7 @@ export interface CreateThreadInput {
 
   /** Typed ID of the target entity. */
   targetId: string
-  
+
   /** Relationship subtype. */
   subtype: ThreadSubtype
 
@@ -29,7 +29,7 @@ export interface CreateThreadInput {
    * For Requires and ObjectiveRequires: set of status enum values (target entity type) that satisfy the requirement. Omit for default.
    */
   requirementAllowedStatuses?: number[]
-  
+
   /**
    * For ObjectiveRequires: 0-based index of the quest objective this dependency belongs to.
    */

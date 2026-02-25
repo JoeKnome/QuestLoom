@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EntityConnections } from '../../components/EntityConnections'
+import { RequirementList } from '../../components/RequirementList'
 import { checkEntityAvailability } from '../../lib/requirements'
 import { itemRepository, placeRepository } from '../../lib/repositories'
 import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
@@ -303,8 +304,14 @@ export function ItemListScreen({
                   </div>
                 </div>
                 {isExpanded ? (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-2">
                     <EntityConnections
+                      gameId={gameId}
+                      entityId={item.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={item.name}
+                    />
+                    <RequirementList
                       gameId={gameId}
                       entityId={item.id}
                       playthroughId={playthroughId}

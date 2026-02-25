@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EntityConnections } from '../../components/EntityConnections'
+import { RequirementList } from '../../components/RequirementList'
 import { placeRepository } from '../../lib/repositories'
 import type { GameId, PlaceId } from '../../types/ids'
 import type { Place } from '../../types/Place'
@@ -154,8 +155,14 @@ export function PlaceListScreen({
                   </div>
                 </div>
                 {isExpanded ? (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-2">
                     <EntityConnections
+                      gameId={gameId}
+                      entityId={place.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={place.name}
+                    />
+                    <RequirementList
                       gameId={gameId}
                       entityId={place.id}
                       playthroughId={playthroughId}

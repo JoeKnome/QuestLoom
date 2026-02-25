@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EntityConnections } from '../../components/EntityConnections'
+import { RequirementList } from '../../components/RequirementList'
 import {
   checkEntityAvailability,
   getObjectiveCompletability,
@@ -431,8 +432,14 @@ export function QuestListScreen({
                   </ul>
                 )}
                 {isExpanded ? (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-2">
                     <EntityConnections
+                      gameId={gameId}
+                      entityId={quest.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={quest.title}
+                    />
+                    <RequirementList
                       gameId={gameId}
                       entityId={quest.id}
                       playthroughId={playthroughId}

@@ -54,6 +54,7 @@
 
 - Create bidirectional or directional links (threads) between entities
 - Reserved labels: "Requires" (entity-level requirement; source unavailable until target is in allowed status set), "Objective requirement" (quest objective dependency). Both appear in the Loom with distinct labels/styling.
+- **Entity-level requirements** are created and edited from each entity's detail view: expand a quest, insight, item, person, or place in its list and use the Requirements block (Add requirement, Edit, Delete). The Loom tab shows the graph; there is no separate Thread list for creating requirements.
 - Thread types: Person ↔ Place, Insight → Quest, Item → Insight, etc.
 - View entities by thread (e.g., "all people at this place")
 - **Loom** — View threads as a network/graph; set a target and follow a thread to reach it; clear visualization of relationships and pathways

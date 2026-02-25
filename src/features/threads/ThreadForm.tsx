@@ -160,7 +160,9 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
                 ? requirementAllowedStatuses
                 : undefined,
             objectiveIndex:
-              subtypePreset === 'objective_requires' ? objectiveIndex : undefined,
+              subtypePreset === 'objective_requires'
+                ? objectiveIndex
+                : undefined,
           })
         } else {
           const updatedLabel =
@@ -176,7 +178,9 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
                 ? requirementAllowedStatuses
                 : undefined,
             objectiveIndex:
-              subtypePreset === 'objective_requires' ? objectiveIndex : undefined,
+              subtypePreset === 'objective_requires'
+                ? objectiveIndex
+                : undefined,
           })
         }
         props.onSaved()

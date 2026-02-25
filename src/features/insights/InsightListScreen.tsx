@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EntityConnections } from '../../components/EntityConnections'
+import { RequirementList } from '../../components/RequirementList'
 import { insightRepository } from '../../lib/repositories'
 import type { GameId, InsightId, PlaythroughId } from '../../types/ids'
 import type { Insight } from '../../types/Insight'
@@ -220,8 +221,14 @@ export function InsightListScreen({
                   </div>
                 </div>
                 {isExpanded ? (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-2">
                     <EntityConnections
+                      gameId={gameId}
+                      entityId={insight.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={insight.title}
+                    />
+                    <RequirementList
                       gameId={gameId}
                       entityId={insight.id}
                       playthroughId={playthroughId}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EntityConnections } from '../../components/EntityConnections'
+import { RequirementList } from '../../components/RequirementList'
 import { personRepository } from '../../lib/repositories'
 import type { GameId, PersonId, PlaythroughId } from '../../types/ids'
 import type { Person } from '../../types/Person'
@@ -219,8 +220,14 @@ export function PersonListScreen({
                   </div>
                 </div>
                 {isExpanded ? (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-2">
                     <EntityConnections
+                      gameId={gameId}
+                      entityId={person.id}
+                      playthroughId={playthroughId}
+                      entityDisplayName={person.name}
+                    />
+                    <RequirementList
                       gameId={gameId}
                       entityId={person.id}
                       playthroughId={playthroughId}

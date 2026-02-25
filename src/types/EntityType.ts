@@ -26,3 +26,15 @@ export const THREAD_ENDPOINT_ENTITY_TYPES: readonly EntityType[] = [
   EntityType.PERSON,
   EntityType.PLACE,
 ]
+
+/**
+ * Entity types that can be the target of an entity-level requirement (thread subtype Requires).
+ * Excludes PLACE per data-models: "Place: not used for requirement targets in Phase 5.2."
+ * Use in RequirementForm and anywhere that picks a requirement target.
+ */
+export const REQUIREMENT_TARGET_ENTITY_TYPES: readonly EntityType[] = [
+  EntityType.QUEST,
+  EntityType.INSIGHT,
+  EntityType.ITEM,
+  EntityType.PERSON,
+]
