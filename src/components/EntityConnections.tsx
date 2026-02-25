@@ -3,6 +3,7 @@ import { threadRepository } from '../lib/repositories'
 import type { GameId, PlaythroughId } from '../types/ids'
 import type { Thread } from '../types/Thread'
 import { getEntityDisplayName } from '../utils/getEntityDisplayName'
+import { getThreadDisplayLabel } from '../utils/threadSubtype'
 
 /**
  * Props for the EntityConnections component.
@@ -91,7 +92,9 @@ export function EntityConnections({
           return (
             <li key={thread.id}>
               → {otherLabel}
-              {thread.label ? ` (${thread.label})` : ''}
+              {getThreadDisplayLabel(thread)
+                ? ` (${getThreadDisplayLabel(thread)})`
+                : ''}
             </li>
           )
         })}

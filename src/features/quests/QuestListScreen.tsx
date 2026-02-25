@@ -182,7 +182,7 @@ export function QuestListScreen({
 
       // Get the current completed objective indexes.
       const currentIndexes = new Set(existing?.completedObjectiveIndexes ?? [])
-      
+
       // Add or remove the objective index from the completed objective indexes.
       if (completed) {
         currentIndexes.add(objectiveIndex)

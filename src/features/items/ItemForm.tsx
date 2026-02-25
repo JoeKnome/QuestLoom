@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react'
 import { itemRepository, threadRepository } from '../../lib/repositories'
-import { THREAD_LABEL_LOCATION } from '../../lib/repositories/threadLabels'
 import type { GameId, PlaceId } from '../../types/ids'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
+import { getThreadSubtype } from '../../utils/threadSubtype'
 import type { Item } from '../../types/Item'
 import { PlacePicker } from '../../components/PlacePicker'
 
@@ -68,7 +69,7 @@ export function ItemForm(props: ItemFormProps): JSX.Element {
         null
       )
       const locationThread = threads.find(
-        (t) => t.label === THREAD_LABEL_LOCATION
+        (t) => getThreadSubtype(t) === ThreadSubtype.LOCATION
       )
       if (placeId) {
         if (locationThread) {
@@ -81,7 +82,7 @@ export function ItemForm(props: ItemFormProps): JSX.Element {
             gameId: gId,
             sourceId: itemId,
             targetId: placeId,
-            label: THREAD_LABEL_LOCATION,
+            subtype: ThreadSubtype.LOCATION,
           })
         }
       } else if (locationThread) {

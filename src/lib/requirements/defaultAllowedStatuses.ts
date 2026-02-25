@@ -7,8 +7,8 @@ import { QuestStatus } from '../../types/QuestStatus'
 /**
  * Default allowed status sets per entity type when a requirement or objective
  * does not specify requirementAllowedStatuses / allowedStatuses.
- * Used for both entity-level requirements (thread label 'requires') and
- * quest objective completability (thread label 'objective_requires').
+ * Used for both entity-level requirements (thread subtype Requires) and
+ * quest objective completability (thread subtype ObjectiveRequires).
  *
  * - Item: [ACQUIRED]
  * - Insight: [KNOWN]

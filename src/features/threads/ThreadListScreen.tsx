@@ -4,6 +4,7 @@ import { threadRepository } from '../../lib/repositories'
 import type { GameId, PlaythroughId, ThreadId } from '../../types/ids'
 import type { Thread } from '../../types/Thread'
 import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
+import { getThreadDisplayLabel } from '../../utils/threadSubtype'
 import { ThreadForm } from './ThreadForm'
 
 /**
@@ -138,8 +139,10 @@ export function ThreadListScreen({
                       ? `${l.source} → ${l.target}`
                       : `${thread.sourceId} → ${thread.targetId}`}
                   </p>
-                  {thread.label ? (
-                    <p className="text-sm text-slate-600">{thread.label}</p>
+                  {getThreadDisplayLabel(thread) ? (
+                    <p className="text-sm text-slate-600">
+                      {getThreadDisplayLabel(thread)}
+                    </p>
                   ) : null}
                   {thread.playthroughId ? (
                     <span className="text-xs text-slate-500">

@@ -2,11 +2,9 @@ import { useCallback, useState } from 'react'
 import { EntityPicker } from '../../components/EntityPicker'
 import { GiverPicker } from '../../components/GiverPicker'
 import { questRepository, threadRepository } from '../../lib/repositories'
-import {
-  THREAD_LABEL_GIVER,
-  THREAD_LABEL_OBJECTIVE_REQUIRES,
-} from '../../lib/repositories/threadLabels'
 import { EntityType } from '../../types/EntityType'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
+import { getThreadSubtype } from '../../utils/threadSubtype'
 import type { GameId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
 import type { QuestObjective } from '../../types/QuestObjective'
@@ -91,7 +89,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
 
       // Get all objective_requires threads to delete.
       const toDelete = existing.filter(
-        (t) => t.label === THREAD_LABEL_OBJECTIVE_REQUIRES
+        (t) => getThreadSubtype(t) === ThreadSubtype.OBJECTIVE_REQUIRES
       )
 
       // Delete all objective_requires threads.
@@ -105,7 +103,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
           gameId,
           sourceId: questId,
           targetId: obj.entityId,
-          label: THREAD_LABEL_OBJECTIVE_REQUIRES,
+          subtype: ThreadSubtype.OBJECTIVE_REQUIRES,
           objectiveIndex: i,
           requirementAllowedStatuses:
             obj.allowedStatuses && obj.allowedStatuses.length > 0
@@ -127,7 +125,9 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
         questId,
         null
       )
-      const giverThread = threads.find((t) => t.label === THREAD_LABEL_GIVER)
+      const giverThread = threads.find(
+        (t) => getThreadSubtype(t) === ThreadSubtype.GIVER
+      )
       if (giverValue.trim()) {
         if (giverThread) {
           await threadRepository.update({
@@ -139,7 +139,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
             gameId,
             sourceId: questId,
             targetId: giverValue.trim(),
-            label: THREAD_LABEL_GIVER,
+            subtype: ThreadSubtype.GIVER,
           })
         }
       } else if (giverThread) {

@@ -26,7 +26,7 @@ export interface AvailabilityResult {
  * Returns whether a requirement is satisfied: target's current status is in the
  * thread's allowed set (or default for target type).
  *
- * @param thread - Requirement thread (label 'requires' or 'objective_requires').
+ * @param thread - Requirement thread (subtype Requires or ObjectiveRequires).
  * @param targetEntityType - Entity type of the target (thread.targetId).
  * @param currentStatus - Target's current playthrough status (enum value).
  * @returns True if currentStatus is in the allowed set.
@@ -85,7 +85,7 @@ export async function getPlaythroughStatusForEntity(
 
 /**
  * Checks whether an entity is available: all its entity-level requirement threads
- * (label 'requires') are satisfied for the given playthrough state.
+ * (subtype Requires) are satisfied for the given playthrough state.
  *
  * @param gameId - Current game.
  * @param playthroughId - Current playthrough (required for status lookups).

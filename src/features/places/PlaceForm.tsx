@@ -11,7 +11,8 @@ import {
   deriveMapNameFromTopLevelPlaceName,
   formatTopLevelPlaceName,
 } from '../../utils/mapNames'
-import { THREAD_LABEL_MAP } from '../../lib/repositories/threadLabels'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
+import { getThreadSubtype } from '../../utils/threadSubtype'
 
 /**
  * Props for PlaceForm when creating a new place.
@@ -107,7 +108,9 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         placeId,
         null
       )
-      const mapThreads = existing.filter((t) => t.label === THREAD_LABEL_MAP)
+      const mapThreads = existing.filter(
+        (t) => getThreadSubtype(t) === ThreadSubtype.MAP
+      )
       await Promise.all(mapThreads.map((t) => threadRepository.delete(t.id)))
 
       if (!mapValue) {
@@ -123,7 +126,7 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         gameId,
         sourceId: placeId,
         targetId: map.topLevelPlaceId,
-        label: THREAD_LABEL_MAP,
+        subtype: ThreadSubtype.MAP,
       })
     },
     []

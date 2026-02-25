@@ -16,9 +16,10 @@ import {
   threadRepository,
 } from '../../lib/repositories'
 import {
-  THREAD_LABEL_OBJECTIVE_REQUIRES,
-  THREAD_LABEL_REQUIRES,
-} from '../../lib/repositories/threadLabels'
+  getThreadDisplayLabel,
+  getThreadSubtype,
+} from '../../utils/threadSubtype'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
 import { runForceLayout } from './loomLayout'
 
 /** Data passed to the custom entity node. */
@@ -145,13 +146,10 @@ export function useLoomGraph(
       const flowEdges: Edge[] = threads
         .filter((t) => idToEntity.has(t.sourceId) && idToEntity.has(t.targetId))
         .map((t) => {
-          const isRequires = t.label === THREAD_LABEL_REQUIRES
-          const isObjectiveReq = t.label === THREAD_LABEL_OBJECTIVE_REQUIRES
-          const displayLabel = isRequires
-            ? 'Requires'
-            : isObjectiveReq
-              ? 'Objective'
-              : t.label || undefined
+          const subtype = getThreadSubtype(t)
+          const isRequires = subtype === ThreadSubtype.REQUIRES
+          const isObjectiveReq = subtype === ThreadSubtype.OBJECTIVE_REQUIRES
+          const displayLabel = getThreadDisplayLabel(t) || undefined
           const style =
             isRequires || isObjectiveReq
               ? {

@@ -2,17 +2,18 @@ import { useCallback, useState } from 'react'
 import { EntityPicker } from '../../components/EntityPicker'
 import { threadRepository } from '../../lib/repositories'
 import {
-  THREAD_LABEL_OBJECTIVE_REQUIRES,
-  THREAD_LABEL_REQUIRES,
-} from '../../lib/repositories/threadLabels'
-import {
   EntityType,
   THREAD_ENDPOINT_ENTITY_TYPES,
 } from '../../types/EntityType'
 import type { GameId, PlaythroughId } from '../../types/ids'
 import type { Thread } from '../../types/Thread'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
 import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
 import { getEntityTypeFromId } from '../../utils/parseEntityId'
+import {
+  getThreadSubtype,
+  getThreadSubtypeDisplayLabel,
+} from '../../utils/threadSubtype'
 import { STATUS_OPTIONS } from '../../utils/requirementStatusOptions'
 
 /**
@@ -77,12 +78,14 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
     isCreate ? '' : props.thread.targetId
   )
   const [label, setLabel] = useState(isCreate ? '' : props.thread.label)
-  const [labelPreset, setLabelPreset] = useState<
+  /** Subtype preset for the dropdown; in edit mode initialized from thread.subtype. */
+  const [subtypePreset, setSubtypePreset] = useState<
     '' | 'requires' | 'objective_requires'
   >(() => {
     if (!isCreate) {
-      if (props.thread.label === THREAD_LABEL_REQUIRES) return 'requires'
-      if (props.thread.label === THREAD_LABEL_OBJECTIVE_REQUIRES)
+      const subtype = getThreadSubtype(props.thread)
+      if (subtype === ThreadSubtype.REQUIRES) return 'requires'
+      if (subtype === ThreadSubtype.OBJECTIVE_REQUIRES)
         return 'objective_requires'
     }
     return ''
@@ -99,8 +102,9 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const gameId = isCreate ? props.gameId : props.thread.gameId
-  const isRequirementLabel =
-    labelPreset === 'requires' || labelPreset === 'objective_requires'
+  /** Whether the selected subtype is a requirement type (derived from subtype, not label). */
+  const isRequirementSubtype =
+    subtypePreset === 'requires' || subtypePreset === 'objective_requires'
   const statusOptions = STATUS_OPTIONS[targetType]
 
   const handleSubmit = useCallback(
@@ -118,16 +122,18 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
         setError('Source and target must be different.')
         return
       }
+      const subtype: ThreadSubtype =
+        subtypePreset === 'requires'
+          ? ThreadSubtype.REQUIRES
+          : subtypePreset === 'objective_requires'
+            ? ThreadSubtype.OBJECTIVE_REQUIRES
+            : ThreadSubtype.CUSTOM
       const resolvedLabel =
-        labelPreset === 'requires'
-          ? THREAD_LABEL_REQUIRES
-          : labelPreset === 'objective_requires'
-            ? THREAD_LABEL_OBJECTIVE_REQUIRES
-            : label.trim() || undefined
+        subtype === ThreadSubtype.CUSTOM ? label.trim() || undefined : undefined
 
-      // Check if the thread is a requirement thread and playthrough-only is set,
+      // Check if the thread is a requirement type and playthrough-only is set,
       // and if so, set an error.
-      if (isRequirementLabel && playthroughOnly) {
+      if (isRequirementSubtype && playthroughOnly) {
         setError(
           'Requirement threads must be game-level (not playthrough-only).'
         )
@@ -140,31 +146,37 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
         if (isCreate) {
           await threadRepository.create({
             gameId: props.gameId,
-            playthroughId: isRequirementLabel
+            playthroughId: isRequirementSubtype
               ? null
               : playthroughOnly
                 ? (props.playthroughId ?? undefined)
                 : null,
             sourceId,
             targetId,
+            subtype,
             label: resolvedLabel ?? '',
             requirementAllowedStatuses:
-              isRequirementLabel && requirementAllowedStatuses.length > 0
+              isRequirementSubtype && requirementAllowedStatuses.length > 0
                 ? requirementAllowedStatuses
                 : undefined,
             objectiveIndex:
-              labelPreset === 'objective_requires' ? objectiveIndex : undefined,
+              subtypePreset === 'objective_requires' ? objectiveIndex : undefined,
           })
         } else {
+          const updatedLabel =
+            subtype === ThreadSubtype.CUSTOM
+              ? (resolvedLabel ?? props.thread.label)
+              : getThreadSubtypeDisplayLabel(subtype)
           await threadRepository.update({
             ...props.thread,
-            label: resolvedLabel ?? props.thread.label,
+            subtype,
+            label: updatedLabel,
             requirementAllowedStatuses:
-              isRequirementLabel && requirementAllowedStatuses.length > 0
+              isRequirementSubtype && requirementAllowedStatuses.length > 0
                 ? requirementAllowedStatuses
                 : undefined,
             objectiveIndex:
-              labelPreset === 'objective_requires' ? objectiveIndex : undefined,
+              subtypePreset === 'objective_requires' ? objectiveIndex : undefined,
           })
         }
         props.onSaved()
@@ -178,11 +190,11 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
       sourceId,
       targetId,
       label,
-      labelPreset,
+      subtypePreset,
       playthroughOnly,
       requirementAllowedStatuses,
       objectiveIndex,
-      isRequirementLabel,
+      isRequirementSubtype,
       isCreate,
       props,
     ]
@@ -279,19 +291,16 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               Label
             </label>
 
-            {/* Show label preset select. */}
+            {/* Subtype select (determines requirement vs custom). */}
             <select
-              value={labelPreset}
+              value={subtypePreset}
               onChange={(e) => {
                 const v = e.target.value as
                   | ''
                   | 'requires'
                   | 'objective_requires'
-                setLabelPreset(v)
+                setSubtypePreset(v)
                 if (v === '') setLabel('')
-                if (v === 'requires') setLabel(THREAD_LABEL_REQUIRES)
-                if (v === 'objective_requires')
-                  setLabel(THREAD_LABEL_OBJECTIVE_REQUIRES)
               }}
               disabled={isSubmitting}
               className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
@@ -305,8 +314,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               </option>
             </select>
 
-            {/* Show custom label input if no preset is selected. */}
-            {labelPreset === '' ? (
+            {/* Show custom label input when subtype is Custom. */}
+            {subtypePreset === '' ? (
               <input
                 id="thread-label"
                 type="text"
@@ -319,8 +328,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
             ) : null}
           </div>
 
-          {/* Show allowed statuses for target if the thread is a requirement thread. */}
-          {isRequirementLabel && Object.keys(statusOptions).length > 0 ? (
+          {/* Show allowed statuses when subtype is Requires or ObjectiveRequires. */}
+          {isRequirementSubtype && Object.keys(statusOptions).length > 0 ? (
             <div>
               <span className="block text-sm font-medium text-slate-700">
                 Allowed statuses for target (none = default for type)
@@ -344,8 +353,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
             </div>
           ) : null}
 
-          {/* Show objective index input if the thread is an objective requirement thread. */}
-          {labelPreset === 'objective_requires' ? (
+          {/* Show objective index when subtype is ObjectiveRequires. */}
+          {subtypePreset === 'objective_requires' ? (
             <div>
               <label className="block text-sm font-medium text-slate-700">
                 Objective index (0-based)
@@ -365,8 +374,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
             </div>
           ) : null}
 
-          {/* Show playthrough-only checkbox if the thread is not a requirement thread. */}
-          {props.playthroughId && !isRequirementLabel ? (
+          {/* Show playthrough-only when subtype is not a requirement type. */}
+          {props.playthroughId && !isRequirementSubtype ? (
             <div className="flex items-center gap-2">
               <input
                 id="thread-playthrough-only"
@@ -388,26 +397,20 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
       ) : (
         // Show edit form.
         <>
-          {/* Show label preset select. */}
+          {/* Subtype select (determines requirement vs custom). */}
           <div>
             <label className="block text-sm font-medium text-slate-700">
-              Label preset
+              Relationship type
             </label>
             <select
-              value={labelPreset}
+              value={subtypePreset}
               onChange={(e) => {
                 const v = e.target.value as
                   | ''
                   | 'requires'
                   | 'objective_requires'
-                setLabelPreset(v)
-                setLabel(
-                  v === 'requires'
-                    ? THREAD_LABEL_REQUIRES
-                    : v === 'objective_requires'
-                      ? THREAD_LABEL_OBJECTIVE_REQUIRES
-                      : props.thread.label
-                )
+                setSubtypePreset(v)
+                setLabel(v === '' ? props.thread.label : '')
               }}
               disabled={isSubmitting}
               className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:bg-slate-100"
@@ -417,8 +420,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               <option value="objective_requires">Objective requirement</option>
             </select>
 
-            {/* Show custom label input if no preset is selected. */}
-            {labelPreset === '' ? (
+            {/* Show custom label input when subtype is Custom. */}
+            {subtypePreset === '' ? (
               <input
                 id="thread-label-edit"
                 type="text"
@@ -431,8 +434,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
             ) : null}
           </div>
 
-          {/* Show allowed statuses for target if the thread is a requirement thread. */}
-          {isRequirementLabel && Object.keys(statusOptions).length > 0 ? (
+          {/* Show allowed statuses when subtype is Requires or ObjectiveRequires. */}
+          {isRequirementSubtype && Object.keys(statusOptions).length > 0 ? (
             <div className="mt-2">
               <span className="block text-sm font-medium text-slate-700">
                 Allowed statuses for target
@@ -456,8 +459,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
             </div>
           ) : null}
 
-          {/* Show objective index input if the thread is an objective requirement thread. */}
-          {labelPreset === 'objective_requires' ? (
+          {/* Show objective index when subtype is ObjectiveRequires. */}
+          {subtypePreset === 'objective_requires' ? (
             <div>
               <label className="block text-sm font-medium text-slate-700">
                 Objective index

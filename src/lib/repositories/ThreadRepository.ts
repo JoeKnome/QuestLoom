@@ -4,13 +4,17 @@
  */
 
 import type { Thread } from '../../types/Thread'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
 import { EntityType } from '../../types/EntityType'
 import type { GameId, PlaythroughId, ThreadId } from '../../types/ids'
 import { generateEntityId } from '../../utils/generateId'
+import {
+  getThreadSubtypeDisplayLabel,
+  getThreadSubtype,
+} from '../../utils/threadSubtype'
 import { db } from '../db'
 import type { CreateThreadInput } from './CreateThreadInput'
 import type { IThreadRepository } from './IThreadRepository'
-import { THREAD_LABEL_REQUIRES } from './threadLabels'
 
 /**
  * Dexie-backed implementation of IThreadRepository.
@@ -39,13 +43,19 @@ class ThreadRepositoryImpl implements IThreadRepository {
 
   async create(input: CreateThreadInput): Promise<Thread> {
     const now = new Date().toISOString()
+    const subtype = input.subtype
+    const label =
+      subtype === ThreadSubtype.CUSTOM
+        ? (input.label ?? '').trim()
+        : getThreadSubtypeDisplayLabel(subtype)
     const thread: Thread = {
       id: generateEntityId(EntityType.THREAD) as ThreadId,
       gameId: input.gameId,
       playthroughId: input.playthroughId ?? undefined,
       sourceId: input.sourceId,
       targetId: input.targetId,
-      label: input.label ?? '',
+      subtype,
+      label,
       createdAt: now,
       ...(input.requirementAllowedStatuses != null && {
         requirementAllowedStatuses: input.requirementAllowedStatuses,
@@ -99,7 +109,9 @@ class ThreadRepositoryImpl implements IThreadRepository {
   ): Promise<Thread[]> {
     const threads = await this.getByGameId(gameId, null)
     return threads.filter(
-      (t) => t.sourceId === entityId && t.label === THREAD_LABEL_REQUIRES
+      (t) =>
+        t.sourceId === entityId &&
+        getThreadSubtype(t) === ThreadSubtype.REQUIRES
     )
   }
 }
