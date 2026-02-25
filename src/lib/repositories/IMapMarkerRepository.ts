@@ -9,6 +9,7 @@ import type {
   ItemId,
   PersonId,
   PlaceId,
+  PathId,
 } from '../../types'
 
 /**
@@ -35,7 +36,7 @@ export interface CreateMapMarkerInput {
    * ID of the entity this marker represents.
    * Must correspond to the provided entityType.
    */
-  entityId: QuestId | InsightId | ItemId | PersonId | PlaceId
+  entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId
   /**
    * Optional short description used to differentiate markers for the same
    * entity (for example, \"at bar\" vs \"after raid\").
@@ -123,6 +124,6 @@ export interface IMapMarkerRepository {
   deleteByEntity(
     gameId: GameId,
     entityType: EntityType,
-    entityId: QuestId | InsightId | ItemId | PersonId | PlaceId
+    entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId
   ): Promise<void>
 }

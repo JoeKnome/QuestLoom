@@ -317,19 +317,21 @@ Assume no legacy content; status changes are breaking and can be applied directl
 
 Implemented: Thread stores `subtype` (ThreadSubtype), `requirementAllowedStatuses`, and `objectiveIndex`; reserved subtypes REQUIRES and OBJECTIVE_REQUIRES; default allowed sets in `defaultAllowedStatuses`; `getRequirementThreadsFromEntity`; requirement evaluation and `checkEntityAvailability`; quest/item list Unavailable and unmet-requirement names; Loom distinct edge labels/styling via `getThreadSubtypeDisplayLabel`. **Entity-level requirements:** created and edited from each entity's detail view via **RequirementForm** inside **RequirementList** (expand a row in Quest/Insight/Item/Person/Place list → Requirements block: Add/Edit/Delete). **Objective requirements:** configured in QuestForm (objective entity link + allowed statuses), synced to threads on save. The Thread list screen is not in the UI (Loom tab shows the graph only); ThreadForm exists but is unreachable for creating requirements.
 
-### 5.3 Path entity: data model, status, and connectivity
+### 5.3 Path entity: data model, status, and connectivity ✅ Complete
 
-- [ ] **New entity: Path** — Introduce a **Path** entity that connects **only** to **Places**. Connectivity is expressed as: Place ↔ Thread ↔ Path ↔ Thread ↔ Place. Paths are game-scoped (intrinsic world structure).
-- [ ] **Path status** — Paths have a **status** (game- or playthrough-scoped as appropriate) with three values:
-  - [ ] **Restricted** — Untraversable unless requirements are met (e.g. locked door; key required to pass).
-  - [ ] **Opened** — Traversable regardless of requirements (e.g. door unlocked; can pass freely).
-  - [ ] **Blocked** — Untraversable regardless of requirements (e.g. bridge collapsed; no longer crossable).
-- [ ] **Cardinality** — A Path can be connected to **two or more** Places (multiple Threads from the same Path to different Places).
-- [ ] **Per-connection traversal** — Paths may have **different traversal requirements per connection/thread** (e.g. ledge requiring grappling hook to go up, trivial to jump down). Each Place–Path thread can carry optional traversal conditions; evaluation is directional.
-- [ ] **Map markers** — Paths can have map markers (same mechanism as other marker-eligible entities).
-- [ ] **Map-to-map transitions** — Paths can connect top-level map places to other top-level map places, acting as transitions between maps.
-- [ ] **Location rule** — Other entities can only be **located at** a **Place**, not at a Path.
-- [ ] **Place–Place direct connectivity** — **Places can be connected directly to other Places** (Place ↔ Thread ↔ Place) **without** an intermediate Path. Direct Place–Place links imply unimpeded movement with **no requirements**; the player can move between them freely. To introduce requirements between places, use a Path (with status and requirement semantics) instead.
+- [x] **New entity: Path** — Introduce a **Path** entity that connects **only** to **Places**. Connectivity is expressed as: Place ↔ Thread ↔ Path ↔ Thread ↔ Place. Paths are game-scoped (intrinsic world structure).
+- [x] **Path status** — Paths have a **status** (modeled as playthrough-scoped `PathProgress.status`) with three values:
+  - [x] **Restricted** — Untraversable unless requirements are met (e.g. locked door; key required to pass).
+  - [x] **Opened** — Traversable regardless of requirements (e.g. door unlocked; can pass freely).
+  - [x] **Blocked** — Untraversable regardless of requirements (e.g. bridge collapsed; no longer crossable).
+- [x] **Cardinality** — A Path can be connected to **two or more** Places (multiple Threads from the same Path to different Places).
+- [x] **Per-connection traversal** — Paths may have **different traversal requirements per connection/thread** (e.g. ledge requiring grappling hook to go up, trivial to jump down). Each Place–Path thread can carry optional traversal conditions via `requirementAllowedStatuses`; evaluation is directional and will be applied in Phase 5.5 reachability logic.
+- [x] **Map markers** — Paths can have map markers (same mechanism as other marker-eligible entities).
+- [x] **Map-to-map transitions** — Paths can connect top-level map places to other top-level map places, acting as transitions between maps.
+- [x] **Location rule** — Other entities can only be **located at** a **Place**, not at a Path.
+- [x] **Place–Place direct connectivity** — **Places can be connected directly to other Places** (Place ↔ Thread ↔ Place) **without** an intermediate Path. Direct Place–Place links imply unimpeded movement with **no requirements**; the player can move between them freely. To introduce requirements between places, use a Path (with status and requirement semantics) instead.
+
+Implemented: Added a game-scoped `Path` entity (`PathId`, `Path` type, Dexie `paths` table) and playthrough-scoped `PathProgress` with `PathStatus` (`RESTRICTED`, `OPENED`, `BLOCKED`) and a Dexie `pathProgress` table (schema v7). Extended `EntityType` with `PATH`, updated `THREAD_ENDPOINT_ENTITY_TYPES`, `parseEntityId`, entity type labels, default allowed status maps, and color helper so Paths participate in threads and markers. Introduced `ThreadSubtype.CONNECTS_PATH` and `ThreadSubtype.DIRECT_PLACE_LINK` with display labels and documented semantics; Place–Path connections use `CONNECTS_PATH` and can carry optional per-connection traversal requirements via `requirementAllowedStatuses`, while direct Place–Place links use `DIRECT_PLACE_LINK` for unimpeded movement. Updated `MapMarker` and its repository contracts so Paths are marker-eligible alongside other endpoint entities, and refreshed `docs/data-models.md` to describe Path, PathProgress, status semantics, connectivity (Place–Path and direct Place–Place), the location rule (entities located only at Places), and map-to-map transitions.
 
 ### 5.4 Path: repository, Loom, and UI
 
