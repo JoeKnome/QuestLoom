@@ -21,4 +21,10 @@ export enum ThreadSubtype {
 
   /** Quest objective dependency: objective completable when target is in allowed status set. */
   OBJECTIVE_REQUIRES = 5,
+
+  /** Place–Path or Path–Place link; path connectivity (cardinality 2+ places). */
+  CONNECTS_PATH = 6,
+
+  /** Direct Place–Place link with no Path; unimpeded movement, no requirements. */
+  DIRECT_PLACE_LINK = 7,
 }

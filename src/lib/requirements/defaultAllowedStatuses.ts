@@ -24,4 +24,5 @@ export const DEFAULT_ALLOWED_STATUSES: Record<EntityType, number[]> = {
   [EntityType.PLACE]: [],
   [EntityType.MAP]: [],
   [EntityType.THREAD]: [],
+  [EntityType.PATH]: [],
 }

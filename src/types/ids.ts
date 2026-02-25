@@ -32,3 +32,6 @@ export type MapMarkerId = string
 
 /** Unique identifier for a thread (link between two entities). */
 export type ThreadId = string
+
+/** Unique identifier for a path (connects places; game-scoped). */
+export type PathId = string

@@ -39,4 +39,5 @@ export const STATUS_OPTIONS: Record<EntityType, Record<number, string>> = {
   [EntityType.PLACE]: {},
   [EntityType.MAP]: {},
   [EntityType.THREAD]: {},
+  [EntityType.PATH]: {},
 }

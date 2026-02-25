@@ -12,6 +12,8 @@ import type { Insight } from '../types/Insight'
 import type { Item } from '../types/Item'
 import type { Person } from '../types/Person'
 import type { Place } from '../types/Place'
+import type { Path } from '../types/Path'
+import type { PathProgress } from '../types/PathProgress'
 import type { Map } from '../types/Map'
 import type { MapMarker } from '../types/MapMarker'
 import type { Thread } from '../types/Thread'
@@ -38,6 +40,10 @@ export interface ItemStateRow extends ItemState {
 }
 
 export interface PersonProgressRow extends PersonProgress {
+  id: string
+}
+
+export interface PathProgressRow extends PathProgress {
   id: string
 }
 
@@ -84,8 +90,10 @@ export class QuestLoomDB extends Dexie {
   persons!: Table<Person, string>
   places!: Table<Place, string>
   maps!: Table<Map, string>
+  paths!: Table<Path, string>
   threads!: Table<Thread, string>
   questProgress!: Table<QuestProgressRow, string>
+  pathProgress!: Table<PathProgressRow, string>
   insightProgress!: Table<InsightProgressRow, string>
   itemState!: Table<ItemStateRow, string>
   personProgress!: Table<PersonProgressRow, string>
@@ -200,6 +208,29 @@ export class QuestLoomDB extends Dexie {
       maps: 'id, gameId, topLevelPlaceId',
       threads: 'id, gameId, playthroughId',
       questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
+      insightProgress:
+        'id, playthroughId, insightId, [playthroughId+insightId]',
+      itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
+      personProgress: 'id, playthroughId, personId, [playthroughId+personId]',
+      entityDiscovery:
+        'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
+      mapImages: 'id, gameId, mapId',
+      mapMarkers: 'id, gameId, mapId, playthroughId, [gameId+mapId]',
+    })
+    // v7: paths (game-scoped) and path progress (playthrough-scoped)
+    this.version(7).stores({
+      games: 'id',
+      playthroughs: 'id, gameId',
+      quests: 'id, gameId',
+      insights: 'id, gameId',
+      items: 'id, gameId',
+      persons: 'id, gameId',
+      places: 'id, gameId',
+      maps: 'id, gameId, topLevelPlaceId',
+      paths: 'id, gameId',
+      threads: 'id, gameId, playthroughId',
+      questProgress: 'id, playthroughId, questId, [playthroughId+questId]',
+      pathProgress: 'id, playthroughId, pathId, [playthroughId+pathId]',
       insightProgress:
         'id, playthroughId, insightId, [playthroughId+insightId]',
       itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',

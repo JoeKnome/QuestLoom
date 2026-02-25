@@ -44,7 +44,7 @@ export interface RequirementFormEditProps {
 
   /** Called after successful update. */
   onSaved: () => void
-  
+
   /** Called when the user cancels. */
   onCancel: () => void
 }
@@ -85,7 +85,7 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
 
   /**
    * Toggles an allowed status for the requirement.
-   * 
+   *
    * @param value - The status value to toggle.
    * @param checked - Whether the status should be added or removed.
    */
@@ -97,28 +97,28 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
 
   /**
    * Handles the submission of the requirement form.
-   * 
+   *
    * @param e - The form event to prevent default and handle submission.
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault()
-      
+
       // Validate that a target entity has been selected.
       if (!targetId.trim()) {
         setError('Select a target entity.')
         return
       }
-      
+
       // Validate that the source and target are different.
       if (targetId === sourceId) {
         setError('Source and target must be different.')
         return
       }
-      
+
       setError(null)
       setIsSubmitting(true)
-      
+
       try {
         // Create a new requirement thread if the form is in create mode.
         if (isCreate) {
@@ -224,7 +224,6 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
           <div className="mt-1 flex flex-wrap gap-2">
             {Object.entries(statusOptions).map(([key, value]) => (
               <label key={key} className="flex items-center gap-1 text-sm">
-
                 {/* Allowed status checkbox. */}
                 <input
                   type="checkbox"

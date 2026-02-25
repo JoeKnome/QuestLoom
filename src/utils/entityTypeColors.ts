@@ -20,6 +20,8 @@ export function getEntityTypeColorClasses(entityType: EntityType): string {
       return 'bg-emerald-600 text-white'
     case EntityType.PLACE:
       return 'bg-rose-600 text-white'
+    case EntityType.PATH:
+      return 'bg-teal-600 text-white'
     default:
       return 'bg-slate-600 text-white'
   }

@@ -26,6 +26,10 @@ export function getThreadSubtypeDisplayLabel(
       return 'Requires'
     case ThreadSubtype.OBJECTIVE_REQUIRES:
       return 'Objective'
+    case ThreadSubtype.CONNECTS_PATH:
+      return 'Path'
+    case ThreadSubtype.DIRECT_PLACE_LINK:
+      return 'Direct link'
     default:
       return ''
   }

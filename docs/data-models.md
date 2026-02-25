@@ -98,6 +98,21 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | createdAt | datetime | Creation timestamp                                           |
 | updatedAt | datetime | Last update timestamp                                        |
 
+### Path
+
+| Field       | Type     | Description                                |
+| ----------- | -------- | ------------------------------------------ |
+| id          | string   | Unique identifier                          |
+| gameId      | string   | ID of the game this path belongs to        |
+| name        | string   | Path name (e.g. "North corridor", "Ledge") |
+| description | string   | Optional description                       |
+| createdAt   | datetime | Creation timestamp                         |
+| updatedAt   | datetime | Last update timestamp                      |
+
+**Scope:** Game-scoped (intrinsic world structure). Paths connect **only** to Places. Connectivity is expressed as Place ↔ Thread ↔ Path ↔ Thread ↔ Place. A Path can be connected to **two or more** Places via multiple threads (subtype `connects_path`). Path **status** (restricted | opened | blocked) is playthrough-scoped and stored in PathProgress; it controls traversability for reachability (Phase 5.5). Paths can connect top-level map places to other top-level map places, acting as map-to-map transitions. Paths are eligible for map markers (same mechanism as other marker-eligible entities).
+
+**Path status (PathProgress):** **Restricted** — untraversable unless requirements are met (e.g. locked door). **Opened** — traversable regardless of requirements (e.g. door unlocked). **Blocked** — untraversable regardless of requirements (e.g. bridge collapsed). Per-connection traversal: each Place–Path thread can carry optional traversal conditions (e.g. `requirementAllowedStatuses`); evaluation is directional (source→target).
+
 ### Map
 
 | Field           | Type     | Description                                                     |
@@ -119,7 +134,7 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | gameId        | string   | ID of the game this marker belongs to                                                                       |
 | mapId         | string   | ID of the map this marker is placed on                                                                      |
 | playthroughId | string   | Optional playthrough ID; when set, the marker is scoped to a specific playthrough, otherwise game-shared    |
-| entityType    | enum     | Entity type the marker represents: quest \| insight \| item \| person \| place                              |
+| entityType    | enum     | Entity type the marker represents: quest \| insight \| item \| person \| place \| path                      |
 | entityId      | string   | ID of the entity this marker represents (must correspond to entityType)                                     |
 | label         | string   | Optional short description to distinguish multiple markers for the same entity (e.g. specific rooms/events) |
 | position      | object   | Logical coordinates in map space, e.g. `{ x: number, y: number }`; finite numbers not clamped to image size |
@@ -142,7 +157,7 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | objectiveIndex             | number   | For label `objective_requires`: 0-based index of the quest objective this dependency belongs to.                                           |
 | createdAt                  | datetime | Creation timestamp                                                                                                                         |
 
-**Reserved thread labels:** `giver` (Quest → Person|Place), `location` (Item → Place), `map` (Place → Map), **`requires`** (entity-level requirement: source is unavailable until target is in allowed status set), **`objective_requires`** (quest objective dependency: objective is completable when target entity is in allowed status set; appears in Loom with distinct label). Requirement/dependency threads are game-scoped. Default allowed sets per type: Item → [acquired], Insight → [known], Quest → [completed], Person → [alive].
+**Reserved thread subtypes/labels:** `giver` (Quest → Person|Place), `location` (Item → Place), `map` (Place → Map), **`requires`** (entity-level requirement), **`objective_requires`** (quest objective dependency), **`connects_path`** (Place–Path or Path–Place; path connectivity; cardinality 2+ places; optional per-connection traversal via requirementAllowedStatuses), **`direct_place_link`** (Place–Place with no Path; unimpeded movement, no requirements). Requirement/dependency threads are game-scoped. Default allowed sets per type: Item → [acquired], Insight → [known], Quest → [completed], Person → [alive].
 
 ## Relationships (Threads)
 
@@ -153,8 +168,9 @@ Threads link entities. When viewed as a network or graph, this view is called th
 - **Insight ↔ Item** — Insights may reference items
 - **Person ↔ Place** — "Person was at Place" or "Person is from Place"
 - **Person ↔ Person** — Optional: relationships between characters
-- **Place ↔ Place** — Optional: adjacency or containment
-- **Item ↔ Place** — Items may be found at places
+- **Place ↔ Place** — Optional: adjacency or containment; **direct Place–Place** threads (subtype `direct_place_link`) represent unimpeded movement with no requirements. To introduce requirements between places, use a Path (Place–Path–Place) with status and requirement semantics instead.
+- **Place ↔ Path** — Paths connect only to Places (subtype `connects_path`). A Path can have two or more Places; each link is a thread (Place–Path or Path–Place). Per-connection traversal requirements are optional on each thread (e.g. directional: key required one way, free the other). Paths can connect top-level map places for map-to-map transitions.
+- **Item ↔ Place** — Items may be found at places. **Location rule:** Other entities (items, quests, insights, people) can only be **located at** a **Place**, not at a Path.
 - **Map and Place** — Maps are view-only containers for images and markers; Places (including the map's top-level place) are the entities that appear in threads and the loom.
 
 ## Session / Game Container
@@ -181,5 +197,6 @@ Status, objective completion, and notes for quests, and status/notes for insight
 - **InsightProgress** — `playthroughId`, `insightId`, `status` (unknown \| known \| irrelevant), `notes`
 - **ItemState** — `playthroughId`, `itemId`, `status` (not acquired \| acquired \| used \| lost), `notes`
 - **PersonProgress** — `playthroughId`, `personId`, `status` (alive \| dead \| unknown), `notes`
+- **PathProgress** — `playthroughId`, `pathId`, `status` (restricted \| opened \| blocked). Default for new playthrough: treat missing row as restricted.
 
 Requirement and objective-completability checks use a **configurable allowed status set** per type (defaults: Item → [acquired], Insight → [known], Quest → [completed], Person → [alive]). Unavailability is derived from requirement threads (label `requires`), not stored. Quest "blocked" is replaced by derived unavailability (Phase 5.2).

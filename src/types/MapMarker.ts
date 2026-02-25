@@ -7,6 +7,7 @@ import type {
   ItemId,
   PersonId,
   PlaceId,
+  PathId,
   MapMarkerId,
 } from './ids'
 import { EntityType } from './EntityType'
@@ -35,14 +36,14 @@ export interface MapMarker {
   playthroughId?: PlaythroughId
   /**
    * Type of the entity this marker represents.
-   * Restricted to the same set used for thread endpoints (quests, insights, items, people, places).
+   * Restricted to the same set used for thread endpoints (quests, insights, items, people, places, paths).
    */
   entityType: EntityType
   /**
    * ID of the entity this marker represents.
    * Must correspond to the provided entityType.
    */
-  entityId: QuestId | InsightId | ItemId | PersonId | PlaceId
+  entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId
   /**
    * Optional short description used to distinguish multiple markers for the
    * same entity (for example, different locations or narrative states).

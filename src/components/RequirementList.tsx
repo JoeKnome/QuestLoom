@@ -79,7 +79,7 @@ export function RequirementList({
 
   /**
    * Handles the deletion of a requirement.
-   * 
+   *
    * @param thread - The thread to delete.
    */
   const handleDelete = useCallback(
@@ -109,7 +109,7 @@ export function RequirementList({
             Requirements for {entityDisplayName}
           </p>
         ) : null}
-        
+
         {/* Render the create form if the form state is in create mode. */}
         {formState.type === 'create' ? (
           <RequirementForm
@@ -184,12 +184,10 @@ export function RequirementList({
                 className="flex flex-wrap items-center justify-between gap-1 rounded border border-slate-100 bg-white px-2 py-1"
               >
                 <span>
-                  {/* Display the target label. */}
-                  → {targetLabel}
+                  {/* Display the target label. */}→ {targetLabel}
                   {statusLabels ? (
                     <span className="text-slate-500">
                       {/* Display the status labels. */}
-                      {' '}
                       (when: {statusLabels})
                     </span>
                   ) : null}

@@ -21,7 +21,7 @@ export function parseEntityId(id: string): ParsedEntityId | null {
   const typeNum = Number(id.slice(0, idx))
   const rawId = id.slice(idx + 1)
   if (rawId === '' || !Number.isInteger(typeNum)) return null
-  if (typeNum < EntityType.QUEST || typeNum > EntityType.THREAD) return null
+  if (typeNum < EntityType.QUEST || typeNum > EntityType.PATH) return null
   return { type: typeNum as EntityType, rawId }
 }
 

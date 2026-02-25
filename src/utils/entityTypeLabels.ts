@@ -12,6 +12,7 @@ export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   [EntityType.PLACE]: 'Place',
   [EntityType.MAP]: 'Map',
   [EntityType.THREAD]: 'Thread',
+  [EntityType.PATH]: 'Path',
 }
 
 /**
@@ -26,4 +27,5 @@ export const ENTITY_TYPE_PLURAL_LABELS: Record<EntityType, string> = {
   [EntityType.PLACE]: 'Places',
   [EntityType.MAP]: 'Maps',
   [EntityType.THREAD]: 'Threads',
+  [EntityType.PATH]: 'Paths',
 }

@@ -48,6 +48,9 @@ export async function getEntityDisplayName(entityId: string): Promise<string> {
         const m = await mapRepository.getById(trimmed)
         return m?.name ?? trimmed
       }
+      case EntityType.PATH:
+        // Path repository not yet implemented (Phase 5.4); return id for now.
+        return trimmed
       case EntityType.THREAD:
       default:
         return trimmed

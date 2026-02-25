@@ -1,6 +1,6 @@
 /**
  * Complete set of entity types for display and game-view sections.
- * Covers all seven section types: quest, insight, item, person, place, map, thread.
+ * Covers quest, insight, item, person, place, map, thread, path.
  * Subsets (e.g. types that can be thread source/target) are defined separately where needed.
  * Aligned with docs/data-models.md.
  */
@@ -12,12 +12,13 @@ export enum EntityType {
   PLACE = 4,
   MAP = 5,
   THREAD = 6,
+  PATH = 7,
 }
 
 /**
  * Entity types that can be source or target of a thread.
- * Excludes MAP and THREAD because threads link only quests, insights, items, people, and places.
- * Use this constant wherever the UI restricts to these five types (e.g. ThreadForm, EntityPicker for thread endpoints).
+ * Excludes MAP and THREAD; includes PATH (Place–Path and Path–Place links).
+ * Use this constant wherever the UI restricts to these types (e.g. ThreadForm, EntityPicker for thread endpoints).
  */
 export const THREAD_ENDPOINT_ENTITY_TYPES: readonly EntityType[] = [
   EntityType.QUEST,
@@ -25,6 +26,7 @@ export const THREAD_ENDPOINT_ENTITY_TYPES: readonly EntityType[] = [
   EntityType.ITEM,
   EntityType.PERSON,
   EntityType.PLACE,
+  EntityType.PATH,
 ]
 
 /**
