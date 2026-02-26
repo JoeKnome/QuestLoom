@@ -6,10 +6,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Edge, Node } from '@xyflow/react'
 import { EntityType } from '../../types/EntityType'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
+import { PathStatus } from '../../types/PathStatus'
 import type { GameId, PlaythroughId } from '../../types/ids'
 import {
   insightRepository,
   itemRepository,
+  pathRepository,
   personRepository,
   placeRepository,
   questRepository,
@@ -19,7 +22,8 @@ import {
   getThreadDisplayLabel,
   getThreadSubtype,
 } from '../../utils/threadSubtype'
-import { ThreadSubtype } from '../../types/ThreadSubtype'
+import { getEntityTypeFromId } from '../../utils/parseEntityId'
+import { checkEntityAvailability } from '../../lib/requirements'
 import { runForceLayout } from './loomLayout'
 
 /** Data passed to the custom entity node. */
@@ -65,15 +69,27 @@ export function useLoomGraph(
     setIsLoading(true)
     setError(null)
     try {
-      const [quests, insights, items, people, places, threads] =
-        await Promise.all([
-          questRepository.getByGameId(gameId),
-          insightRepository.getByGameId(gameId),
-          itemRepository.getByGameId(gameId),
-          personRepository.getByGameId(gameId),
-          placeRepository.getByGameId(gameId),
-          threadRepository.getByGameId(gameId, playthroughId),
-        ])
+      const [
+        quests,
+        insights,
+        items,
+        people,
+        places,
+        paths,
+        threads,
+        pathProgress,
+      ] = await Promise.all([
+        questRepository.getByGameId(gameId),
+        insightRepository.getByGameId(gameId),
+        itemRepository.getByGameId(gameId),
+        personRepository.getByGameId(gameId),
+        placeRepository.getByGameId(gameId),
+        pathRepository.getByGameId(gameId),
+        threadRepository.getByGameId(gameId, playthroughId),
+        playthroughId
+          ? pathRepository.getAllProgressForPlaythrough(playthroughId)
+          : Promise.resolve([]),
+      ])
 
       const entityList: {
         id: string
@@ -116,6 +132,61 @@ export function useLoomGraph(
         })
       )
 
+      paths.forEach((p) =>
+        entityList.push({
+          id: p.id,
+          entityType: EntityType.PATH,
+          label: p.name,
+        })
+      )
+
+      const pathStatusById = new Map<string, PathStatus>()
+      for (const row of pathProgress as {
+        pathId: string
+        status: PathStatus
+      }[]) {
+        pathStatusById.set(row.pathId, row.status)
+      }
+
+      const pathAvailabilityById = new Map<string, boolean>()
+      if (playthroughId) {
+        const results = await Promise.all(
+          paths.map(async (p) => {
+            const availability = await checkEntityAvailability(
+              gameId,
+              playthroughId,
+              p.id
+            )
+            return { id: p.id, available: availability.available }
+          })
+        )
+        for (const r of results) {
+          pathAvailabilityById.set(r.id, r.available)
+        }
+      }
+
+      /**
+       * Checks if a path is traversable.
+       * 
+       * @param pathId - The ID of the path to check.
+       * @returns True if the path is traversable, false otherwise.
+       */
+      const getPathTraversable = (pathId: string): boolean => {
+        const status = pathStatusById.get(pathId) ?? PathStatus.RESTRICTED
+        if (status === PathStatus.BLOCKED) {
+          return false
+        }
+        if (status === PathStatus.OPENED) {
+          return true
+        }
+        // RESTRICTED: requires requirements to be satisfied; without a playthrough
+        // context we cannot evaluate, so treat as not traversable.
+        if (!playthroughId) {
+          return false
+        }
+        return pathAvailabilityById.get(pathId) ?? false
+      }
+
       const nodeIds = entityList.map((e) => e.id)
       const idToEntity = new Map(entityList.map((e) => [e.id, e]))
 
@@ -149,13 +220,40 @@ export function useLoomGraph(
           const subtype = getThreadSubtype(t)
           const isRequires = subtype === ThreadSubtype.REQUIRES
           const isObjectiveReq = subtype === ThreadSubtype.OBJECTIVE_REQUIRES
+          const isDirectPlaceLink = subtype === ThreadSubtype.DIRECT_PLACE_LINK
+          const isConnectsPath = subtype === ThreadSubtype.CONNECTS_PATH
           const displayLabel = getThreadDisplayLabel(t) || undefined
-          const style =
-            isRequires || isObjectiveReq
-              ? {
-                  strokeDasharray: isRequires ? '8,4' : '2,3',
-                }
-              : undefined
+
+          const sourceType = getEntityTypeFromId(t.sourceId)
+          const targetType = getEntityTypeFromId(t.targetId)
+
+          let traversable = false
+          if (isDirectPlaceLink) {
+            traversable =
+              sourceType === EntityType.PLACE && targetType === EntityType.PLACE
+          } else if (isConnectsPath) {
+            const pathEndpoint =
+              sourceType === EntityType.PATH
+                ? t.sourceId
+                : targetType === EntityType.PATH
+                  ? t.targetId
+                  : null
+            if (pathEndpoint) {
+              traversable = getPathTraversable(pathEndpoint)
+            }
+          }
+
+          const style: React.CSSProperties = {}
+
+          if (isRequires || isObjectiveReq) {
+            style.strokeDasharray = isRequires ? '8,4' : '2,3'
+          }
+
+          if (isDirectPlaceLink || isConnectsPath) {
+            style.stroke = traversable ? '#0f766e' : '#cbd5f5'
+            style.opacity = traversable ? 0.95 : 0.5
+          }
+
           return {
             id: t.id,
             source: t.sourceId,
@@ -163,7 +261,7 @@ export function useLoomGraph(
             label: displayLabel,
             type: 'default',
             pathOptions: { curvature: 0.1 },
-            ...(style && { style }),
+            ...(Object.keys(style).length > 0 && { style }),
           }
         })
 

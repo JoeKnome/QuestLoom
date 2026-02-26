@@ -5,6 +5,7 @@ import { InsightListScreen } from '../insights/InsightListScreen'
 import { ItemListScreen } from '../items/ItemListScreen'
 import { LoomView } from '../loom/LoomView'
 import { MapsSection } from '../maps/MapsSection'
+import { PathListScreen } from '../paths/PathListScreen'
 import { PersonListScreen } from '../people/PersonListScreen'
 import { PlaceListScreen } from '../places/PlaceListScreen'
 import { QuestListScreen } from '../quests/QuestListScreen'
@@ -49,6 +50,8 @@ export function GameViewContent({
         return <PersonListScreen {...commonProps} />
       case EntityType.PLACE:
         return <PlaceListScreen {...commonProps} />
+      case EntityType.PATH:
+        return <PathListScreen {...commonProps} />
       case EntityType.MAP:
         return <MapsSection {...commonProps} />
       case EntityType.THREAD:

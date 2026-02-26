@@ -7,6 +7,7 @@ import {
   itemRepository,
   mapMarkerRepository,
   mapRepository,
+  pathRepository,
   personRepository,
   placeRepository,
   questRepository,
@@ -1016,6 +1017,9 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
               break
             case EntityType.PLACE:
               await placeRepository.delete(entityId as PlaceId)
+              break
+            case EntityType.PATH:
+              await pathRepository.delete(entityId as never)
               break
             default:
               return

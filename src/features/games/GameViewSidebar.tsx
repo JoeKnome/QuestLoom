@@ -19,6 +19,7 @@ const SECTIONS: EntityType[] = [
   EntityType.THREAD,
   EntityType.MAP,
   EntityType.PLACE,
+  EntityType.PATH,
   EntityType.ITEM,
   EntityType.PERSON,
   EntityType.INSIGHT,

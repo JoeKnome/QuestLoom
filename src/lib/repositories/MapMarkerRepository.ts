@@ -9,6 +9,7 @@ import type {
   ItemId,
   PersonId,
   PlaceId,
+  PathId,
 } from '../../types'
 import { THREAD_ENDPOINT_ENTITY_TYPES } from '../../types/EntityType'
 import { generateId } from '../../utils/generateId'
@@ -117,7 +118,7 @@ class MapMarkerRepositoryImpl implements IMapMarkerRepository {
   async deleteByEntity(
     gameId: GameId,
     entityType: EntityType,
-    entityId: QuestId | InsightId | ItemId | PersonId | PlaceId
+    entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId
   ): Promise<void> {
     await db.mapMarkers
       .where('gameId')

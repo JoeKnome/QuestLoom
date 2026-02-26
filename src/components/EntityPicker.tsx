@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import {
   insightRepository,
   itemRepository,
+  pathRepository,
   personRepository,
   placeRepository,
   questRepository,
@@ -26,7 +27,7 @@ export interface EntityOption {
 export interface EntityPickerProps {
   /** Game ID to load entities from. */
   gameId: GameId
-  /** Type of entity to list (quest, insight, item, person, place). */
+  /** Type of entity to list (quest, insight, item, person, place, path). */
   entityType: EntityType
   /** Currently selected entity ID, or empty string for none. */
   value: string
@@ -66,6 +67,10 @@ async function loadOptions(
     }
     case EntityType.PLACE: {
       const list = await placeRepository.getByGameId(gameId)
+      return list.map((p) => ({ id: p.id, label: p.name }))
+    }
+    case EntityType.PATH: {
+      const list = await pathRepository.getByGameId(gameId)
       return list.map((p) => ({ id: p.id, label: p.name }))
     }
     case EntityType.MAP:

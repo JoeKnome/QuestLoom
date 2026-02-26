@@ -338,6 +338,9 @@ Implemented: Added a game-scoped `Path` entity (`PathId`, `Path` type, Dexie `pa
 - [ ] **Repository and types** — Add Path type, PathId, Path status enum, and PathRepository (CRUD, scoped by gameId). Threads can reference Path as source or target (extend EntityType to include Path). Cascade: deleting a Path removes its threads; deleting a Place removes threads that involved that Place (existing behavior).
 - [ ] **Loom behavior** — Paths appear as nodes; edges are Threads (Place–Path, Path–Place) and **direct Place–Place** threads (unimpeded). Traversability: direct Place–Place links are always traversable; for Paths, only **opened** Paths, or **restricted** Paths whose requirements are met, are traversable (per-connection conditions apply). **Blocked** Paths are never traversable. Non-traversable Paths are greyed out, or otherwise marked so they do not contribute to reachable Places.
 - [ ] **UI** — Feature module for Paths: list, create, edit, delete. When editing a Path: name/description, **status** (restricted / opened / blocked), requirement(s) for restricted Paths, and per-connection traversal requirements. UI to attach Paths to Places via threads and to create direct Place–Place threads where no Path is needed. Map marker creation supports Path as an eligible entity type.
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ### 5.5 Current position and reachability
 
