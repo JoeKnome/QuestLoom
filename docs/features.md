@@ -58,6 +58,7 @@
 - Thread types: Person ↔ Place, Insight → Quest, Item → Insight, etc.
 - View entities by thread (e.g., "all people at this place")
 - **Loom** — View threads as a network/graph; set a target and follow a thread to reach it; clear visualization of relationships and pathways
+- **Paths and connectivity** — Paths appear in the Loom as nodes that connect places; direct Place–Place links and Place–Path connections are styled based on traversability (opened vs blocked/restricted), using Path status and requirement evaluation so the graph reflects where the player can currently move.
 - **Contextual progression** — Surface only threads the user can currently follow (based on items/insights they have) to drive actionable progress
 - **Spoiler-friendly** — Hide entities, insights, or thread details until the user has the required progression to uncover them
 - **User-driven** — All progression information is created and owned by the user for their playthrough
