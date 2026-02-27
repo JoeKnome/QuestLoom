@@ -346,9 +346,9 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
 
 ### 5.5 Current position and reachability
 
-- [ ] **Current position** — Playthrough has a **current position** (a Place). The user can **freely update** it to any Place. Current position is the **start location** for Loom traversal.
-- [ ] **Reachability** — From current position, follow **direct Place–Place** links (always traversable) and **traversable Paths** (opened, or restricted with requirements met; per-connection conditions applied). The set of **reachable Places** is derived from this graph.
-- [ ] **Unreachable Place → unavailable** — If a Place cannot be reached, any entity located at that Place is **unavailable** (in addition to requirement-based unavailability from 5.2).
+- [x] **Current position** — Playthrough has a **current position** (a Place). The user can **freely update** it to any Place. Current position is the **start location** for Loom traversal.
+- [x] **Reachability** — From current position, follow **direct Place–Place** links (always traversable) and **traversable Paths** (opened, or restricted with requirements met; per-connection conditions applied). The set of **reachable Places** is derived from this graph.
+- [x] **Unreachable Place → unavailable** — If a Place cannot be reached, any entity located at that Place is **unavailable** (in addition to requirement-based unavailability from 5.2).
 - [ ] All documentation pages are updated reflecting the latest state of the app.
 - [ ] All items left to do are documented for future action.
 - [ ] All affected code passes code standards, style, and lint.

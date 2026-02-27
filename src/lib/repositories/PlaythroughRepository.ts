@@ -27,6 +27,7 @@ class PlaythroughRepositoryImpl implements IPlaythroughRepository {
       id: generateId() as PlaythroughId,
       gameId: input.gameId,
       name: input.name ?? '',
+      currentPositionPlaceId: null,
       createdAt: now,
       updatedAt: now,
     }

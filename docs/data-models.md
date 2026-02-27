@@ -111,7 +111,7 @@ Entity and schema design must distinguish which fields (or which entities) belon
 
 **Scope:** Game-scoped (intrinsic world structure). Paths connect **only** to Places. Connectivity is expressed as Place ↔ Thread ↔ Path ↔ Thread ↔ Place. A Path can be connected to **two or more** Places via multiple threads (subtype `connects_path`). Path **status** (restricted | opened | blocked) is playthrough-scoped and stored in PathProgress; it controls traversability for reachability (Phase 5.5). Paths can connect top-level map places to other top-level map places, acting as map-to-map transitions. Paths are eligible for map markers (same mechanism as other marker-eligible entities).
 
-**Path status (PathProgress):** **Restricted** — untraversable unless requirements are met (e.g. locked door). **Opened** — traversable regardless of requirements (e.g. door unlocked). **Blocked** — untraversable regardless of requirements (e.g. bridge collapsed). Per-connection traversal: each Place–Path thread can carry optional traversal conditions (e.g. `requirementAllowedStatuses`); evaluation is directional (source→target).
+**Path status (PathProgress):** **Restricted** — untraversable unless requirements are met (e.g. locked door). **Opened** — traversable regardless of requirements (e.g. door unlocked). **Blocked** — untraversable regardless of requirements (e.g. bridge collapsed). Per-connection traversal: each Place–Path thread can carry optional traversal conditions (e.g. `requirementAllowedStatuses`); evaluation is directional (source→target). In Phase 5.5, path status and requirements together drive **reachability** from the playthrough’s current position.
 
 ### Map
 
@@ -197,6 +197,6 @@ Status, objective completion, and notes for quests, and status/notes for insight
 - **InsightProgress** — `playthroughId`, `insightId`, `status` (unknown \| known \| irrelevant), `notes`
 - **ItemState** — `playthroughId`, `itemId`, `status` (not acquired \| acquired \| used \| lost), `notes`
 - **PersonProgress** — `playthroughId`, `personId`, `status` (alive \| dead \| unknown), `notes`
-- **PathProgress** — `playthroughId`, `pathId`, `status` (restricted \| opened \| blocked). Default for new playthrough: treat missing row as restricted.
+- **PathProgress** — `playthroughId`, `pathId`, `status` (restricted \| opened \| blocked). Default for new playthrough: treat missing row as restricted. Used by reachability logic (Phase 5.5) together with requirement threads to determine which paths are traversable from the current position.
 
 Requirement and objective-completability checks use a **configurable allowed status set** per type (defaults: Item → [acquired], Insight → [known], Quest → [completed], Person → [alive]). Unavailability is derived from requirement threads (label `requires`), not stored. Quest "blocked" is replaced by derived unavailability (Phase 5.2).
