@@ -9,6 +9,7 @@ import {
 import { checkEntityAvailability } from '../requirements'
 import { getEntityTypeFromId } from '../../utils/parseEntityId'
 import { ThreadSubtype } from '../../types/ThreadSubtype'
+import type { Path } from '../../types/Path'
 
 /**
  * Result of computing reachability for places.
@@ -23,14 +24,17 @@ export interface ReachabilityResult {
  *
  * @param gameId - Current game ID.
  * @param playthroughId - Current playthrough ID.
- * @param pathIds - IDs of the paths to evaluate.
+ * @param paths - All paths for the current game.
+ * @param pathIdsToEvaluate - IDs of the paths to evaluate (subset of `paths`).
  * @returns Map of path ID to traversable boolean.
  */
 async function buildPathTraversabilityMap(
   gameId: GameId,
   playthroughId: PlaythroughId,
-  pathIds: PathId[]
+  paths: Path[],
+  pathIdsToEvaluate: PathId[]
 ): Promise<Map<PathId, boolean>> {
+  // Load progress rows once for the playthrough and index by path ID.
   const progressList =
     await pathRepository.getAllProgressForPlaythrough(playthroughId)
   const statusById = new Map<PathId, PathStatus>()
@@ -38,32 +42,40 @@ async function buildPathTraversabilityMap(
     statusById.set(row.pathId, row.status)
   }
 
+  // Precompute availability for all paths, mirroring Loom path logic so
+  // reachability and Loom styling stay in sync.
+  const pathAvailabilityById = new Map<PathId, boolean>()
+  const availabilityResults = await Promise.all(
+    paths.map(async (p) => {
+      const availability = await checkEntityAvailability(
+        gameId,
+        playthroughId,
+        p.id
+      )
+      return { id: p.id as PathId, available: availability.available }
+    })
+  )
+  for (const r of availabilityResults) {
+    pathAvailabilityById.set(r.id, r.available)
+  }
+
   const traversableById = new Map<PathId, boolean>()
 
-  for (const pathId of pathIds) {
-    const status = statusById.get(pathId)
+  for (const pathId of pathIdsToEvaluate) {
+    const status = statusById.get(pathId) ?? PathStatus.RESTRICTED
 
-    // Default for missing progress is treated as restricted.
-    // Exact enum values are compared by name to avoid importing PathStatus here.
-    const statusValue = status as unknown as number | undefined
-
-    if (statusValue === PathStatus.BLOCKED) {
+    if (status === PathStatus.BLOCKED) {
       traversableById.set(pathId, false)
       continue
     }
 
-    if (statusValue === PathStatus.OPENED) {
+    if (status === PathStatus.OPENED) {
       traversableById.set(pathId, true)
       continue
     }
 
-    // Restricted: requires requirements to be satisfied.
-    const availability = await checkEntityAvailability(
-      gameId,
-      playthroughId,
-      pathId
-    )
-    traversableById.set(pathId, availability.available)
+    // RESTRICTED: requires requirements to be satisfied.
+    traversableById.set(pathId, pathAvailabilityById.get(pathId) ?? false)
   }
 
   return traversableById
@@ -88,9 +100,10 @@ export async function computeReachablePlaces(
     return { reachablePlaceIds: new Set<PlaceId>() }
   }
 
-  // Fetch places and threads for the game and playthrough.
-  const [places, threads] = await Promise.all([
+  // Fetch places, paths, and threads for the game and playthrough.
+  const [places, paths, threads] = await Promise.all([
     placeRepository.getByGameId(gameId),
+    pathRepository.getByGameId(gameId),
     threadRepository.getByGameId(gameId, playthroughId),
   ])
 
@@ -172,6 +185,7 @@ export async function computeReachablePlaces(
   const traversableByPathId = await buildPathTraversabilityMap(
     gameId,
     playthroughId,
+    paths,
     Array.from(pathIdsForEvaluation)
   )
 
