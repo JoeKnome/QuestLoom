@@ -349,19 +349,31 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
 - [ ] **Current position** — Playthrough has a **current position** (a Place). The user can **freely update** it to any Place. Current position is the **start location** for Loom traversal.
 - [ ] **Reachability** — From current position, follow **direct Place–Place** links (always traversable) and **traversable Paths** (opened, or restricted with requirements met; per-connection conditions applied). The set of **reachable Places** is derived from this graph.
 - [ ] **Unreachable Place → unavailable** — If a Place cannot be reached, any entity located at that Place is **unavailable** (in addition to requirement-based unavailability from 5.2).
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ### 5.6 Location at Place and availability
 
 - [ ] **Eligibility** — Any entity that can have a map marker can be **located at** a Place (via thread/location semantics). If a Place is **unreachable** (per 5.5), everything located at that Place is **unavailable**. An entity is unavailable if (1) its requirements are not met (5.2), or (2) it is located at an unreachable Place.
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ### 5.7 Contextual progression
 
 - [ ] **Logic** — Given current playthrough state (item/insight/quest/person statuses, current position, reachable Places, Path status and traversability), compute "actionable" threads or next steps. Display in a dedicated section or in the Loom (e.g. highlight actionable edges, "what you can do next").
 - [ ] **Integration** — Use availability (5.2, 5.6) and reachability (5.5); only suggest entities and threads that are available and (where relevant) reachable. Use **acquired** items, **known** insights, and new status enums consistently.
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ### 5.8 Spoiler visibility
 
 - [ ] **Rules** — Define which entities/insights/threads (and optionally Paths) are visible only after certain conditions. Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the Loom (hide or grey out not-yet-visible nodes/edges).
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ### 5.9 Place regions on the map
 
@@ -374,6 +386,9 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
   - [ ] **Add point** — Right-click a **region edge**; context option to **add a point** at that position on the edge.
   - [ ] **Exit edit mode** — **Escape** or a context menu option **finish editing**; shows confirmation dialog before saving or discarding the updated polygon and exits edit mode.
 - [ ] **Data** — Extend Place (or a related map-specific structure) to store one polygonal region per (Place, Map): ordered list of logical coordinates. Persist and load with the map view; support create/edit/delete of regions.
+- [ ] All documentation pages are updated reflecting the latest state of the app.
+- [ ] All items left to do are documented for future action.
+- [ ] All affected code passes code standards, style, and lint.
 
 ### 5.10 Definition of done (Phase 5)
 
