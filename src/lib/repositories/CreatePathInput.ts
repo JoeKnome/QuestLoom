@@ -10,7 +10,7 @@ export interface CreatePathInput {
 
   /** Path name. */
   name: string
-  
+
   /** Optional description of how this path connects places. */
   description?: string
 }

@@ -167,7 +167,7 @@ export function useLoomGraph(
 
       /**
        * Checks if a path is traversable.
-       * 
+       *
        * @param pathId - The ID of the path to check.
        * @returns True if the path is traversable, false otherwise.
        */

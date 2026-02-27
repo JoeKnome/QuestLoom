@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
-import { pathRepository } from '../../lib/repositories'
+import { EntityPicker } from '../../components/EntityPicker'
+import { pathRepository, threadRepository } from '../../lib/repositories'
 import type { Path } from '../../types/Path'
 import type { PathStatus } from '../../types/PathStatus'
 import type { GameId, PathId, PlaythroughId } from '../../types/ids'
+import { EntityType } from '../../types/EntityType'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
+import type { Thread } from '../../types/Thread'
+import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
+import { getEntityTypeFromId } from '../../utils/parseEntityId'
+import { getThreadSubtype } from '../../utils/threadSubtype'
 
 /**
  * Props for PathForm when creating a new path.
@@ -86,6 +93,11 @@ export function PathForm(props: PathFormProps): JSX.Element {
     props.mode === 'edit' && props.playthroughId !== null
   )
   const [error, setError] = useState<string | null>(null)
+  const [connections, setConnections] = useState<
+    { thread: Thread; placeLabel: string }[]
+  >([])
+  const [isLoadingConnections, setIsLoadingConnections] = useState(false)
+  const [newConnectionPlaceId, setNewConnectionPlaceId] = useState<string>('')
 
   // Load the initial status for the path.
   useEffect(() => {
@@ -124,6 +136,68 @@ export function PathForm(props: PathFormProps): JSX.Element {
       cancelled = true
     }
   }, [props])
+
+  /**
+   * Loads existing Place–Path connections for the path (CONNECTS_PATH threads).
+   *
+   * @param gameId - The game ID.
+   * @param pathId - The path ID.
+   * @returns The connections.
+   */
+  const loadConnections = useCallback(
+    async (gameId: GameId, pathId: PathId) => {
+      setIsLoadingConnections(true)
+      try {
+        // Get the threads from the entity.
+        const threads = await threadRepository.getThreadsFromEntity(
+          gameId,
+          pathId,
+          null
+        )
+
+        // Create an array of path connections.
+        const pathConnections: { thread: Thread; placeLabel: string }[] = []
+        for (const t of threads) {
+          if (getThreadSubtype(t) !== ThreadSubtype.CONNECTS_PATH) continue
+
+          // Get the other entity ID.
+          const otherId =
+            t.sourceId === pathId
+              ? t.targetId
+              : t.targetId === pathId
+                ? t.sourceId
+                : null
+          if (!otherId) continue
+
+          // Get the other entity type.
+          const otherType = getEntityTypeFromId(otherId)
+          if (otherType !== EntityType.PLACE) continue
+
+          // Get the other entity label.
+          const label = await getEntityDisplayName(otherId)
+          pathConnections.push({ thread: t, placeLabel: label })
+        }
+
+        // Set the connections.
+        setConnections(pathConnections)
+      } finally {
+        // Set the loading connections to false.
+        setIsLoadingConnections(false)
+      }
+    },
+    []
+  )
+
+  // Load connections when editing an existing path.
+  useEffect(() => {
+    if (props.mode === 'edit') {
+      const gameId = props.path.gameId as GameId
+      const pathId = props.path.id as PathId
+      void loadConnections(gameId, pathId)
+    } else {
+      setConnections([])
+    }
+  }, [props, loadConnections])
 
   /**
    * Handles the submission of the path form.
@@ -258,6 +332,113 @@ export function PathForm(props: PathFormProps): JSX.Element {
           </p>
         )}
       </div>
+
+      {/* Render the connections input if the form is in edit mode. */}
+      {props.mode === 'edit' ? (
+        // Render the connections input.
+        <div className="space-y-2 rounded border border-slate-200 bg-slate-50 p-2">
+          <p className="text-xs font-medium text-slate-600">
+            Connections to places
+          </p>
+
+          {/* Render the loading connections message if the connections are still loading. */}
+          {isLoadingConnections ? (
+            <p className="text-sm text-slate-500">Loading connections…</p>
+          ) : connections.length === 0 ? (
+            // Render the no connections message if there are no connections.
+            <p className="text-sm text-slate-500">
+              No connections yet. Add places this path connects.
+            </p>
+          ) : (
+            // Render the connections list.
+            <ul className="space-y-1 text-sm text-slate-800">
+              {connections.map(({ thread, placeLabel }) => (
+                // Render the connection item.
+                <li
+                  key={thread.id}
+                  className="flex items-center justify-between rounded border border-slate-100 bg-white px-2 py-1"
+                >
+                  {/* Render the connection place label. */}
+                  <span>{placeLabel}</span>
+
+                  {/* Render the remove connection button. */}
+                  <button
+                    type="button"
+                    className="text-xs text-red-600 underline hover:text-red-800"
+                    disabled={isSubmitting}
+                    onClick={async () => {
+                      // If the form is not in edit mode, return.
+                      if (props.mode !== 'edit') return
+
+                      // Delete the thread.
+                      await threadRepository.delete(thread.id)
+
+                      // Reload the connections.
+                      const gameId = props.path.gameId as GameId
+                      const pathId = props.path.id as PathId
+                      void loadConnections(gameId, pathId)
+                    }}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Render the add connection input. */}
+          <div>
+            {/* Render the add connection label. */}
+            <label
+              htmlFor="path-add-connection"
+              className="block text-xs font-medium text-slate-700"
+            >
+              Add connection to place
+            </label>
+
+            {/* Render the entity picker for the add connection. */}
+            <EntityPicker
+              id="path-add-connection"
+              gameId={(props as PathFormEditProps).path.gameId as GameId}
+              entityType={EntityType.PLACE}
+              value={newConnectionPlaceId}
+              onChange={setNewConnectionPlaceId}
+              disabled={isSubmitting}
+              aria-label="Place to connect this path to"
+            />
+
+            {/* Render the add connection button. */}
+            <button
+              type="button"
+              className="mt-2 rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              disabled={isSubmitting || !newConnectionPlaceId}
+              onClick={async () => {
+                // If the new connection place ID is not set or the form is not in edit mode, return.
+                if (!newConnectionPlaceId || props.mode !== 'edit') return
+                const gameId = props.path.gameId as GameId
+                const pathId = props.path.id as PathId
+
+                // Create the thread.
+                await threadRepository.create({
+                  gameId,
+                  playthroughId: null,
+                  sourceId: props.path.id,
+                  targetId: newConnectionPlaceId,
+                  subtype: ThreadSubtype.CONNECTS_PATH,
+                })
+
+                // Reset the new connection place ID.
+                setNewConnectionPlaceId('')
+
+                // Reload the connections.
+                void loadConnections(gameId, pathId)
+              }}
+            >
+              Add connection
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* Render the error message if there is an error. */}
       {error && (
