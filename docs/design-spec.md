@@ -74,7 +74,7 @@ Architectural decisions (storage, APIs, schemas) must separate game-level and pl
 
 1. **Capture** — Add a quest, insight, item, person, or place in a few taps
 2. **Thread** — Link entities to create threads (e.g., "Suspect A was at Location B")
-3. **Explore** — View maps, use the **loom** to follow threads and visualize relationships, track quest progress
+3. **Explore** — View maps, use the **loom** to follow threads and visualize relationships, and track quest progress. Each playthrough has a current position (a Place); a reachability layer uses direct Place–Place links and traversable Paths (status + requirements) to understand where the player can currently move in the world.
 4. **Resume** — Return to a saved session and pick up where you left off
 
 ---

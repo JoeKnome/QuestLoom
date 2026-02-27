@@ -344,15 +344,19 @@ Implemented: Added a game-scoped `Path` entity (`PathId`, `Path` type, Dexie `pa
 
 Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playthrough-scoped `PathProgress` (status) APIs, including cascades to threads and map markers on delete. The Loom graph (`useLoomGraph`) now loads Path entities and Path progress, renders Paths as nodes, and styles Place–Place (`DIRECT_PLACE_LINK`) and Place–Path (`CONNECTS_PATH`) edges based on traversability (opened vs blocked/restricted with unmet requirements) using Path status plus entity-level requirement evaluation. A new Paths feature module (`PathListScreen`, `PathForm`) appears as a Paths tab in the game view sidebar, providing list/create/edit/delete for paths, playthrough-scoped status editing, and an inline connections editor in `PathForm` that creates and removes Place–Path connectivity threads. Each path row in the list also surfaces connections (`EntityConnections`) and entity-level requirements (`RequirementList`) so requirements for traversing a path can be configured alongside its connections. Map marker flows now fully support Paths as marker endpoints (selection, tooltip naming, and “delete marker and entity”), and lint/build continue to pass.
 
-### 5.5 Current position and reachability
+### 5.5 Current position and reachability ✅ Complete
 
 - [x] **Current position** — Playthrough has a **current position** (a Place). The user can **freely update** it to any Place. Current position is the **start location** for Loom traversal.
 - [x] **Reachability** — From current position, follow **direct Place–Place** links (always traversable) and **traversable Paths** (opened, or restricted with requirements met; per-connection conditions applied). The set of **reachable Places** is derived from this graph.
 - [x] **Unreachable Place → unavailable** — If a Place cannot be reached, any entity located at that Place is **unavailable** (in addition to requirement-based unavailability from 5.2).
 - [x] **Debug logging (temporary)** — When the current position is changed via the selector in `GameView`, a temporary debug block (marked with `DEBUG (Phase 5.5)` and `REMOVE in a later phase`) runs `computeReachablePlaces` and logs a table of all places with a `reachable` flag to the console. This exists solely to validate reachability logic during development and should be removed once a UI surface uses the result directly.
-- [ ] All documentation pages are updated reflecting the latest state of the app.
-- [ ] All items left to do are documented for future action.
-- [ ] All affected code passes code standards, style, and lint.
+- [x] All documentation pages are updated reflecting the latest state of the app.
+- [x] All items left to do are documented for future action.
+- [x] All affected code passes code standards, style, and lint.
+
+**Items left for future action (Phase 5.5)** (see `docs/issues/`):
+
+- [reachability-debug-logging-removal.md](issues/reachability-debug-logging-removal.md) — Remove temporary reachability console logging from `GameView` once a UI surface consumes reachability directly.
 
 ### 5.6 Location at Place and availability
 
