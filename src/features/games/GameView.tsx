@@ -8,6 +8,7 @@ import { useAppStore } from '../../stores/appStore'
 import type { Game } from '../../types/Game'
 import type { Playthrough } from '../../types/Playthrough'
 import type { PlaceId } from '../../types/ids'
+import { computeReachablePlaces } from '../../lib/reachability'
 import { EntityType } from '../../types/EntityType'
 import { useGameViewStore } from '../../stores/gameViewStore'
 import { PlacePicker } from '../../components/PlacePicker'
@@ -168,6 +169,11 @@ export function GameView(): JSX.Element {
 
   /**
    * Handles the saving of the current position.
+   * Also runs a temporary debug reachability check so Phase 5.5
+   * logic can be verified from the console.
+   *
+   * REMOVE in a later phase when reachability is fully integrated
+   * into the UI (see docs/implementation-plan.md Phase 5.5 notes).
    */
   const handleSaveCurrentPosition = async () => {
     if (!hasPlaythrough || !currentPlaythroughId || !playthrough) return
@@ -176,6 +182,28 @@ export function GameView(): JSX.Element {
       currentPositionPlaceId: positionDraftPlaceId || null,
     }
     await playthroughRepository.update(updated)
+
+    // DEBUG (Phase 5.5): Log reachability from the new current position.
+    if (positionDraftPlaceId) {
+      try {
+        const result = await computeReachablePlaces(
+          currentGameId,
+          currentPlaythroughId,
+          positionDraftPlaceId
+        )
+        const reachable = Array.from(result.reachablePlaceIds)
+        const allPlaces = Object.keys(placeNamesById) as PlaceId[]
+        const rows = allPlaces.map((id) => ({
+          placeId: id,
+          name: placeNamesById[id] ?? id,
+          reachable: reachable.includes(id),
+        }))
+        console.table(rows, ['placeId', 'name', 'reachable'])
+      } catch (err) {
+        console.error('Failed to compute reachable places for debug:', err)
+      }
+    }
+
     setIsPositionSelectorOpen(false)
     refetchPlaythroughs()
   }

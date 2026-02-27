@@ -349,6 +349,7 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
 - [x] **Current position** — Playthrough has a **current position** (a Place). The user can **freely update** it to any Place. Current position is the **start location** for Loom traversal.
 - [x] **Reachability** — From current position, follow **direct Place–Place** links (always traversable) and **traversable Paths** (opened, or restricted with requirements met; per-connection conditions applied). The set of **reachable Places** is derived from this graph.
 - [x] **Unreachable Place → unavailable** — If a Place cannot be reached, any entity located at that Place is **unavailable** (in addition to requirement-based unavailability from 5.2).
+- [x] **Debug logging (temporary)** — When the current position is changed via the selector in `GameView`, a temporary debug block (marked with `DEBUG (Phase 5.5)` and `REMOVE in a later phase`) runs `computeReachablePlaces` and logs a table of all places with a `reachable` flag to the console. This exists solely to validate reachability logic during development and should be removed once a UI surface uses the result directly.
 - [ ] All documentation pages are updated reflecting the latest state of the app.
 - [ ] All items left to do are documented for future action.
 - [ ] All affected code passes code standards, style, and lint.
