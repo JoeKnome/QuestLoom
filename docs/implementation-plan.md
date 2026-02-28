@@ -360,7 +360,8 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
 
 ### 5.6 Location at Place and availability
 
-- [ ] **Eligibility** — Any entity that can have a map marker can be **located at** a Place (via thread/location semantics). If a Place is **unreachable** (per 5.5), everything located at that Place is **unavailable**. An entity is unavailable if (1) its requirements are not met (5.2), or (2) it is located at an unreachable Place.
+- [ ] **Eligibility** — Any entity that can have a map marker can be **located at** a Place (via consistent thread/location semantics for all entities). If a Place is **unreachable** (per 5.5), everything located at that Place is **unavailable**. An entity is unavailable if (1) its requirements are not met (5.2), or (2) it is located at an unreachable Place.
+- [ ] **Availability Representation** - Items which are unreachable or unavailable have a visual representation in the Loom and Map views(e.g. greyed out or faded). This updates as playthrough state changes.
 - [ ] All documentation pages are updated reflecting the latest state of the app.
 - [ ] All items left to do are documented for future action.
 - [ ] All affected code passes code standards, style, and lint.
