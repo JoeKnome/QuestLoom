@@ -3,7 +3,7 @@
  * and runs d3-force layout. Used by LoomView.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Edge, Node } from '@xyflow/react'
 import { EntityType } from '../../types/EntityType'
 import { ThreadSubtype } from '../../types/ThreadSubtype'
@@ -71,8 +71,17 @@ export function useLoomGraph(
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const reachablePlaceIdsRef = useRef(reachablePlaceIds)
+  reachablePlaceIdsRef.current = reachablePlaceIds
+  const reachablePlaceIdsKey = useMemo(
+    () => Array.from(reachablePlaceIds).sort().join(','),
+    [reachablePlaceIds]
+  )
+
   /**
    * Loads the graph data for the current game and playthrough.
+   * Depends on reachablePlaceIdsKey (value-based) so we do not recompute when
+   * useReachablePlaces returns a new Set instance with the same place IDs.
    */
   const load = useCallback(async () => {
     if (!gameId) return
@@ -176,14 +185,15 @@ export function useLoomGraph(
       }
 
       const entityAvailabilityById = new Map<string, boolean>()
-      if (playthroughId && reachablePlaceIds) {
+      const currentReachable = reachablePlaceIdsRef.current
+      if (playthroughId && currentReachable) {
         const results = await Promise.all(
           entityList.map(async (e) => {
             const available = await checkEntityAvailabilityWithReachability(
               gameId,
               playthroughId,
               e.id,
-              reachablePlaceIds
+              currentReachable
             )
             return { id: e.id, available }
           })
@@ -306,7 +316,7 @@ export function useLoomGraph(
     } finally {
       setIsLoading(false)
     }
-  }, [gameId, playthroughId, reachablePlaceIds])
+  }, [gameId, playthroughId, reachablePlaceIdsKey])
 
   useEffect(() => {
     load()

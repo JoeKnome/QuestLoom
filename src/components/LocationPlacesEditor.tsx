@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getEntityLocationPlaceIds } from '../lib/location'
 import { placeRepository } from '../lib/repositories'
 import type { GameId, PlaceId } from '../types/ids'
@@ -41,6 +41,9 @@ export function LocationPlacesEditor({
 }: LocationPlacesEditorProps): JSX.Element {
   const [pickerValue, setPickerValue] = useState<PlaceId | ''>('')
   const [placeNames, setPlaceNames] = useState<Record<string, string>>({})
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   /**
    * Loads the names of the places for the game.
@@ -62,18 +65,26 @@ export function LocationPlacesEditor({
   }, [gameId])
 
   /**
-   * Loads the location places for the entity.
+   * Loads the location places for the entity when editing.
+   * Uses a ref for onChange so this effect does not re-run when the parent
+   * recreates its callbacks (e.g. handleSubmit), avoiding unnecessary re-loads
+   * and overwriting user edits.
    */
   useEffect(() => {
     if (entityId == null || entityId === '') return
     let cancelled = false
+    setIsLoadingLocations(true)
     getEntityLocationPlaceIds(gameId, entityId).then((ids) => {
-      if (!cancelled) onChange(ids)
+      if (!cancelled) {
+        onChangeRef.current(ids)
+        setIsLoadingLocations(false)
+      }
     })
     return () => {
       cancelled = true
+      setIsLoadingLocations(false)
     }
-  }, [gameId, entityId, onChange])
+  }, [gameId, entityId])
 
   /**
    * Adds a place to the entity.
@@ -108,7 +119,9 @@ export function LocationPlacesEditor({
       </p>
 
       {/* Locations list */}
-      {value.length > 0 ? (
+      {isLoadingLocations && value.length === 0 ? (
+        <p className="mt-2 text-sm text-slate-500">Loading locations…</p>
+      ) : value.length > 0 ? (
         <ul className="mt-2 space-y-1">
           {value.map((placeId) => (
             <li
