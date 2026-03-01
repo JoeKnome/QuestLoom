@@ -359,7 +359,7 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
 
 - [x] **Eligibility** — Any entity that can have a map marker can be **located at** one or more Places via **LOCATION threads** (thread-only; no `location` field on any entity). If **all** of an entity's location Places are unreachable (per 5.5), that entity is **unavailable**. An entity is unavailable if (1) its requirements are not met (5.2), or (2) it has at least one location Place and none of them are reachable.
 - [x] **Availability representation** — Unavailable/unreachable entities have a visual representation in the Loom and Map views (greyed out or faded). This updates as playthrough state changes.
-- [x] **Consistent location model** — Item no longer has a `location` field; Quest, Insight, Item, Person, Path all use LOCATION threads only; multiple places per entity supported.
+- [x] **Consistent location model** — Item no longer has a `location` field; Quest, Insight, Item, Person all use LOCATION threads only; multiple places per entity supported.
 - [x] All documentation pages are updated reflecting the latest state of the app.
 - [x] All items left to do are documented for future action.
 - [x] All affected code passes code standards, style, and lint.
