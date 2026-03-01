@@ -1,5 +1,5 @@
 import { useGameViewStore } from '../../stores/gameViewStore'
-import type { GameId, PlaythroughId } from '../../types/ids'
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
 import { MapListScreen } from './MapListScreen'
 import { MapView } from './MapView'
 
@@ -9,8 +9,12 @@ import { MapView } from './MapView'
 export interface MapsSectionProps {
   /** Current game ID. */
   gameId: GameId
-  /** Current playthrough ID, or null (unused for maps but kept for parity). */
+
+  /** Current playthrough ID, or null. */
   playthroughId: PlaythroughId | null
+  
+  /** Reachable place IDs from current position (for marker availability). */
+  reachablePlaceIds: Set<PlaceId>
 }
 
 /**
@@ -25,6 +29,7 @@ export interface MapsSectionProps {
 export function MapsSection({
   gameId,
   playthroughId,
+  reachablePlaceIds,
 }: MapsSectionProps): JSX.Element {
   const mapUiMode = useGameViewStore((s) => s.mapUiMode)
   const lastViewedMapId = useGameViewStore((s) => s.lastViewedMapId)
@@ -32,7 +37,11 @@ export function MapsSection({
   if (mapUiMode === 'view' && lastViewedMapId !== null) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <MapView gameId={gameId} mapId={lastViewedMapId} />
+        <MapView
+          gameId={gameId}
+          mapId={lastViewedMapId}
+          reachablePlaceIds={reachablePlaceIds}
+        />
       </div>
     )
   }

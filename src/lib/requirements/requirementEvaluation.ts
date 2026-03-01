@@ -1,8 +1,9 @@
 import { EntityType } from '../../types/EntityType'
-import type { GameId, PlaythroughId } from '../../types/ids'
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
 import type { Thread } from '../../types/Thread'
 import { getEntityTypeFromId } from '../../utils/parseEntityId'
+import { getEntityLocationPlaceIds } from '../location'
 import {
   insightRepository,
   itemRepository,
@@ -132,6 +133,29 @@ export async function checkEntityAvailability(
     available: unmetRequirementTargetIds.length === 0,
     unmetRequirementTargetIds,
   }
+}
+
+/**
+ * Checks whether an entity is available for display: requirements satisfied
+ * and (no location places or at least one location place is reachable).
+ *
+ * @param gameId - Current game.
+ * @param playthroughId - Current playthrough.
+ * @param entityId - Typed entity ID.
+ * @param reachablePlaceIds - Set of place IDs reachable from current position.
+ * @returns True if the entity is available (requirements met and location reachable if any).
+ */
+export async function checkEntityAvailabilityWithReachability(
+  gameId: GameId,
+  playthroughId: PlaythroughId,
+  entityId: string,
+  reachablePlaceIds: Set<PlaceId>
+): Promise<boolean> {
+  const result = await checkEntityAvailability(gameId, playthroughId, entityId)
+  if (!result.available) return false
+  const locationPlaceIds = await getEntityLocationPlaceIds(gameId, entityId)
+  if (locationPlaceIds.length === 0) return true
+  return locationPlaceIds.some((id) => reachablePlaceIds.has(id))
 }
 
 /**

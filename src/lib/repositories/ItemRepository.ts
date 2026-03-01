@@ -32,7 +32,6 @@ class ItemRepositoryImpl implements IItemRepository {
       id: generateEntityId(EntityType.ITEM) as ItemId,
       gameId: input.gameId,
       name: input.name,
-      location: input.location,
       description: input.description ?? '',
       createdAt: now,
       updatedAt: now,

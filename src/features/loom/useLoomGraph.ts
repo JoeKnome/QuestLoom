@@ -8,7 +8,7 @@ import type { Edge, Node } from '@xyflow/react'
 import { EntityType } from '../../types/EntityType'
 import { ThreadSubtype } from '../../types/ThreadSubtype'
 import { PathStatus } from '../../types/PathStatus'
-import type { GameId, PlaythroughId } from '../../types/ids'
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
 import {
   insightRepository,
   itemRepository,
@@ -23,19 +23,27 @@ import {
   getThreadSubtype,
 } from '../../utils/threadSubtype'
 import { getEntityTypeFromId } from '../../utils/parseEntityId'
-import { checkEntityAvailability } from '../../lib/requirements'
+import {
+  checkEntityAvailability,
+  checkEntityAvailabilityWithReachability,
+} from '../../lib/requirements'
 import { runForceLayout } from './loomLayout'
 
 /** Data passed to the custom entity node. */
 export interface EntityNodeData extends Record<string, unknown> {
   /** Entity type for badge/label. */
   entityType: EntityType
+
   /** Display name (quest title, item name, etc.). */
   label: string
+
+  /** False when entity is unavailable (requirements or location unreachable); used for styling. */
+  available?: boolean
 }
 
 /** The width of the layout. */
 const LAYOUT_WIDTH = 800
+
 /** The height of the layout. */
 const LAYOUT_HEIGHT = 600
 
@@ -45,11 +53,13 @@ const LAYOUT_HEIGHT = 600
  *
  * @param gameId - Current game ID.
  * @param playthroughId - Current playthrough ID (threads include game-level and this playthrough).
+ * @param reachablePlaceIds - Reachable place IDs from current position; when null, all nodes are treated as available.
  * @returns Nodes, edges, loading state, and optional error.
  */
 export function useLoomGraph(
   gameId: GameId,
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null,
+  reachablePlaceIds: Set<PlaceId>
 ): {
   nodes: Node<EntityNodeData>[]
   edges: Edge[]
@@ -165,6 +175,24 @@ export function useLoomGraph(
         }
       }
 
+      const entityAvailabilityById = new Map<string, boolean>()
+      if (playthroughId && reachablePlaceIds) {
+        const results = await Promise.all(
+          entityList.map(async (e) => {
+            const available = await checkEntityAvailabilityWithReachability(
+              gameId,
+              playthroughId,
+              e.id,
+              reachablePlaceIds
+            )
+            return { id: e.id, available }
+          })
+        )
+        for (const r of results) {
+          entityAvailabilityById.set(r.id, r.available)
+        }
+      }
+
       /**
        * Checks if a path is traversable.
        *
@@ -203,6 +231,9 @@ export function useLoomGraph(
 
       const flowNodes: Node<EntityNodeData>[] = entityList.map((e) => {
         const pos = positions.get(e.id) ?? { x: 0, y: 0 }
+        const available = entityAvailabilityById.has(e.id)
+          ? entityAvailabilityById.get(e.id)
+          : true
         return {
           id: e.id,
           type: 'entityNode',
@@ -210,6 +241,7 @@ export function useLoomGraph(
           data: {
             entityType: e.entityType,
             label: e.label || 'Unnamed',
+            available,
           },
         }
       })
@@ -274,7 +306,7 @@ export function useLoomGraph(
     } finally {
       setIsLoading(false)
     }
-  }, [gameId, playthroughId])
+  }, [gameId, playthroughId, reachablePlaceIds])
 
   useEffect(() => {
     load()

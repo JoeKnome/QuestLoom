@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
+import { LocationPlacesEditor } from '../../components/LocationPlacesEditor'
+import { syncLocationThreads } from '../../lib/location'
 import { personRepository } from '../../lib/repositories'
-import type { GameId } from '../../types/ids'
+import type { GameId, PlaceId } from '../../types/ids'
 import type { Person } from '../../types/Person'
 
 /**
@@ -50,8 +52,10 @@ export function PersonForm(props: PersonFormProps): JSX.Element {
   const [notes, setNotes] = useState(
     props.mode === 'edit' ? props.person.notes : ''
   )
+  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const gameId = props.mode === 'create' ? props.gameId : props.person.gameId
 
   /**
    * Handles the submission of the person form.
@@ -68,17 +72,23 @@ export function PersonForm(props: PersonFormProps): JSX.Element {
       setIsSubmitting(true)
       try {
         if (props.mode === 'create') {
-          await personRepository.create({
+          const person = await personRepository.create({
             gameId: props.gameId,
             name: trimmedName,
             notes: notes.trim() || undefined,
           })
+          await syncLocationThreads(props.gameId, person.id, locationPlaceIds)
         } else {
           await personRepository.update({
             ...props.person,
             name: trimmedName,
             notes: notes.trim(),
           })
+          await syncLocationThreads(
+            props.person.gameId,
+            props.person.id,
+            locationPlaceIds
+          )
         }
         props.onSaved()
       } catch (err) {
@@ -87,7 +97,7 @@ export function PersonForm(props: PersonFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [name, notes, props]
+    [name, notes, locationPlaceIds, props]
   )
 
   return (
@@ -128,6 +138,13 @@ export function PersonForm(props: PersonFormProps): JSX.Element {
           className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
         />
       </div>
+      <LocationPlacesEditor
+        gameId={gameId}
+        entityId={props.mode === 'edit' ? props.person.id : undefined}
+        value={locationPlaceIds}
+        onChange={setLocationPlaceIds}
+        disabled={isSubmitting}
+      />
       {error && (
         <p id="person-form-error" className="text-sm text-red-600" role="alert">
           {error}

@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EntityConnections } from '../../components/EntityConnections'
 import { RequirementList } from '../../components/RequirementList'
+import { getEntityLocationPlaceIds } from '../../lib/location'
 import { checkEntityAvailability } from '../../lib/requirements'
 import { itemRepository, placeRepository } from '../../lib/repositories'
-import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
+import type { GameId, ItemId, PlaceId, PlaythroughId } from '../../types/ids'
 import type { Item } from '../../types/Item'
 import type { ItemState } from '../../types/ItemState'
 import { ItemStatus } from '../../types/ItemStatus'
@@ -42,6 +43,9 @@ export function ItemListScreen({
 }: ItemListScreenProps): JSX.Element {
   const [items, setItems] = useState<Item[]>([])
   const [placeNames, setPlaceNames] = useState<Record<string, string>>({})
+  const [locationPlaceIdsByItem, setLocationPlaceIdsByItem] = useState<
+    Record<string, PlaceId[]>
+  >({})
   const [stateByItem, setStateByItem] = useState<Record<string, ItemState>>({})
   const [availabilityByItem, setAvailabilityByItem] = useState<
     Record<string, { available: boolean; unmetRequirementTargetIds: string[] }>
@@ -80,6 +84,15 @@ export function ItemListScreen({
         byItem[s.itemId] = s
       })
       setStateByItem(byItem)
+
+      const locationByItem: Record<string, PlaceId[]> = {}
+      await Promise.all(
+        list.map(async (item) => {
+          const ids = await getEntityLocationPlaceIds(gameId, item.id)
+          locationByItem[item.id] = ids
+        })
+      )
+      setLocationPlaceIdsByItem(locationByItem)
 
       // Check availability of items based on current playthrough.
       if (playthroughId && list.length > 0) {
@@ -245,9 +258,14 @@ export function ItemListScreen({
                             .join(', ')}
                         </p>
                       )}
-                    <p className="text-sm text-slate-600">
-                      Location: {placeNames[item.location] ?? item.location}
-                    </p>
+                    {locationPlaceIdsByItem[item.id]?.length > 0 ? (
+                      <p className="text-sm text-slate-600">
+                        Locations:{' '}
+                        {locationPlaceIdsByItem[item.id]
+                          .map((id) => placeNames[id] ?? id)
+                          .join(', ')}
+                      </p>
+                    ) : null}
                     {item.description ? (
                       <p className="truncate text-sm text-slate-500">
                         {item.description}

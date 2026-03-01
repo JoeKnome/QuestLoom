@@ -1,5 +1,5 @@
 import { EntityType } from '../../types/EntityType'
-import type { GameId, PlaythroughId } from '../../types/ids'
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
 import { ENTITY_TYPE_PLURAL_LABELS } from '../../utils/entityTypeLabels'
 import { InsightListScreen } from '../insights/InsightListScreen'
 import { ItemListScreen } from '../items/ItemListScreen'
@@ -16,10 +16,15 @@ import { QuestListScreen } from '../quests/QuestListScreen'
 export interface GameViewContentProps {
   /** Current game ID. */
   gameId: GameId
+
   /** Current playthrough ID (may be null). */
   playthroughId: PlaythroughId | null
+  
   /** The section to render (entity type). */
   section: EntityType
+  
+  /** Reachable place IDs from current position (for Loom/Map availability). */
+  reachablePlaceIds: Set<PlaceId>
 }
 
 /**
@@ -35,8 +40,9 @@ export function GameViewContent({
   gameId,
   playthroughId,
   section,
+  reachablePlaceIds,
 }: GameViewContentProps): JSX.Element {
-  const commonProps = { gameId, playthroughId }
+  const commonProps = { gameId, playthroughId, reachablePlaceIds }
 
   const content = (() => {
     switch (section) {
@@ -53,9 +59,21 @@ export function GameViewContent({
       case EntityType.PATH:
         return <PathListScreen {...commonProps} />
       case EntityType.MAP:
-        return <MapsSection {...commonProps} />
+        return (
+          <MapsSection
+            gameId={gameId}
+            playthroughId={playthroughId}
+            reachablePlaceIds={reachablePlaceIds}
+          />
+        )
       case EntityType.THREAD:
-        return <LoomView {...commonProps} />
+        return (
+          <LoomView
+            gameId={gameId}
+            playthroughId={playthroughId}
+            reachablePlaceIds={reachablePlaceIds}
+          />
+        )
       default: {
         const label = ENTITY_TYPE_PLURAL_LABELS[section]
         return (

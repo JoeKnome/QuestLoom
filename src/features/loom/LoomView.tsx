@@ -15,7 +15,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useCallback, useEffect, useRef } from 'react'
-import type { GameId, PlaythroughId } from '../../types/ids'
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
 import { EntityNode } from './EntityNode'
 import { useLoomGraph } from './useLoomGraph'
 
@@ -30,18 +30,24 @@ export interface LoomViewProps {
   gameId: GameId
   /** Current playthrough ID (threads include game-level and this playthrough). */
   playthroughId: PlaythroughId | null
+  /** Reachable place IDs from current position (for node availability styling). */
+  reachablePlaceIds: Set<PlaceId>
 }
 
 /**
  * Inner Loom content (must be under ReactFlowProvider to use useReactFlow / store).
  */
-function LoomContent({ gameId, playthroughId }: LoomViewProps): JSX.Element {
+function LoomContent({
+  gameId,
+  playthroughId,
+  reachablePlaceIds,
+}: LoomViewProps): JSX.Element {
   const {
     nodes: initialNodes,
     edges: initialEdges,
     isLoading,
     error,
-  } = useLoomGraph(gameId, playthroughId)
+  } = useLoomGraph(gameId, playthroughId, reachablePlaceIds)
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -168,10 +174,15 @@ function LoomContent({ gameId, playthroughId }: LoomViewProps): JSX.Element {
 export function LoomView({
   gameId,
   playthroughId,
+  reachablePlaceIds,
 }: LoomViewProps): JSX.Element {
   return (
     <ReactFlowProvider>
-      <LoomContent gameId={gameId} playthroughId={playthroughId} />
+      <LoomContent
+        gameId={gameId}
+        playthroughId={playthroughId}
+        reachablePlaceIds={reachablePlaceIds}
+      />
     </ReactFlowProvider>
   )
 }

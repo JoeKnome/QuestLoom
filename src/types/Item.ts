@@ -1,4 +1,4 @@
-import type { GameId, ItemId, PlaceId } from './ids'
+import type { GameId, ItemId } from './ids'
 
 /**
  * Item definition (game-scoped).
@@ -7,7 +7,6 @@ import type { GameId, ItemId, PlaceId } from './ids'
  * @property id - Unique identifier
  * @property gameId - ID of the game this item belongs to
  * @property name - Item name
- * @property location - ID of the place where the item is acquired
  * @property description - Optional description
  * @property createdAt - Creation timestamp (ISO 8601)
  * @property updatedAt - Last update timestamp (ISO 8601)
@@ -19,8 +18,6 @@ export interface Item {
   gameId: GameId
   /** Item name. */
   name: string
-  /** ID of the place where the item is acquired. */
-  location: PlaceId
   /** Optional description. */
   description: string
   /** Creation timestamp (ISO 8601). */

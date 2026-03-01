@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { ContextMenu } from '../../components/ContextMenu'
 import { EntityPicker } from '../../components/EntityPicker'
+import { checkEntityAvailabilityWithReachability } from '../../lib/requirements'
 import {
   insightRepository,
   itemRepository,
@@ -11,6 +12,7 @@ import {
   personRepository,
   placeRepository,
   questRepository,
+  threadRepository,
 } from '../../lib/repositories'
 import { useAppStore } from '../../stores/appStore'
 import { useGameViewStore } from '../../stores/gameViewStore'
@@ -27,6 +29,7 @@ import type {
 } from '../../types/ids'
 import { EntityType } from '../../types/EntityType'
 import { THREAD_ENDPOINT_ENTITY_TYPES } from '../../types/EntityType'
+import { ThreadSubtype } from '../../types/ThreadSubtype'
 import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
 import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
 import { MapMarkerBadge } from './MapMarkerBadge'
@@ -75,8 +78,12 @@ type ContextMenuState = MapContextMenuState | MarkerContextMenuState | null
 export interface MapViewProps {
   /** Current game ID (reserved for future validation and scoping). */
   gameId: GameId
+
   /** ID of the map to display. */
   mapId: MapId
+  
+  /** Reachable place IDs from current position (for marker availability styling). */
+  reachablePlaceIds?: Set<PlaceId>
 }
 
 /**
@@ -167,11 +174,17 @@ function clientToLogical(
  * @param props.mapId - Map ID to load and display.
  * @returns A JSX element representing the MapView component.
  */
-export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
+export function MapView({
+  gameId,
+  mapId,
+  reachablePlaceIds = new Set(),
+}: MapViewProps): JSX.Element {
   const [map, setMap] = useState<Map | null | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [imageDisplayUrl, setImageDisplayUrl] = useState<string | null>(null)
   const [imageLoadError, setImageLoadError] = useState(false)
+  const [markerAvailabilityByEntityId, setMarkerAvailabilityByEntityId] =
+    useState<Record<string, boolean>>({})
   const imageRevokeRef = useRef<(() => void) | undefined>(undefined)
 
   const [markers, setMarkers] = useState<MapMarker[]>([])
@@ -261,6 +274,34 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
       setMarkers([])
     }
   }, [gameId, mapId, currentPlaythroughId])
+
+  /** Compute availability per marker entity when playthrough is set. */
+  useEffect(() => {
+    if (!currentPlaythroughId || markers.length === 0) {
+      setMarkerAvailabilityByEntityId({})
+      return
+    }
+    let cancelled = false
+    const entityIds = [...new Set(markers.map((m) => m.entityId))]
+    Promise.all(
+      entityIds.map(async (entityId) => {
+        const available = await checkEntityAvailabilityWithReachability(
+          gameId,
+          currentPlaythroughId!,
+          entityId,
+          reachablePlaceIds
+        )
+        return [entityId, available] as const
+      })
+    ).then((entries) => {
+      if (!cancelled) {
+        setMarkerAvailabilityByEntityId(Object.fromEntries(entries))
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [gameId, currentPlaythroughId, markers, reachablePlaceIds])
 
   /** Apply a transform and persist it to the store. */
   const applyTransform = useCallback(
@@ -905,6 +946,9 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                     entityType={marker.entityType}
                     initial={initialSource}
                     title={tooltip}
+                    available={
+                      markerAvailabilityByEntityId[marker.entityId] ?? true
+                    }
                   />
                 </div>
               )
@@ -1192,7 +1236,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                     htmlFor="add-marker-new-item-location"
                     className="mb-1 block text-sm font-medium text-slate-700"
                   >
-                    Location (place)
+                    Location (optional)
                   </label>
                   <EntityPicker
                     id="add-marker-new-item-location"
@@ -1200,7 +1244,7 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                     entityType={EntityType.PLACE}
                     value={addMarkerNewItemLocation}
                     onChange={setAddMarkerNewItemLocation}
-                    aria-label="Place where item is acquired"
+                    aria-label="Place where item can be found"
                   />
                 </div>
               )}
@@ -1220,19 +1264,9 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
               </button>
               <button
                 type="button"
-                disabled={
-                  addMarkerNewSubmitting ||
-                  !addMarkerNewName.trim() ||
-                  (addMarkerNewEntityType === EntityType.ITEM &&
-                    !addMarkerNewItemLocation)
-                }
+                disabled={addMarkerNewSubmitting || !addMarkerNewName.trim()}
                 onClick={async () => {
                   if (!addMarkerNewModal || !addMarkerNewName.trim()) return
-                  if (
-                    addMarkerNewEntityType === EntityType.ITEM &&
-                    !addMarkerNewItemLocation
-                  )
-                    return
                   setAddMarkerNewSubmitting(true)
                   try {
                     let newEntityId: string
@@ -1260,9 +1294,16 @@ export function MapView({ gameId, mapId }: MapViewProps): JSX.Element {
                         const item = await itemRepository.create({
                           gameId,
                           name: addMarkerNewName.trim(),
-                          location: addMarkerNewItemLocation as PlaceId,
                         })
                         newEntityId = item.id
+                        if (addMarkerNewItemLocation) {
+                          await threadRepository.create({
+                            gameId,
+                            sourceId: item.id,
+                            targetId: addMarkerNewItemLocation,
+                            subtype: ThreadSubtype.LOCATION,
+                          })
+                        }
                         break
                       }
                       case EntityType.PERSON: {

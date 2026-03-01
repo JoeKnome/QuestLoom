@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
+import { LocationPlacesEditor } from '../../components/LocationPlacesEditor'
+import { syncLocationThreads } from '../../lib/location'
 import { insightRepository } from '../../lib/repositories'
-import type { GameId } from '../../types/ids'
+import type { GameId, PlaceId } from '../../types/ids'
 import type { Insight } from '../../types/Insight'
 
 /**
@@ -49,8 +51,10 @@ export function InsightForm(props: InsightFormProps): JSX.Element {
   const [content, setContent] = useState(
     props.mode === 'edit' ? props.insight.content : ''
   )
+  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const gameId = props.mode === 'create' ? props.gameId : props.insight.gameId
 
   /**
    * Handles the submission of the insight form.
@@ -67,17 +71,23 @@ export function InsightForm(props: InsightFormProps): JSX.Element {
       setIsSubmitting(true)
       try {
         if (props.mode === 'create') {
-          await insightRepository.create({
+          const insight = await insightRepository.create({
             gameId: props.gameId,
             title: trimmedTitle,
             content: content.trim(),
           })
+          await syncLocationThreads(props.gameId, insight.id, locationPlaceIds)
         } else {
           await insightRepository.update({
             ...props.insight,
             title: trimmedTitle,
             content: content.trim(),
           })
+          await syncLocationThreads(
+            props.insight.gameId,
+            props.insight.id,
+            locationPlaceIds
+          )
         }
         props.onSaved()
       } catch (err) {
@@ -86,7 +96,7 @@ export function InsightForm(props: InsightFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [title, content, props]
+    [title, content, locationPlaceIds, props]
   )
 
   return (
@@ -127,6 +137,13 @@ export function InsightForm(props: InsightFormProps): JSX.Element {
           className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
         />
       </div>
+      <LocationPlacesEditor
+        gameId={gameId}
+        entityId={props.mode === 'edit' ? props.insight.id : undefined}
+        value={locationPlaceIds}
+        onChange={setLocationPlaceIds}
+        disabled={isSubmitting}
+      />
       {error && (
         <p
           id="insight-form-error"

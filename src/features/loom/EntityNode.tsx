@@ -39,16 +39,16 @@ function EntityNodeComponent({
   data,
   selected,
 }: NodeProps<EntityNodeType>): JSX.Element {
-  const { entityType, label } = data
+  const { entityType, label, available = true } = data
   const typeLabel = ENTITY_TYPE_LABELS[entityType] ?? 'Entity'
 
   return (
     <div
-      className={`relative rounded border bg-white px-3 py-2 shadow-sm ${
-        selected
-          ? 'border-slate-400 ring-2 ring-slate-300'
-          : 'border-slate-200 hover:border-slate-300'
-      }`}
+      className={`relative rounded border px-3 py-2 shadow-sm ${
+        available
+          ? 'bg-white border-slate-200 hover:border-slate-300'
+          : 'border-slate-200 bg-slate-100 opacity-60'
+      } ${selected ? 'border-slate-400 ring-2 ring-slate-300' : ''}`}
     >
       <Handle
         type="target"
@@ -62,10 +62,18 @@ function EntityNodeComponent({
         style={centerHandleStyle}
         className="!border-0"
       />
-      <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+      <div
+        className={`text-[10px] font-medium uppercase tracking-wide ${
+          available ? 'text-slate-500' : 'text-slate-400'
+        }`}
+      >
         {typeLabel}
       </div>
-      <div className="max-w-[140px] truncate text-sm font-medium text-slate-800">
+      <div
+        className={`max-w-[140px] truncate text-sm font-medium ${
+          available ? 'text-slate-800' : 'text-slate-500'
+        }`}
+      >
         {label}
       </div>
     </div>

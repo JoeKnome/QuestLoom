@@ -1,11 +1,13 @@
 import { useCallback, useState } from 'react'
 import { EntityPicker } from '../../components/EntityPicker'
 import { GiverPicker } from '../../components/GiverPicker'
+import { LocationPlacesEditor } from '../../components/LocationPlacesEditor'
+import { syncLocationThreads } from '../../lib/location'
 import { questRepository, threadRepository } from '../../lib/repositories'
 import { EntityType } from '../../types/EntityType'
 import { ThreadSubtype } from '../../types/ThreadSubtype'
 import { getThreadSubtype } from '../../utils/threadSubtype'
-import type { GameId } from '../../types/ids'
+import type { GameId, PlaceId } from '../../types/ids'
 import type { Quest } from '../../types/Quest'
 import type { QuestObjective } from '../../types/QuestObjective'
 import { getEntityTypeFromId } from '../../utils/parseEntityId'
@@ -66,6 +68,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
   const [linkEntityType, setLinkEntityType] = useState<EntityType>(
     EntityType.ITEM
   )
+  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const gameId = props.mode === 'create' ? props.gameId : props.quest.gameId
@@ -173,6 +176,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
           })
           await syncGiverThread(props.gameId, quest.id, giverValue)
           await syncObjectiveThreads(props.gameId, quest.id, objectives)
+          await syncLocationThreads(props.gameId, quest.id, locationPlaceIds)
         } else {
           await syncGiverThread(props.quest.gameId, props.quest.id, giverValue)
           await questRepository.update({
@@ -186,6 +190,11 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
             props.quest.id,
             objectives
           )
+          await syncLocationThreads(
+            props.quest.gameId,
+            props.quest.id,
+            locationPlaceIds
+          )
         }
         props.onSaved()
       } catch (err) {
@@ -194,7 +203,15 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
         setIsSubmitting(false)
       }
     },
-    [title, giver, objectives, props, syncGiverThread, syncObjectiveThreads]
+    [
+      title,
+      giver,
+      objectives,
+      locationPlaceIds,
+      props,
+      syncGiverThread,
+      syncObjectiveThreads,
+    ]
   )
 
   /**
@@ -469,6 +486,13 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
           })}
         </ul>
       </div>
+      <LocationPlacesEditor
+        gameId={gameId}
+        entityId={props.mode === 'edit' ? props.quest.id : undefined}
+        value={locationPlaceIds}
+        onChange={setLocationPlaceIds}
+        disabled={isSubmitting}
+      />
       {error && (
         <p id="quest-form-error" className="text-sm text-red-600" role="alert">
           {error}

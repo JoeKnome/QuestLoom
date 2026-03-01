@@ -7,10 +7,15 @@ import { getEntityTypeColorClasses } from '../../utils/entityTypeColors'
 export interface MapMarkerBadgeProps {
   /** Entity type the marker represents. */
   entityType: EntityType
+
   /** Single-character label to display inside the badge. */
   initial: string
+
   /** Tooltip text (full entity name). */
   title: string
+  
+  /** False when entity is unavailable (requirements or location unreachable); greys out the badge. */
+  available?: boolean
 }
 
 /**
@@ -25,6 +30,7 @@ export function MapMarkerBadge({
   entityType,
   initial,
   title,
+  available = true,
 }: MapMarkerBadgeProps): JSX.Element {
   const colorClasses = getEntityTypeColorClasses(entityType)
   const safeInitial = initial.trim()
@@ -33,13 +39,23 @@ export function MapMarkerBadge({
 
   return (
     <div
-      className={`flex h-6 w-6 select-none items-center justify-center rounded-full border border-white shadow-md ${colorClasses}`}
+      className={`flex h-6 w-6 select-none items-center justify-center rounded-full border shadow-md ${
+        available
+          ? `border-white ${colorClasses}`
+          : 'border-slate-300 bg-slate-300 opacity-60'
+      }`}
       title={title}
       role="button"
       tabIndex={0}
       aria-label={title}
     >
-      <span className="text-xs font-semibold leading-none">{safeInitial}</span>
+      <span
+        className={`text-xs font-semibold leading-none ${
+          available ? '' : 'text-slate-600'
+        }`}
+      >
+        {safeInitial}
+      </span>
     </div>
   )
 }

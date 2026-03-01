@@ -68,12 +68,13 @@ Entity and schema design must distinguish which fields (or which entities) belon
 | ----------- | -------- | ------------------------------------------------------------------------------------------------------ |
 | id          | string   | Unique identifier                                                                                      |
 | name        | string   | Item name                                                                                              |
-| location    | id       | The place where the item is acquired (also represented by a thread Item → Place with label `location`) |
 | description | string   | Optional description                                                                                   |
 | status      | enum     | not acquired \| acquired \| used \| lost (playthrough-scoped in ItemState)                             |
 | notes       | string   | Optional notes                                                                                         |
 | createdAt   | datetime | Creation timestamp                                                                                     |
 | updatedAt   | datetime | Last update timestamp                                                                                  |
+
+**Note:** Location is **thread-only** for all entities. Item (and Quest, Insight, Person) can be "located at" one or more Places via threads with subtype **LOCATION** (entity → Place). Multiple places per entity are allowed. Use `getEntityLocationPlaceIds(gameId, entityId)` to resolve locations.
 
 ### Person
 

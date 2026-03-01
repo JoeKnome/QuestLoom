@@ -349,22 +349,20 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
 - [x] **Current position** — Playthrough has a **current position** (a Place). The user can **freely update** it to any Place. Current position is the **start location** for Loom traversal.
 - [x] **Reachability** — From current position, follow **direct Place–Place** links (always traversable) and **traversable Paths** (opened, or restricted with requirements met; per-connection conditions applied). The set of **reachable Places** is derived from this graph.
 - [x] **Unreachable Place → unavailable** — If a Place cannot be reached, any entity located at that Place is **unavailable** (in addition to requirement-based unavailability from 5.2).
-- [x] **Debug logging (temporary)** — When the current position is changed via the selector in `GameView`, a temporary debug block (marked with `DEBUG (Phase 5.5)` and `REMOVE in a later phase`) runs `computeReachablePlaces` and logs a table of all places with a `reachable` flag to the console. This exists solely to validate reachability logic during development and should be removed once a UI surface uses the result directly.
 - [x] All documentation pages are updated reflecting the latest state of the app.
 - [x] All items left to do are documented for future action.
 - [x] All affected code passes code standards, style, and lint.
 
-**Items left for future action (Phase 5.5)** (see `docs/issues/`):
+**Note:** Temporary reachability debug logging was removed in Phase 5.6 when Loom and Map began consuming reachability for availability styling (see [reachability-debug-logging-removal.md](issues/reachability-debug-logging-removal.md)).
 
-- [reachability-debug-logging-removal.md](issues/reachability-debug-logging-removal.md) — Remove temporary reachability console logging from `GameView` once a UI surface consumes reachability directly.
+### 5.6 Location at Place and availability ✅ Complete
 
-### 5.6 Location at Place and availability
-
-- [ ] **Eligibility** — Any entity that can have a map marker can be **located at** a Place (via consistent thread/location semantics for all entities). If a Place is **unreachable** (per 5.5), everything located at that Place is **unavailable**. An entity is unavailable if (1) its requirements are not met (5.2), or (2) it is located at an unreachable Place.
-- [ ] **Availability Representation** - Items which are unreachable or unavailable have a visual representation in the Loom and Map views(e.g. greyed out or faded). This updates as playthrough state changes.
-- [ ] All documentation pages are updated reflecting the latest state of the app.
-- [ ] All items left to do are documented for future action.
-- [ ] All affected code passes code standards, style, and lint.
+- [x] **Eligibility** — Any entity that can have a map marker can be **located at** one or more Places via **LOCATION threads** (thread-only; no `location` field on any entity). If **all** of an entity's location Places are unreachable (per 5.5), that entity is **unavailable**. An entity is unavailable if (1) its requirements are not met (5.2), or (2) it has at least one location Place and none of them are reachable.
+- [x] **Availability representation** — Unavailable/unreachable entities have a visual representation in the Loom and Map views (greyed out or faded). This updates as playthrough state changes.
+- [x] **Consistent location model** — Item no longer has a `location` field; Quest, Insight, Item, Person, Path all use LOCATION threads only; multiple places per entity supported.
+- [x] All documentation pages are updated reflecting the latest state of the app.
+- [x] All items left to do are documented for future action.
+- [x] All affected code passes code standards, style, and lint.
 
 ### 5.7 Contextual progression
 

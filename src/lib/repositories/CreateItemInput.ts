@@ -1,4 +1,4 @@
-import type { GameId, PlaceId } from '../../types/ids'
+import type { GameId } from '../../types/ids'
 
 /**
  * Input for creating an item.
@@ -9,8 +9,6 @@ export interface CreateItemInput {
   gameId: GameId
   /** Item name. */
   name: string
-  /** ID of the place where the item is acquired. */
-  location: PlaceId
   /** Optional description. */
   description?: string
 }
