@@ -80,8 +80,9 @@ export function useLoomGraph(
 
   /**
    * Loads the graph data for the current game and playthrough.
-   * Depends on reachablePlaceIdsKey (value-based) so we do not recompute when
-   * useReachablePlaces returns a new Set instance with the same place IDs.
+   * Reads reachablePlaceIds from a ref so the callback is stable when the Set
+   * reference changes but its contents do not; the effect re-runs via
+   * reachablePlaceIdsKey when contents change.
    */
   const load = useCallback(async () => {
     if (!gameId) return
@@ -316,11 +317,11 @@ export function useLoomGraph(
     } finally {
       setIsLoading(false)
     }
-  }, [gameId, playthroughId, reachablePlaceIdsKey])
+  }, [gameId, playthroughId])
 
   useEffect(() => {
     load()
-  }, [load])
+  }, [load, reachablePlaceIdsKey])
 
   return { nodes, edges, isLoading, error }
 }
