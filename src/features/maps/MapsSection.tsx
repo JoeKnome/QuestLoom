@@ -12,7 +12,7 @@ export interface MapsSectionProps {
 
   /** Current playthrough ID, or null. */
   playthroughId: PlaythroughId | null
-  
+
   /** Reachable place IDs from current position (for marker availability). */
   reachablePlaceIds: Set<PlaceId>
 }

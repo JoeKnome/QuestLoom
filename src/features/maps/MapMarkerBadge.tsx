@@ -13,7 +13,7 @@ export interface MapMarkerBadgeProps {
 
   /** Tooltip text (full entity name). */
   title: string
-  
+
   /** False when entity is unavailable (requirements or location unreachable); greys out the badge. */
   available?: boolean
 }

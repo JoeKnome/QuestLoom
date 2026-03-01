@@ -14,7 +14,7 @@ export interface LocationPlacesEditorProps {
 
   /** Entity ID when editing (load existing LOCATION threads); omit in create mode. */
   entityId?: string
-  
+
   /** Current list of place IDs (controlled). */
   value: PlaceId[]
 

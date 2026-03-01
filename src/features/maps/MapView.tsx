@@ -81,7 +81,7 @@ export interface MapViewProps {
 
   /** ID of the map to display. */
   mapId: MapId
-  
+
   /** Reachable place IDs from current position (for marker availability styling). */
   reachablePlaceIds?: Set<PlaceId>
 }

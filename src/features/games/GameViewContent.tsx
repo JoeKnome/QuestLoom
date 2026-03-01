@@ -19,10 +19,10 @@ export interface GameViewContentProps {
 
   /** Current playthrough ID (may be null). */
   playthroughId: PlaythroughId | null
-  
+
   /** The section to render (entity type). */
   section: EntityType
-  
+
   /** Reachable place IDs from current position (for Loom/Map availability). */
   reachablePlaceIds: Set<PlaceId>
 }

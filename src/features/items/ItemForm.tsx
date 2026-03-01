@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { syncLocationThreads } from '../../lib/location'
-import { itemRepository, placeRepository } from '../../lib/repositories'
-import { getEntityLocationPlaceIds } from '../../lib/location'
+import { itemRepository } from '../../lib/repositories'
 import type { GameId, PlaceId } from '../../types/ids'
 import type { Item } from '../../types/Item'
-import { PlacePicker } from '../../components/PlacePicker'
+import { LocationPlacesEditor } from '../../components/LocationPlacesEditor'
 
 /**
  * Props for ItemForm when creating a new item.
@@ -48,10 +47,6 @@ export type ItemFormProps = ItemFormCreateProps | ItemFormEditProps
 export function ItemForm(props: ItemFormProps): JSX.Element {
   const [name, setName] = useState(props.mode === 'edit' ? props.item.name : '')
   const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([])
-  const [locationPickerValue, setLocationPickerValue] = useState<PlaceId | ''>(
-    ''
-  )
-  const [placeNames, setPlaceNames] = useState<Record<string, string>>({})
   const [description, setDescription] = useState(
     props.mode === 'edit' ? props.item.description : ''
   )
@@ -59,55 +54,7 @@ export function ItemForm(props: ItemFormProps): JSX.Element {
   const [error, setError] = useState<string | null>(null)
 
   const gameId = props.mode === 'create' ? props.gameId : props.item.gameId
-
-  /** Load places for display names. */
-  useEffect(() => {
-    let cancelled = false
-    placeRepository.getByGameId(gameId).then((places) => {
-      if (!cancelled) {
-        const names: Record<string, string> = {}
-        places.forEach((p) => {
-          names[p.id] = p.name
-        })
-        setPlaceNames(names)
-      }
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [gameId])
-
-  const editEntityId = props.mode === 'edit' ? props.item.id : null
-  const editGameId = props.mode === 'edit' ? props.item.gameId : null
-  /** Load existing location place IDs when editing. */
-  useEffect(() => {
-    if (editEntityId == null || editGameId == null) return
-    let cancelled = false
-    getEntityLocationPlaceIds(editGameId, editEntityId).then((ids) => {
-      if (!cancelled) setLocationPlaceIds(ids)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [editEntityId, editGameId])
-
-  const addLocation = useCallback((placeId: PlaceId | '') => {
-    if (!placeId) return
-    setLocationPlaceIds((prev) =>
-      prev.includes(placeId) ? prev : [...prev, placeId]
-    )
-    setLocationPickerValue('')
-  }, [])
-
-  const handleAddLocationClick = useCallback(() => {
-    if (locationPickerValue) {
-      addLocation(locationPickerValue)
-    }
-  }, [locationPickerValue, addLocation])
-
-  const removeLocation = useCallback((placeId: PlaceId) => {
-    setLocationPlaceIds((prev) => prev.filter((id) => id !== placeId))
-  }, [])
+  const entityId = props.mode === 'edit' ? props.item.id : undefined
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -170,57 +117,13 @@ export function ItemForm(props: ItemFormProps): JSX.Element {
           aria-describedby={error ? 'item-form-error' : undefined}
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700">
-          Locations
-        </label>
-        <p className="mt-1 text-xs text-slate-500">
-          Places where this item can be found (optional). Add multiple if it
-          appears in more than one place.
-        </p>
-        {locationPlaceIds.length > 0 ? (
-          <ul className="mt-2 space-y-1">
-            {locationPlaceIds.map((placeId) => (
-              <li
-                key={placeId}
-                className="flex items-center justify-between rounded border border-slate-200 bg-slate-50 px-2 py-1 text-sm"
-              >
-                <span className="truncate" data-place-id={placeId}>
-                  {placeNames[placeId] ?? placeId}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => removeLocation(placeId)}
-                  disabled={isSubmitting}
-                  className="shrink-0 rounded px-1.5 py-0.5 text-slate-600 hover:bg-slate-200 disabled:opacity-50"
-                  aria-label={`Remove location ${placeId}`}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <div className="mt-2 flex items-end gap-2">
-          <div className="min-w-0 flex-1">
-            <PlacePicker
-              id="item-location-add"
-              gameId={gameId}
-              value={locationPickerValue}
-              onChange={setLocationPickerValue}
-              disabled={isSubmitting}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={handleAddLocationClick}
-            disabled={isSubmitting || !locationPickerValue}
-            className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          >
-            Add location
-          </button>
-        </div>
-      </div>
+      <LocationPlacesEditor
+        gameId={gameId}
+        entityId={entityId}
+        value={locationPlaceIds}
+        onChange={setLocationPlaceIds}
+        disabled={isSubmitting}
+      />
       <div>
         <label
           htmlFor="item-description"
