@@ -180,6 +180,8 @@ export function GameView(): JSX.Element {
 
   /**
    * Handles the saving of the current position.
+   * Updates local playthrough state immediately so reachability (and the Loom)
+   * recomputes without waiting for a refetch or a navigation away/back.
    */
   const handleSaveCurrentPosition = async () => {
     if (!hasPlaythrough || !currentPlaythroughId || !playthrough) return
@@ -188,8 +190,9 @@ export function GameView(): JSX.Element {
       currentPositionPlaceId: positionDraftPlaceId || null,
     }
     await playthroughRepository.update(updated)
+    setPlaythrough(updated)
+    setPositionDraftPlaceId(updated.currentPositionPlaceId ?? '')
     setIsPositionSelectorOpen(false)
-    refetchPlaythroughs()
   }
 
   return (
