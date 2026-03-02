@@ -54,12 +54,14 @@ const LAYOUT_HEIGHT = 600
  * @param gameId - Current game ID.
  * @param playthroughId - Current playthrough ID (threads include game-level and this playthrough).
  * @param reachablePlaceIds - Reachable place IDs from current position; when null, all nodes are treated as available.
+ * @param actionableRouteEdgeIds - Set of thread IDs on shortest routes to actionable nodes; those edges get emphasis styling.
  * @returns Nodes, edges, loading state, and optional error.
  */
 export function useLoomGraph(
   gameId: GameId,
   playthroughId: PlaythroughId | null,
-  reachablePlaceIds: Set<PlaceId>
+  reachablePlaceIds: Set<PlaceId>,
+  actionableRouteEdgeIds: Set<string>
 ): {
   nodes: Node<EntityNodeData>[]
   edges: Edge[]
@@ -76,6 +78,12 @@ export function useLoomGraph(
   const reachablePlaceIdsKey = useMemo(
     () => Array.from(reachablePlaceIds).sort().join(','),
     [reachablePlaceIds]
+  )
+  const actionableRouteEdgeIdsRef = useRef(actionableRouteEdgeIds)
+  actionableRouteEdgeIdsRef.current = actionableRouteEdgeIds
+  const actionableRouteEdgeIdsKey = useMemo(
+    () => Array.from(actionableRouteEdgeIds).sort().join(','),
+    [actionableRouteEdgeIds]
   )
 
   /**
@@ -297,6 +305,13 @@ export function useLoomGraph(
             style.opacity = traversable ? 0.95 : 0.5
           }
 
+          const isActionableRoute = actionableRouteEdgeIdsRef.current.has(t.id)
+          if (isActionableRoute) {
+            style.stroke = '#5eead4'
+            style.strokeWidth = 3
+            style.opacity = 1
+          }
+
           return {
             id: t.id,
             source: t.sourceId,
@@ -321,7 +336,7 @@ export function useLoomGraph(
 
   useEffect(() => {
     load()
-  }, [load, reachablePlaceIdsKey])
+  }, [load, reachablePlaceIdsKey, actionableRouteEdgeIdsKey])
 
   return { nodes, edges, isLoading, error }
 }

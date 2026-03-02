@@ -28,10 +28,15 @@ const nodeTypes = { entityNode: EntityNode }
 export interface LoomViewProps {
   /** Current game ID. */
   gameId: GameId
+
   /** Current playthrough ID (threads include game-level and this playthrough). */
   playthroughId: PlaythroughId | null
+
   /** Reachable place IDs from current position (for node availability styling). */
   reachablePlaceIds: Set<PlaceId>
+  
+  /** Set of thread IDs on actionable routes (for edge emphasis styling). */
+  actionableRouteEdgeIds: Set<string>
 }
 
 /**
@@ -41,13 +46,19 @@ function LoomContent({
   gameId,
   playthroughId,
   reachablePlaceIds,
+  actionableRouteEdgeIds,
 }: LoomViewProps): JSX.Element {
   const {
     nodes: initialNodes,
     edges: initialEdges,
     isLoading,
     error,
-  } = useLoomGraph(gameId, playthroughId, reachablePlaceIds)
+  } = useLoomGraph(
+    gameId,
+    playthroughId,
+    reachablePlaceIds,
+    actionableRouteEdgeIds
+  )
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -175,6 +186,7 @@ export function LoomView({
   gameId,
   playthroughId,
   reachablePlaceIds,
+  actionableRouteEdgeIds,
 }: LoomViewProps): JSX.Element {
   return (
     <ReactFlowProvider>
@@ -182,6 +194,7 @@ export function LoomView({
         gameId={gameId}
         playthroughId={playthroughId}
         reachablePlaceIds={reachablePlaceIds}
+        actionableRouteEdgeIds={actionableRouteEdgeIds}
       />
     </ReactFlowProvider>
   )

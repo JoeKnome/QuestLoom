@@ -1,6 +1,6 @@
-import { EntityType } from '../../types/EntityType'
+import { MainViewType } from '../../types/MainViewType'
 import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
-import { ENTITY_TYPE_PLURAL_LABELS } from '../../utils/entityTypeLabels'
+import { OracleScreen } from '../oracle/OracleScreen'
 import { InsightListScreen } from '../insights/InsightListScreen'
 import { ItemListScreen } from '../items/ItemListScreen'
 import { LoomView } from '../loom/LoomView'
@@ -9,6 +9,7 @@ import { PathListScreen } from '../paths/PathListScreen'
 import { PersonListScreen } from '../people/PersonListScreen'
 import { PlaceListScreen } from '../places/PlaceListScreen'
 import { QuestListScreen } from '../quests/QuestListScreen'
+import { ThreadListScreen } from '../threads/ThreadListScreen'
 
 /**
  * Props for the GameViewContent component.
@@ -20,20 +21,27 @@ export interface GameViewContentProps {
   /** Current playthrough ID (may be null). */
   playthroughId: PlaythroughId | null
 
-  /** The section to render (entity type). */
-  section: EntityType
+  /** The section to render (main view type). */
+  section: MainViewType
 
   /** Reachable place IDs from current position (for Loom/Map availability). */
   reachablePlaceIds: Set<PlaceId>
+
+  /** Current position place ID (for Oracle and Loom routes). */
+  currentPositionPlaceId: PlaceId | null
+
+  /** Set of actionable entity IDs (for Loom/map emphasis). */
+  actionableEntityIds: Set<string>
+
+  /** Set of thread IDs on actionable routes (for Loom edge styling). */
+  actionableRouteEdgeIds: Set<string>
 }
 
 /**
  * Renders the content for the active game view section.
- * Each section is a feature list screen with CRUD; receives gameId and playthroughId from GameView.
+ * Each section is a feature list screen, Loom, Maps, or Oracle.
  *
- * @param props.gameId - Current game ID.
- * @param props.playthroughId - Current playthrough ID.
- * @param props.section - Active section key.
+ * @param props - GameViewContent props.
  * @returns A JSX element representing the GameViewContent component.
  */
 export function GameViewContent({
@@ -41,41 +49,57 @@ export function GameViewContent({
   playthroughId,
   section,
   reachablePlaceIds,
+  currentPositionPlaceId,
+  actionableEntityIds,
+  actionableRouteEdgeIds,
 }: GameViewContentProps): JSX.Element {
   const commonProps = { gameId, playthroughId, reachablePlaceIds }
 
   const content = (() => {
     switch (section) {
-      case EntityType.QUEST:
+      case MainViewType.QUESTS:
         return <QuestListScreen {...commonProps} />
-      case EntityType.INSIGHT:
-        return <InsightListScreen {...commonProps} />
-      case EntityType.ITEM:
-        return <ItemListScreen {...commonProps} />
-      case EntityType.PERSON:
-        return <PersonListScreen {...commonProps} />
-      case EntityType.PLACE:
-        return <PlaceListScreen {...commonProps} />
-      case EntityType.PATH:
-        return <PathListScreen {...commonProps} />
-      case EntityType.MAP:
-        return (
-          <MapsSection
-            gameId={gameId}
-            playthroughId={playthroughId}
-            reachablePlaceIds={reachablePlaceIds}
-          />
-        )
-      case EntityType.THREAD:
+      case MainViewType.LOOM:
         return (
           <LoomView
             gameId={gameId}
             playthroughId={playthroughId}
             reachablePlaceIds={reachablePlaceIds}
+            actionableRouteEdgeIds={actionableRouteEdgeIds}
           />
         )
+      case MainViewType.MAPS:
+        return (
+          <MapsSection
+            gameId={gameId}
+            playthroughId={playthroughId}
+            reachablePlaceIds={reachablePlaceIds}
+            actionableEntityIds={actionableEntityIds}
+          />
+        )
+      case MainViewType.ORACLE:
+        return (
+          <OracleScreen
+            gameId={gameId}
+            playthroughId={playthroughId}
+            reachablePlaceIds={reachablePlaceIds}
+            currentPositionPlaceId={currentPositionPlaceId}
+          />
+        )
+      case MainViewType.PLACES:
+        return <PlaceListScreen {...commonProps} />
+      case MainViewType.PATHS:
+        return <PathListScreen {...commonProps} />
+      case MainViewType.ITEMS:
+        return <ItemListScreen {...commonProps} />
+      case MainViewType.PEOPLE:
+        return <PersonListScreen {...commonProps} />
+      case MainViewType.INSIGHTS:
+        return <InsightListScreen {...commonProps} />
+      case MainViewType.THREADS:
+        return <ThreadListScreen {...commonProps} />
       default: {
-        const label = ENTITY_TYPE_PLURAL_LABELS[section]
+        const label = MainViewType[section] ?? 'Unknown'
         return (
           <p className="text-slate-500" aria-live="polite">
             {label} — coming soon

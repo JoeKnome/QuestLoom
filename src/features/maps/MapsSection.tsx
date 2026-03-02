@@ -15,6 +15,9 @@ export interface MapsSectionProps {
 
   /** Reachable place IDs from current position (for marker availability). */
   reachablePlaceIds: Set<PlaceId>
+
+  /** Set of actionable entity IDs (for marker emphasis styling). */
+  actionableEntityIds: Set<string>
 }
 
 /**
@@ -30,6 +33,7 @@ export function MapsSection({
   gameId,
   playthroughId,
   reachablePlaceIds,
+  actionableEntityIds,
 }: MapsSectionProps): JSX.Element {
   const mapUiMode = useGameViewStore((s) => s.mapUiMode)
   const lastViewedMapId = useGameViewStore((s) => s.lastViewedMapId)
@@ -41,6 +45,7 @@ export function MapsSection({
           gameId={gameId}
           mapId={lastViewedMapId}
           reachablePlaceIds={reachablePlaceIds}
+          actionableEntityIds={actionableEntityIds}
         />
       </div>
     )

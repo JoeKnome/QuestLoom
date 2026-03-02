@@ -364,13 +364,15 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
 - [x] All items left to do are documented for future action.
 - [x] All affected code passes code standards, style, and lint.
 
-### 5.7 Contextual progression
+### 5.7 Contextual progression ✅ Complete
 
-- [ ] **Logic** — Given current playthrough state (item/insight/quest/person statuses, current position, reachable Places, Path status and traversability), compute "actionable" threads or next steps. Display in a dedicated section or in the Loom (e.g. highlight actionable edges, "what you can do next").
-- [ ] **Integration** — Use availability (5.2, 5.6) and reachability (5.5); only suggest entities and threads that are available and (where relevant) reachable. Use **acquired** items, **known** insights, and new status enums consistently.
-- [ ] All documentation pages are updated reflecting the latest state of the app.
-- [ ] All items left to do are documented for future action.
-- [ ] All affected code passes code standards, style, and lint.
+- [x] **Logic** — Given current playthrough state (item/insight/quest/person statuses, current position, reachable Places, Path status and traversability), compute "actionable" threads or next steps. Display in a dedicated section or in the Loom (e.g. highlight actionable edges, "what you can do next").
+- [x] **Integration** — Use availability (5.2, 5.6) and reachability (5.5); only suggest entities and threads that are available and (where relevant) reachable. Use **acquired** items, **known** insights, and new status enums consistently.
+- [x] All documentation pages are updated reflecting the latest state of the app.
+- [x] All items left to do are documented for future action.
+- [x] All affected code passes code standards, style, and lint.
+
+Implemented: **MainViewType** enum (Quests, Loom, Maps, Oracle, Places, Paths, Items, People, Insights, Threads) drives the game view sidebar and content. **Oracle** is a sidebar tab whose content shows "what you can do next" in the main panel (actionable entities: start quest, complete objective, acquire item, mark insight known, open path). **Actionable route edges** in the Loom are the shortest traversable paths from current position to actionable nodes (teal emphasis). **Actionable map markers** use the same teal ring emphasis. Logic in `src/lib/contextualProgression/`; hook `useActionableNextSteps`; Oracle component and GameView/Sidebar/Content refactored to MainViewType.
 
 ### 5.8 Spoiler visibility
 

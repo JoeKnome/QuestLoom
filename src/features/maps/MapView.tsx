@@ -84,6 +84,9 @@ export interface MapViewProps {
 
   /** Reachable place IDs from current position (for marker availability styling). */
   reachablePlaceIds?: Set<PlaceId>
+
+  /** Set of actionable entity IDs (for marker emphasis styling). */
+  actionableEntityIds?: Set<string>
 }
 
 /**
@@ -178,6 +181,7 @@ export function MapView({
   gameId,
   mapId,
   reachablePlaceIds = new Set(),
+  actionableEntityIds = new Set(),
 }: MapViewProps): JSX.Element {
   const [map, setMap] = useState<Map | null | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
@@ -949,6 +953,7 @@ export function MapView({
                     available={
                       markerAvailabilityByEntityId[marker.entityId] ?? true
                     }
+                    actionable={actionableEntityIds.has(marker.entityId)}
                   />
                 </div>
               )

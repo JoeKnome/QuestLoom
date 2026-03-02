@@ -16,6 +16,9 @@ export interface MapMarkerBadgeProps {
 
   /** False when entity is unavailable (requirements or location unreachable); greys out the badge. */
   available?: boolean
+
+  /** True when entity is actionable (what you can do next); adds accent ring for emphasis. */
+  actionable?: boolean
 }
 
 /**
@@ -31,6 +34,7 @@ export function MapMarkerBadge({
   initial,
   title,
   available = true,
+  actionable = false,
 }: MapMarkerBadgeProps): JSX.Element {
   const colorClasses = getEntityTypeColorClasses(entityType)
   const safeInitial = initial.trim()
@@ -43,7 +47,7 @@ export function MapMarkerBadge({
         available
           ? `border-white ${colorClasses}`
           : 'border-slate-300 bg-slate-300 opacity-60'
-      }`}
+      } ${actionable ? 'ring-2 ring-teal-300 ring-offset-2' : ''}`}
       title={title}
       role="button"
       tabIndex={0}

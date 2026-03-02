@@ -1,39 +1,18 @@
-import { EntityType } from '../../types/EntityType'
-import { ENTITY_TYPE_PLURAL_LABELS } from '../../utils/entityTypeLabels'
+import { MainViewType, getMainViewTypeLabel } from '../../types/MainViewType'
+import { SECTIONS } from './gameViewSections'
 
 /**
  * Props for the GameViewSidebar component.
  */
 export interface GameViewSidebarProps {
   /** Currently active section. */
-  activeSection: EntityType
+  activeSection: MainViewType
   /** Called when the user selects a section. */
-  onSelectSection: (section: EntityType) => void
+  onSelectSection: (section: MainViewType) => void
 }
 
 /**
- * Sections of the game view sidebar in display order.
- */
-const SECTIONS: EntityType[] = [
-  EntityType.QUEST,
-  EntityType.THREAD,
-  EntityType.MAP,
-  EntityType.PLACE,
-  EntityType.PATH,
-  EntityType.ITEM,
-  EntityType.PERSON,
-  EntityType.INSIGHT,
-]
-
-/**
- * Override section labels in the sidebar. THREAD section is shown as "Loom" (graph view).
- */
-const SECTION_DISPLAY_LABELS: Partial<Record<EntityType, string>> = {
-  [EntityType.THREAD]: 'Loom',
-}
-
-/**
- * Sidebar navigation for the game view. Lists all entity sections;
+ * Sidebar navigation for the game view. Lists sections from SECTIONS;
  * clicking an item sets it as active and the parent renders that section's content.
  * On narrow viewports, shows as a horizontal scrollable bar; on wider viewports, a vertical sidebar.
  *
@@ -65,8 +44,7 @@ export function GameViewSidebar({
               }`}
               aria-current={isActive ? 'true' : undefined}
             >
-              {SECTION_DISPLAY_LABELS[section] ??
-                ENTITY_TYPE_PLURAL_LABELS[section]}
+              {getMainViewTypeLabel(section)}
             </button>
           )
         })}

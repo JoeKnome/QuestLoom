@@ -9,7 +9,9 @@ import type { Game } from '../../types/Game'
 import type { Playthrough } from '../../types/Playthrough'
 import type { PlaceId } from '../../types/ids'
 import { useReachablePlaces } from '../../hooks/useReachablePlaces'
-import { EntityType } from '../../types/EntityType'
+import { useActionableNextSteps } from '../../hooks/useActionableNextSteps'
+import { MainViewType } from '../../types/MainViewType'
+import { SECTIONS } from './gameViewSections'
 import { useGameViewStore } from '../../stores/gameViewStore'
 import { PlacePicker } from '../../components/PlacePicker'
 import { GameViewContent } from './GameViewContent'
@@ -41,9 +43,7 @@ export function GameView(): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [isPlaythroughPanelOpen, setIsPlaythroughPanelOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [activeSection, setActiveSection] = useState<EntityType>(
-    EntityType.QUEST
-  )
+  const [activeSection, setActiveSection] = useState<MainViewType>(SECTIONS[0])
   const [isPositionSelectorOpen, setIsPositionSelectorOpen] = useState(false)
   const [positionDraftPlaceId, setPositionDraftPlaceId] = useState<
     PlaceId | ''
@@ -63,6 +63,13 @@ export function GameView(): JSX.Element {
     currentPlaythroughId,
     currentPositionPlaceIdForReachability ?? null
   )
+  const { actionableEntityIds, actionableRouteEdgeIds } =
+    useActionableNextSteps(
+      currentGameId,
+      currentPlaythroughId,
+      reachablePlaceIds,
+      currentPositionPlaceIdForReachability ?? null
+    )
 
   const refetchPlaythroughs = useCallback(() => {
     setRefreshKey((k) => k + 1)
@@ -77,19 +84,19 @@ export function GameView(): JSX.Element {
    * @param section - Section selected by the user.
    */
   const handleSelectSection = useCallback(
-    (section: EntityType) => {
-      if (section !== EntityType.MAP) {
+    (section: MainViewType) => {
+      if (section !== MainViewType.MAPS) {
         setActiveSection(section)
         return
       }
 
-      if (activeSection !== EntityType.MAP) {
+      if (activeSection !== MainViewType.MAPS) {
         if (lastViewedMapId !== null) {
           openMapView(lastViewedMapId)
         } else {
           openMapSelection()
         }
-        setActiveSection(EntityType.MAP)
+        setActiveSection(MainViewType.MAPS)
         return
       }
 
@@ -97,7 +104,7 @@ export function GameView(): JSX.Element {
         openMapSelection()
       }
 
-      setActiveSection(EntityType.MAP)
+      setActiveSection(MainViewType.MAPS)
     },
     [activeSection, lastViewedMapId, mapUiMode, openMapSelection, openMapView]
   )
@@ -291,6 +298,9 @@ export function GameView(): JSX.Element {
             playthroughId={currentPlaythroughId}
             section={activeSection}
             reachablePlaceIds={reachablePlaceIds}
+            currentPositionPlaceId={currentPositionPlaceId}
+            actionableEntityIds={actionableEntityIds}
+            actionableRouteEdgeIds={actionableRouteEdgeIds}
           />
         </div>
       </div>
