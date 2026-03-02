@@ -47,7 +47,7 @@ export function MapMarkerBadge({
 
   const emphasisClasses =
     actionable && available
-      ? 'ring-2 ring-teal-500 ring-offset-2 border-teal-500 shadow-lg'
+      ? 'ring-2 ring-teal-500 border-teal-500 shadow-lg'
       : ''
 
   return (
