@@ -100,13 +100,16 @@ async function buildPathTraversabilityMap(
 }
 
 /**
- * Builds traversable place graph with thread IDs for each step.
- * 
+ * Builds traversable place graph with thread IDs for each step, based on
+ * DIRECT_PLACE_LINK and CONNECTS_PATH threads and the current path
+ * traversability map. LOCATION and other relationship threads are handled
+ * separately when building actionable routes.
+ *
  * @param gameId - Current game ID.
  * @param playthroughId - Current playthrough ID.
  * @param placeIds - All place IDs for the game.
- * @param traversableByPathId - A map of path IDs to their traversability status.
- * @returns A map of place IDs to their neighbors and thread IDs.
+ * @param traversableByPathId - Map of path IDs to traversable flags.
+ * @returns Map of place IDs to neighbors and the thread IDs along that edge.
  */
 async function buildTraversableGraphWithThreadIds(
   gameId: GameId,
@@ -114,7 +117,8 @@ async function buildTraversableGraphWithThreadIds(
   placeIds: Set<PlaceId>,
   traversableByPathId: Map<string, boolean>
 ): Promise<Map<PlaceId, Array<{ neighbor: PlaceId; threadIds: string[] }>>> {
-  // Get all threads for the game.
+  // For connectivity we consider both game-level and playthrough-level threads
+  // because connectivity (movement) can be gated per playthrough.
   const threads = await threadRepository.getByGameId(gameId, playthroughId)
 
   // Map place IDs to their neighbors and thread IDs.
@@ -128,7 +132,8 @@ async function buildTraversableGraphWithThreadIds(
     adjacency.set(id, [])
   }
 
-  // Path endpoints: pathId -> Set<PlaceId>, and for each (path, place) we need the thread id
+  // Path endpoints: pathId -> { placeId, threadId }[], and for each (path, place)
+  // we record the CONNECTS_PATH thread ID.
   const pathToPlacesAndThreads = new Map<
     string,
     Array<{ placeId: PlaceId; threadId: string }>
@@ -501,26 +506,68 @@ export async function getActionableRouteEdgeIds(
     adjacency
   )
 
-  // Get the target place IDs.
-  const targetPlaceIds = new Set<PlaceId>()
+  // Preload LOCATION threads once so we can highlight edges from places
+  // to actionable entities located at those places.
+  const allThreads = await threadRepository.getByGameId(gameId, null)
+  const locationThreadsByEntityAndPlace = new Map<string, string[]>()
+
+  // Build map of LOCATION threads keyed by (entityId, placeId). We only
+  // care about actionable entities located at known places.
+  for (const thread of allThreads) {
+    const subtype = ThreadSubtype.LOCATION
+    if (subtype !== ThreadSubtype.LOCATION) continue
+    const sourceType = getEntityTypeFromId(thread.sourceId)
+    const targetType = getEntityTypeFromId(thread.targetId)
+    let entityId: string | null = null
+    let placeId: PlaceId | null = null
+    if (sourceType === EntityType.PLACE && targetType != null) {
+      placeId = thread.sourceId as PlaceId
+      entityId = thread.targetId
+    } else if (targetType === EntityType.PLACE && sourceType != null) {
+      placeId = thread.targetId as PlaceId
+      entityId = thread.sourceId
+    }
+    if (!entityId || !placeId) continue
+    if (!actionableEntityIds.has(entityId)) continue
+    if (!placeIds.has(placeId)) continue
+    const key = `${entityId}|${placeId}`
+    const list = locationThreadsByEntityAndPlace.get(key) ?? []
+    list.push(thread.id)
+    locationThreadsByEntityAndPlace.set(key, list)
+  }
+
+  // Collect all thread IDs that form actionable routes:
+  // - shortest path from current position to each relevant place
+  // - LOCATION edges from those places to actionable entities.
+  const allThreadIds = new Set<string>()
+
   for (const entityId of actionableEntityIds) {
     const type = getEntityTypeFromId(entityId)
+
+    // When the actionable entity is itself a place, highlight only the
+    // path edges needed to reach it.
     if (type === EntityType.PLACE) {
-      if (placeIds.has(entityId as PlaceId))
-        targetPlaceIds.add(entityId as PlaceId)
-    } else {
-      const locs = await getEntityLocationPlaceIds(gameId, entityId)
-      for (const id of locs) targetPlaceIds.add(id)
+      if (!placeIds.has(entityId as PlaceId)) continue
+      const routeThreadIds = pathThreadIdsByPlace.get(entityId as PlaceId)
+      if (!routeThreadIds) continue
+      for (const t of routeThreadIds) allThreadIds.add(t)
+      continue
+    }
+
+    // For non-place entities, highlight:
+    // - the path from current position to each of their location places
+    // - the LOCATION edge(s) from those places to the entity.
+    const locs = await getEntityLocationPlaceIds(gameId, entityId)
+    for (const placeId of locs) {
+      if (!placeIds.has(placeId)) continue
+      const routeThreadIds = pathThreadIdsByPlace.get(placeId)
+      if (!routeThreadIds) continue
+      for (const t of routeThreadIds) allThreadIds.add(t)
+      const key = `${entityId}|${placeId}`
+      const locationThreadIds = locationThreadsByEntityAndPlace.get(key) ?? []
+      for (const t of locationThreadIds) allThreadIds.add(t)
     }
   }
 
-  // Get the thread IDs for the target places.
-  const allThreadIds = new Set<string>()
-  for (const placeId of targetPlaceIds) {
-    const threadIds = pathThreadIdsByPlace.get(placeId)
-    if (threadIds) {
-      for (const t of threadIds) allThreadIds.add(t)
-    }
-  }
   return allThreadIds
 }

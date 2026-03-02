@@ -47,7 +47,7 @@ export function MapMarkerBadge({
         available
           ? `border-white ${colorClasses}`
           : 'border-slate-300 bg-slate-300 opacity-60'
-      } ${actionable ? 'ring-2 ring-teal-300 ring-offset-2' : ''}`}
+      } ${actionable ? 'ring-2 ring-teal-500 ring-offset-2' : ''}`}
       title={title}
       role="button"
       tabIndex={0}

@@ -307,7 +307,7 @@ export function useLoomGraph(
 
           const isActionableRoute = actionableRouteEdgeIdsRef.current.has(t.id)
           if (isActionableRoute) {
-            style.stroke = '#5eead4'
+            style.stroke = '#14b8a6'
             style.strokeWidth = 3
             style.opacity = 1
           }
