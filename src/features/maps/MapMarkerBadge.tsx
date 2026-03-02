@@ -41,13 +41,19 @@ export function MapMarkerBadge({
     ? initial.trim().charAt(0).toUpperCase()
     : '?'
 
+  const baseClasses = available
+    ? `border-white ${colorClasses}`
+    : 'border-slate-300 bg-slate-300 opacity-60'
+
+  const emphasisClasses = actionable && available
+    ? 'ring-2 ring-teal-500 ring-offset-2 border-teal-500 shadow-lg'
+    : ''
+
   return (
     <div
       className={`flex h-6 w-6 select-none items-center justify-center rounded-full border shadow-md ${
-        available
-          ? `border-white ${colorClasses}`
-          : 'border-slate-300 bg-slate-300 opacity-60'
-      } ${actionable ? 'ring-2 ring-teal-500 ring-offset-2' : ''}`}
+        baseClasses
+      } ${emphasisClasses}`}
       title={title}
       role="button"
       tabIndex={0}
