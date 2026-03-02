@@ -48,7 +48,7 @@ export interface ActionableEntity {
 
 /**
  * Builds a map of path IDs to their traversability status.
- * 
+ *
  * @param gameId - Current game ID.
  * @param playthroughId - Current playthrough ID.
  * @param paths - All paths for the game.
@@ -76,7 +76,7 @@ async function buildPathTraversabilityMap(
       return { id: p.id, available: r.available }
     })
   )
-  
+
   // Map path IDs to their availability status.
   const pathAvailabilityById = new Map<string, boolean>()
   for (const r of results) {
@@ -202,7 +202,7 @@ async function buildTraversableGraphWithThreadIds(
 
     // Get the thread IDs for the path.
     const threadIds = placesAndThreads.map((x) => x.threadId)
-    
+
     // Get the places for the path.
     const places = placesAndThreads.map((x) => x.placeId)
 
@@ -222,7 +222,7 @@ async function buildTraversableGraphWithThreadIds(
 
 /**
  * BFS from startPlaceId; returns for each reachable place the set of thread IDs on one shortest path.
- * 
+ *
  * @param startPlaceId - The starting place ID.
  * @param adjacency - A map of place IDs to their neighbors and thread IDs.
  * @returns A map of place IDs to the set of thread IDs on one shortest path.

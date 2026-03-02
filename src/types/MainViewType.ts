@@ -30,7 +30,7 @@ export enum MainViewType {
 
   /** Insights view */
   INSIGHTS = 8,
-  
+
   /** Threads view */
   THREADS = 9,
 }

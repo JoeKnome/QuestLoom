@@ -34,7 +34,7 @@ export interface LoomViewProps {
 
   /** Reachable place IDs from current position (for node availability styling). */
   reachablePlaceIds: Set<PlaceId>
-  
+
   /** Set of thread IDs on actionable routes (for edge emphasis styling). */
   actionableRouteEdgeIds: Set<string>
 }

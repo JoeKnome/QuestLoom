@@ -15,7 +15,7 @@ export interface UseActionableNextStepsResult {
 
   /** Set of actionable entity IDs for Loom/map styling. */
   actionableEntityIds: Set<string>
-  
+
   /** Set of thread IDs on shortest routes to actionable nodes (for Loom edge styling). */
   actionableRouteEdgeIds: Set<string>
 
@@ -58,7 +58,6 @@ export function useActionableNextSteps(
 
   // Compute actionable entities and route edge IDs.
   useEffect(() => {
-    
     // If no game ID or playthrough ID, set state to empty and return.
     if (!gameId || !playthroughId) {
       setActionableEntities([])
@@ -95,7 +94,6 @@ export function useActionableNextSteps(
         setActionableRouteEdgeIds(edgeIds)
       })
       .catch((err: unknown) => {
-        
         // If cancelled, return.
         if (cancelled) return
 
@@ -105,7 +103,7 @@ export function useActionableNextSteps(
         setIsLoading(false)
 
         // Set error state to message or 'Failed to load actionable steps'.
-          setError(
+        setError(
           err instanceof Error ? err.message : 'Failed to load actionable steps'
         )
       })
