@@ -41,18 +41,17 @@ export function MapMarkerBadge({
     ? initial.trim().charAt(0).toUpperCase()
     : '?'
 
+  // Base styling: normal markers have no ring; actionable markers add a teal ring.
   const baseClasses = available
-    ? `border-white ${colorClasses}`
-    : 'border-slate-300 bg-slate-300 opacity-60'
+    ? colorClasses
+    : 'bg-slate-300 opacity-60'
 
   const emphasisClasses =
-    actionable && available
-      ? 'ring-2 ring-teal-500 border-teal-500 shadow-lg'
-      : ''
+    actionable && available ? 'ring-2 ring-teal-500 shadow-lg' : ''
 
   return (
     <div
-      className={`flex h-6 w-6 select-none items-center justify-center rounded-full border shadow-md ${
+      className={`flex h-6 w-6 select-none items-center justify-center rounded-full shadow-md ${
         baseClasses
       } ${emphasisClasses}`}
       title={title}
