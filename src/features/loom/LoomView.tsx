@@ -35,6 +35,9 @@ export interface LoomViewProps {
   /** Reachable place IDs from current position (for node availability styling). */
   reachablePlaceIds: Set<PlaceId>
 
+  /** Set of actionable entity IDs (for node emphasis styling). */
+  actionableEntityIds: Set<string>
+
   /** Set of thread IDs on actionable routes (for edge emphasis styling). */
   actionableRouteEdgeIds: Set<string>
 }
@@ -46,6 +49,7 @@ function LoomContent({
   gameId,
   playthroughId,
   reachablePlaceIds,
+  actionableEntityIds,
   actionableRouteEdgeIds,
 }: LoomViewProps): JSX.Element {
   const {
@@ -57,6 +61,7 @@ function LoomContent({
     gameId,
     playthroughId,
     reachablePlaceIds,
+    actionableEntityIds,
     actionableRouteEdgeIds
   )
 
@@ -180,12 +185,16 @@ function LoomContent({
  *
  * @param props.gameId - Current game ID.
  * @param props.playthroughId - Current playthrough ID.
+ * @param props.reachablePlaceIds - Reachable place IDs from current position.
+ * @param props.actionableEntityIds - Set of actionable entity IDs for node emphasis.
+ * @param props.actionableRouteEdgeIds - Set of thread IDs on actionable routes for edge emphasis.
  * @returns A JSX element representing the LoomView component.
  */
 export function LoomView({
   gameId,
   playthroughId,
   reachablePlaceIds,
+  actionableEntityIds,
   actionableRouteEdgeIds,
 }: LoomViewProps): JSX.Element {
   return (
@@ -194,6 +203,7 @@ export function LoomView({
         gameId={gameId}
         playthroughId={playthroughId}
         reachablePlaceIds={reachablePlaceIds}
+        actionableEntityIds={actionableEntityIds}
         actionableRouteEdgeIds={actionableRouteEdgeIds}
       />
     </ReactFlowProvider>

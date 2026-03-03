@@ -8,6 +8,7 @@ import type { Node, NodeProps } from '@xyflow/react'
 import { Handle, Position } from '@xyflow/react'
 import { memo } from 'react'
 import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
+import { getEntityTypeColorClasses } from '../../utils/entityTypeColors'
 import type { EntityNodeData } from './useLoomGraph'
 
 /** Entity node type for Loom (custom data). */
@@ -39,16 +40,18 @@ function EntityNodeComponent({
   data,
   selected,
 }: NodeProps<EntityNodeType>): JSX.Element {
-  const { entityType, label, available = true } = data
+  const { entityType, label, available = true, actionable = false } = data
   const typeLabel = ENTITY_TYPE_LABELS[entityType] ?? 'Entity'
+  const colorClasses = getEntityTypeColorClasses(entityType)
+  const baseColorClasses = available ? colorClasses : 'bg-slate-200 text-slate-500'
+  const isEmphasized = actionable && available
+  const borderClasses = isEmphasized ? 'border-4 border-teal-500' : 'border-0'
+  const selectionClasses = selected ? 'scale-110' : ''
+  const availabilityClasses = available ? '' : 'opacity-60'
 
   return (
     <div
-      className={`relative rounded border px-3 py-2 shadow-sm ${
-        available
-          ? 'bg-white border-slate-200 hover:border-slate-300'
-          : 'border-slate-200 bg-slate-100 opacity-60'
-      } ${selected ? 'border-slate-400 ring-2 ring-slate-300' : ''}`}
+      className={`relative rounded px-3 py-2 shadow-sm ${baseColorClasses} ${availabilityClasses} ${borderClasses} ${selectionClasses}`}
     >
       <Handle
         type="target"
@@ -62,19 +65,13 @@ function EntityNodeComponent({
         style={centerHandleStyle}
         className="!border-0"
       />
-      <div
-        className={`text-[10px] font-medium uppercase tracking-wide ${
-          available ? 'text-slate-500' : 'text-slate-400'
-        }`}
-      >
-        {typeLabel}
-      </div>
-      <div
-        className={`max-w-[140px] truncate text-sm font-medium ${
-          available ? 'text-slate-800' : 'text-slate-500'
-        }`}
-      >
-        {label}
+      <div className="flex flex-col gap-0.5">
+        <div className="text-[10px] font-medium uppercase tracking-wide">
+          {typeLabel}
+        </div>
+        <div className="max-w-[160px] truncate text-sm font-medium">
+          {label}
+        </div>
       </div>
     </div>
   )

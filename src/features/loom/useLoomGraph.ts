@@ -39,6 +39,9 @@ export interface EntityNodeData extends Record<string, unknown> {
 
   /** False when entity is unavailable (requirements or location unreachable); used for styling. */
   available?: boolean
+
+  /** True when this entity is currently actionable; used for emphasis styling. */
+  actionable?: boolean
 }
 
 /** The width of the layout. */
@@ -54,6 +57,7 @@ const LAYOUT_HEIGHT = 600
  * @param gameId - Current game ID.
  * @param playthroughId - Current playthrough ID (threads include game-level and this playthrough).
  * @param reachablePlaceIds - Reachable place IDs from current position; when null, all nodes are treated as available.
+ * @param actionableEntityIds - Set of actionable entity IDs; those nodes get emphasis styling.
  * @param actionableRouteEdgeIds - Set of thread IDs on shortest routes to actionable nodes; those edges get emphasis styling.
  * @returns Nodes, edges, loading state, and optional error.
  */
@@ -61,6 +65,7 @@ export function useLoomGraph(
   gameId: GameId,
   playthroughId: PlaythroughId | null,
   reachablePlaceIds: Set<PlaceId>,
+  actionableEntityIds: Set<string>,
   actionableRouteEdgeIds: Set<string>
 ): {
   nodes: Node<EntityNodeData>[]
@@ -78,6 +83,12 @@ export function useLoomGraph(
   const reachablePlaceIdsKey = useMemo(
     () => Array.from(reachablePlaceIds).sort().join(','),
     [reachablePlaceIds]
+  )
+  const actionableEntityIdsRef = useRef(actionableEntityIds)
+  actionableEntityIdsRef.current = actionableEntityIds
+  const actionableEntityIdsKey = useMemo(
+    () => Array.from(actionableEntityIds).sort().join(','),
+    [actionableEntityIds]
   )
   const actionableRouteEdgeIdsRef = useRef(actionableRouteEdgeIds)
   actionableRouteEdgeIdsRef.current = actionableRouteEdgeIds
@@ -261,6 +272,7 @@ export function useLoomGraph(
             entityType: e.entityType,
             label: e.label || 'Unnamed',
             available,
+            actionable: actionableEntityIdsRef.current.has(e.id),
           },
         }
       })
@@ -336,7 +348,7 @@ export function useLoomGraph(
 
   useEffect(() => {
     load()
-  }, [load, reachablePlaceIdsKey, actionableRouteEdgeIdsKey])
+  }, [load, reachablePlaceIdsKey, actionableEntityIdsKey, actionableRouteEdgeIdsKey])
 
   return { nodes, edges, isLoading, error }
 }

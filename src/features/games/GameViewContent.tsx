@@ -65,6 +65,7 @@ export function GameViewContent({
             gameId={gameId}
             playthroughId={playthroughId}
             reachablePlaceIds={reachablePlaceIds}
+            actionableEntityIds={actionableEntityIds}
             actionableRouteEdgeIds={actionableRouteEdgeIds}
           />
         )
