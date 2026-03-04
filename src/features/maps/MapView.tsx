@@ -31,13 +31,10 @@ import type {
 import { EntityType } from '../../types/EntityType'
 import { THREAD_ENDPOINT_ENTITY_TYPES } from '../../types/EntityType'
 import { ThreadSubtype } from '../../types/ThreadSubtype'
-import { QuestStatus } from '../../types/QuestStatus'
-import { ItemStatus } from '../../types/ItemStatus'
-import { InsightStatus } from '../../types/InsightStatus'
-import { PersonStatus } from '../../types/PersonStatus'
 import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
 import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
 import { MapMarkerBadge } from './MapMarkerBadge'
+import { getCompletedEntityIdsForPlaythrough } from '../../lib/completion'
 
 /** Zoom-out limit as a multiple of fit-to-view scale (similar periphery across maps). */
 const MIN_SCALE_MULTIPLIER = 0.5
@@ -332,59 +329,11 @@ export function MapView({
     let cancelled = false
 
     async function loadCompletion(): Promise<void> {
-      const [questProgress, insightProgress, itemState, personProgress] =
-        await Promise.all([
-          questRepository.getAllProgressForPlaythrough(currentPlaythroughId!),
-          insightRepository.getAllProgressForPlaythrough(currentPlaythroughId!),
-          itemRepository.getAllStateForPlaythrough(currentPlaythroughId!),
-          personRepository.getAllProgressForPlaythrough(currentPlaythroughId!),
-        ])
+      const completedIds = await getCompletedEntityIdsForPlaythrough(
+        currentPlaythroughId!
+      )
 
       if (cancelled) return
-
-      const completedIds = new Set<string>()
-
-      ;(questProgress as { questId: string; status: QuestStatus }[]).forEach(
-        (row) => {
-          if (
-            row.status === QuestStatus.COMPLETED ||
-            row.status === QuestStatus.ABANDONED
-          ) {
-            completedIds.add(row.questId)
-          }
-        }
-      )
-
-      ;(
-        insightProgress as { insightId: string; status: InsightStatus }[]
-      ).forEach((row) => {
-        if (
-          row.status === InsightStatus.KNOWN ||
-          row.status === InsightStatus.IRRELEVANT
-        ) {
-          completedIds.add(row.insightId)
-        }
-      })
-
-      ;(itemState as { itemId: string; status: ItemStatus }[]).forEach(
-        (row) => {
-          if (
-            row.status === ItemStatus.ACQUIRED ||
-            row.status === ItemStatus.USED ||
-            row.status === ItemStatus.LOST
-          ) {
-            completedIds.add(row.itemId)
-          }
-        }
-      )
-
-      ;(personProgress as { personId: string; status: PersonStatus }[]).forEach(
-        (row) => {
-          if (row.status === PersonStatus.DEAD) {
-            completedIds.add(row.personId)
-          }
-        }
-      )
 
       const markerIds = new Set(markers.map((m) => m.entityId))
       const byEntity: Record<string, boolean> = {}
@@ -416,10 +365,9 @@ export function MapView({
     let cancelled = false
 
     async function loadDiscovery(): Promise<void> {
-      const rows =
-        await entityDiscoveryRepository.getAllForPlaythrough(
-          currentPlaythroughId!
-        )
+      const rows = await entityDiscoveryRepository.getAllForPlaythrough(
+        currentPlaythroughId!
+      )
       if (cancelled) return
 
       const hiddenIds = new Set(
