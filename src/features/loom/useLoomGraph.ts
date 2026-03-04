@@ -8,8 +8,13 @@ import type { Edge, Node } from '@xyflow/react'
 import { EntityType } from '../../types/EntityType'
 import { ThreadSubtype } from '../../types/ThreadSubtype'
 import { PathStatus } from '../../types/PathStatus'
+import { QuestStatus } from '../../types/QuestStatus'
+import { ItemStatus } from '../../types/ItemStatus'
+import { InsightStatus } from '../../types/InsightStatus'
+import { PersonStatus } from '../../types/PersonStatus'
 import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
 import {
+  entityDiscoveryRepository,
   insightRepository,
   itemRepository,
   pathRepository,
@@ -42,6 +47,21 @@ export interface EntityNodeData extends Record<string, unknown> {
 
   /** True when this entity is currently actionable; used for emphasis styling. */
   actionable?: boolean
+
+  /**
+   * True when this entity is "completed" or resolved for visual purposes
+   * (e.g. completed/abandoned quests, acquired/used/lost items, known/irrelevant
+   * insights, dead persons). Completed entities are de-emphasized via lower
+   * opacity.
+   */
+  completed?: boolean
+
+  /**
+   * True when this entity is hidden by spoiler protection (for now driven by
+   * discovery records). When set, type-specific coloring is not shown so the
+   * entity type is not revealed; callers may also choose to mask labels.
+   */
+  spoilerHidden?: boolean
 }
 
 /** The width of the layout. */
@@ -117,6 +137,11 @@ export function useLoomGraph(
         paths,
         threads,
         pathProgress,
+        questProgress,
+        insightProgress,
+        itemState,
+        personProgress,
+        discoveryRows,
       ] = await Promise.all([
         questRepository.getByGameId(gameId),
         insightRepository.getByGameId(gameId),
@@ -127,6 +152,21 @@ export function useLoomGraph(
         threadRepository.getByGameId(gameId, playthroughId),
         playthroughId
           ? pathRepository.getAllProgressForPlaythrough(playthroughId)
+          : Promise.resolve([]),
+        playthroughId
+          ? questRepository.getAllProgressForPlaythrough(playthroughId)
+          : Promise.resolve([]),
+        playthroughId
+          ? insightRepository.getAllProgressForPlaythrough(playthroughId)
+          : Promise.resolve([]),
+        playthroughId
+          ? itemRepository.getAllStateForPlaythrough(playthroughId)
+          : Promise.resolve([]),
+        playthroughId
+          ? personRepository.getAllProgressForPlaythrough(playthroughId)
+          : Promise.resolve([]),
+        playthroughId
+          ? entityDiscoveryRepository.getAllForPlaythrough(playthroughId)
           : Promise.resolve([]),
       ])
 
@@ -248,6 +288,72 @@ export function useLoomGraph(
       const nodeIds = entityList.map((e) => e.id)
       const idToEntity = new Map(entityList.map((e) => [e.id, e]))
 
+      // Map entity IDs to a "completed-like" visual state based on their
+      // playthrough-scoped statuses. These are intentionally coarse-grained:
+      // quests that are completed or abandoned, items that are acquired, used, or lost,
+      // insights that are known or irrelevant, and people who are dead are all
+      // treated as visually completed so they recede in the Loom.
+      const completedById = new Map<string, boolean>()
+
+      if (playthroughId) {
+        for (const row of questProgress as {
+          questId: string
+          status: QuestStatus
+        }[]) {
+          if (
+            row.status === QuestStatus.COMPLETED ||
+            row.status === QuestStatus.ABANDONED
+          ) {
+            completedById.set(row.questId, true)
+          }
+        }
+
+        for (const row of insightProgress as {
+          insightId: string
+          status: InsightStatus
+        }[]) {
+          if (
+            row.status === InsightStatus.KNOWN ||
+            row.status === InsightStatus.IRRELEVANT
+          ) {
+            completedById.set(row.insightId, true)
+          }
+        }
+
+        for (const row of itemState as {
+          itemId: string
+          status: ItemStatus
+        }[]) {
+          if (
+            row.status === ItemStatus.ACQUIRED ||
+            row.status === ItemStatus.USED ||
+            row.status === ItemStatus.LOST
+          ) {
+            completedById.set(row.itemId, true)
+          }
+        }
+
+        for (const row of personProgress as {
+          personId: string
+          status: PersonStatus
+        }[]) {
+          if (row.status === PersonStatus.DEAD) {
+            completedById.set(row.personId, true)
+          }
+        }
+      }
+
+      // Map entity IDs to spoiler-hidden state based on discovery records.
+      // Only explicit discovered: false rows are treated as hidden; absence of
+      // a record defaults to "visible" so existing content is unaffected until
+      // discovery rules are wired in.
+      const spoilerHiddenById = new Map<string, boolean>()
+      for (const row of discoveryRows as { entityId: string; discovered: boolean }[]) {
+        if (!row.discovered) {
+          spoilerHiddenById.set(row.entityId, true)
+        }
+      }
+
       const links = threads
         .filter((t) => idToEntity.has(t.sourceId) && idToEntity.has(t.targetId))
         .map((t) => ({ source: t.sourceId, target: t.targetId }))
@@ -264,6 +370,8 @@ export function useLoomGraph(
         const available = entityAvailabilityById.has(e.id)
           ? entityAvailabilityById.get(e.id)
           : true
+        const completed = completedById.get(e.id) ?? false
+        const spoilerHidden = spoilerHiddenById.get(e.id) ?? false
         return {
           id: e.id,
           type: 'entityNode',
@@ -273,6 +381,8 @@ export function useLoomGraph(
             label: e.label || 'Unnamed',
             available,
             actionable: actionableEntityIdsRef.current.has(e.id),
+            completed,
+            spoilerHidden,
           },
         }
       })

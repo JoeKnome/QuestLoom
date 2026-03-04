@@ -42,6 +42,14 @@
 - **Marker interactions** — Right-click (or long-press) on the map opens a context menu: add a marker for an existing entity (picker) or create a new entity and place its marker. Right-click on a marker: move marker (cursor-follow then click to place; ESC cancels), delete marker only, or delete marker and entity (with confirmation and full cascade). Pan is default; moving a marker requires the explicit "Move marker" action.
 - Multiple maps per game.
 
+### Visual language for entity state
+
+- **Type** — Each entity type (quest, insight, item, person, place, path) has a distinct base color used consistently for Loom nodes and map marker badges.
+- **Unavailable** — When an entity is unavailable (requirements unmet or location unreachable), it **keeps its type color** but is visually **de-emphasized** (desaturated) so the type is still communicated while signalling that it cannot currently be acted on.
+- **Completed/resolved** — When an entity is completed or resolved for its type (e.g. completed/abandoned quests, acquired/used/lost items, known/irrelevant insights, dead persons), it is shown with **lower opacity** than active entities so it recedes from focus without disappearing.
+- **Actionable** — When an entity is actionable (Oracle / contextual progression), its Loom node and map markers receive a **teal emphasis ring** while keeping their base type color.
+- **Spoiler-hidden** — When spoiler protection hides an undiscovered entity, its Loom node and map markers use a **neutral grey** style and generic label so the underlying type color is not revealed; discovery rules determine when this state is applied.
+
 ### People & Places
 
 - Add people (characters, NPCs) with name and notes

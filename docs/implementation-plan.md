@@ -358,7 +358,7 @@ Implemented: Introduced a Dexie-backed `PathRepository` with full CRUD and playt
 ### 5.6 Location at Place and availability ✅ Complete
 
 - [x] **Eligibility** — Any entity that can have a map marker can be **located at** one or more Places via **LOCATION threads** (thread-only; no `location` field on any entity). If **all** of an entity's location Places are unreachable (per 5.5), that entity is **unavailable**. An entity is unavailable if (1) its requirements are not met (5.2), or (2) it has at least one location Place and none of them are reachable.
-- [x] **Availability representation** — Unavailable/unreachable entities have a visual representation in the Loom and Map views (greyed out or faded). This updates as playthrough state changes.
+- [x] **Availability representation** — Unavailable/unreachable entities keep their **type-colored** styling but are visually de-emphasized (desaturated) in the Loom and Map views so the type remains readable while signalling that they cannot currently be acted on. This updates as playthrough state changes.
 - [x] **Consistent location model** — Item no longer has a `location` field; Quest, Insight, Item, Person all use LOCATION threads only; multiple places per entity supported.
 - [x] All documentation pages are updated reflecting the latest state of the app.
 - [x] All items left to do are documented for future action.
@@ -376,7 +376,8 @@ Implemented: **MainViewType** enum (Quests, Loom, Maps, Oracle, Places, Paths, I
 
 ### 5.8 Spoiler visibility
 
-- [ ] **Rules** — Define which entities/insights/threads (and optionally Paths) are visible only after certain conditions. Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the Loom (hide or grey out not-yet-visible nodes/edges).
+- [ ] **Rules** — Define which entities/insights/threads (and optionally Paths) are visible only after certain conditions. Store visibility rules with game data; evaluate against playthrough state. Use for filtering in lists and in the Loom (hide or soften not-yet-visible nodes/edges).
+- [x] **Hidden state styling** — When spoiler protection hides an undiscovered entity, its Loom node and map markers use a neutral grey style and generic labelling so the underlying entity type color (and therefore type) is not revealed; discovery records drive this state.
 - [ ] All documentation pages are updated reflecting the latest state of the app.
 - [ ] All items left to do are documented for future action.
 - [ ] All affected code passes code standards, style, and lint.

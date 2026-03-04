@@ -8,7 +8,11 @@ import type { Node, NodeProps } from '@xyflow/react'
 import { Handle, Position } from '@xyflow/react'
 import { memo } from 'react'
 import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
-import { getEntityTypeColorClasses } from '../../utils/entityTypeColors'
+import {
+  getEntityTypeColorClasses,
+  getUnavailableEntityTypeColorClasses,
+  getSpoilerHiddenColorClasses,
+} from '../../utils/entityTypeColors'
 import type { EntityNodeData } from './useLoomGraph'
 
 /** Entity node type for Loom (custom data). */
@@ -40,18 +44,46 @@ function EntityNodeComponent({
   data,
   selected,
 }: NodeProps<EntityNodeType>): JSX.Element {
-  const { entityType, label, available = true, actionable = false } = data
-  const typeLabel = ENTITY_TYPE_LABELS[entityType] ?? 'Entity'
-  const colorClasses = getEntityTypeColorClasses(entityType)
-  const baseColorClasses = available ? colorClasses : 'bg-slate-200 text-slate-500'
-  const isEmphasized = actionable && available
+  const {
+    entityType,
+    label,
+    available = true,
+    actionable = false,
+    completed = false,
+    spoilerHidden = false,
+  } = data
+
+  const typeLabel = spoilerHidden
+    ? '???'
+    : ENTITY_TYPE_LABELS[entityType] ?? 'Entity'
+
+  const displayLabel = spoilerHidden ? '???' : label
+
+  const baseColorClasses = spoilerHidden
+    ? getSpoilerHiddenColorClasses()
+    : available
+      ? getEntityTypeColorClasses(entityType)
+      : getUnavailableEntityTypeColorClasses(entityType)
+
+  const isEmphasized =
+    actionable && available && !spoilerHidden && !completed
   const borderClasses = isEmphasized ? 'border-4 border-teal-500' : 'border-0'
   const selectionClasses = selected ? 'scale-110' : ''
-  const availabilityClasses = available ? '' : 'opacity-60'
+
+  // Opacity is lowered for completed entities so they visually recede. Unavailable
+  // entities use desaturated type colors instead of opacity changes. Spoiler-hidden
+  // nodes use neutral grey and ignore availability/completion styling to avoid
+  // leaking type.
+  let opacityClass = ''
+  if (!spoilerHidden) {
+    if (completed) {
+      opacityClass = 'opacity-60'
+    }
+  }
 
   return (
     <div
-      className={`relative rounded px-3 py-2 shadow-sm ${baseColorClasses} ${availabilityClasses} ${borderClasses} ${selectionClasses}`}
+      className={`relative rounded px-3 py-2 shadow-sm ${baseColorClasses} ${opacityClass} ${borderClasses} ${selectionClasses}`}
     >
       <Handle
         type="target"
@@ -70,7 +102,7 @@ function EntityNodeComponent({
           {typeLabel}
         </div>
         <div className="max-w-[160px] truncate text-sm font-medium">
-          {label}
+          {displayLabel}
         </div>
       </div>
     </div>

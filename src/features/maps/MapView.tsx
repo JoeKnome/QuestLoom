@@ -4,6 +4,7 @@ import { ContextMenu } from '../../components/ContextMenu'
 import { EntityPicker } from '../../components/EntityPicker'
 import { checkEntityAvailabilityWithReachability } from '../../lib/requirements'
 import {
+  entityDiscoveryRepository,
   insightRepository,
   itemRepository,
   mapMarkerRepository,
@@ -30,6 +31,10 @@ import type {
 import { EntityType } from '../../types/EntityType'
 import { THREAD_ENDPOINT_ENTITY_TYPES } from '../../types/EntityType'
 import { ThreadSubtype } from '../../types/ThreadSubtype'
+import { QuestStatus } from '../../types/QuestStatus'
+import { ItemStatus } from '../../types/ItemStatus'
+import { InsightStatus } from '../../types/InsightStatus'
+import { PersonStatus } from '../../types/PersonStatus'
 import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
 import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
 import { MapMarkerBadge } from './MapMarkerBadge'
@@ -189,6 +194,11 @@ export function MapView({
   const [imageLoadError, setImageLoadError] = useState(false)
   const [markerAvailabilityByEntityId, setMarkerAvailabilityByEntityId] =
     useState<Record<string, boolean>>({})
+  const [markerCompletedByEntityId, setMarkerCompletedByEntityId] = useState<
+    Record<string, boolean>
+  >({})
+  const [markerSpoilerHiddenByEntityId, setMarkerSpoilerHiddenByEntityId] =
+    useState<Record<string, boolean>>({})
   const imageRevokeRef = useRef<(() => void) | undefined>(undefined)
 
   const [markers, setMarkers] = useState<MapMarker[]>([])
@@ -306,6 +316,130 @@ export function MapView({
       cancelled = true
     }
   }, [gameId, currentPlaythroughId, markers, reachablePlaceIds])
+
+  /**
+   * Compute "completed-like" visual state per marker entity when a playthrough
+   * is set. This mirrors the Loom's notion of completion: quests that are
+   * completed or abandoned, items that are acquired, used, or lost, insights that are
+   * known or irrelevant, and people who are dead are all treated as visually
+   * completed so their markers can be de-emphasized.
+   */
+  useEffect(() => {
+    if (!currentPlaythroughId || markers.length === 0) {
+      setMarkerCompletedByEntityId({})
+      return
+    }
+    let cancelled = false
+
+    async function loadCompletion(): Promise<void> {
+      const [questProgress, insightProgress, itemState, personProgress] =
+        await Promise.all([
+          questRepository.getAllProgressForPlaythrough(currentPlaythroughId!),
+          insightRepository.getAllProgressForPlaythrough(currentPlaythroughId!),
+          itemRepository.getAllStateForPlaythrough(currentPlaythroughId!),
+          personRepository.getAllProgressForPlaythrough(currentPlaythroughId!),
+        ])
+
+      if (cancelled) return
+
+      const completedIds = new Set<string>()
+
+      ;(questProgress as { questId: string; status: QuestStatus }[]).forEach(
+        (row) => {
+          if (
+            row.status === QuestStatus.COMPLETED ||
+            row.status === QuestStatus.ABANDONED
+          ) {
+            completedIds.add(row.questId)
+          }
+        }
+      )
+
+      ;(
+        insightProgress as { insightId: string; status: InsightStatus }[]
+      ).forEach((row) => {
+        if (
+          row.status === InsightStatus.KNOWN ||
+          row.status === InsightStatus.IRRELEVANT
+        ) {
+          completedIds.add(row.insightId)
+        }
+      })
+
+      ;(itemState as { itemId: string; status: ItemStatus }[]).forEach(
+        (row) => {
+          if (
+            row.status === ItemStatus.ACQUIRED ||
+            row.status === ItemStatus.USED ||
+            row.status === ItemStatus.LOST
+          ) {
+            completedIds.add(row.itemId)
+          }
+        }
+      )
+
+      ;(personProgress as { personId: string; status: PersonStatus }[]).forEach(
+        (row) => {
+          if (row.status === PersonStatus.DEAD) {
+            completedIds.add(row.personId)
+          }
+        }
+      )
+
+      const markerIds = new Set(markers.map((m) => m.entityId))
+      const byEntity: Record<string, boolean> = {}
+      markerIds.forEach((id) => {
+        if (completedIds.has(id)) {
+          byEntity[id] = true
+        }
+      })
+      setMarkerCompletedByEntityId(byEntity)
+    }
+
+    loadCompletion()
+
+    return () => {
+      cancelled = true
+    }
+  }, [currentPlaythroughId, markers])
+
+  /**
+   * Compute spoiler-hidden state per marker entity when discovery rules mark
+   * an entity as undiscovered. Only explicit discovered: false records hide
+   * markers; absence of a record leaves current behaviour unchanged.
+   */
+  useEffect(() => {
+    if (!currentPlaythroughId || markers.length === 0) {
+      setMarkerSpoilerHiddenByEntityId({})
+      return
+    }
+    let cancelled = false
+
+    async function loadDiscovery(): Promise<void> {
+      const rows =
+        await entityDiscoveryRepository.getAllForPlaythrough(
+          currentPlaythroughId!
+        )
+      if (cancelled) return
+
+      const hiddenIds = new Set(
+        rows.filter((r) => !r.discovered).map((r) => r.entityId)
+      )
+      const byEntity: Record<string, boolean> = {}
+      markers.forEach((m) => {
+        if (hiddenIds.has(m.entityId)) {
+          byEntity[m.entityId] = true
+        }
+      })
+      setMarkerSpoilerHiddenByEntityId(byEntity)
+    }
+
+    loadDiscovery()
+
+    return () => {
+      cancelled = true
+    }
+  }, [currentPlaythroughId, markers])
 
   /** Apply a transform and persist it to the store. */
   const applyTransform = useCallback(
@@ -954,6 +1088,12 @@ export function MapView({
                       markerAvailabilityByEntityId[marker.entityId] ?? true
                     }
                     actionable={actionableEntityIds.has(marker.entityId)}
+                    completed={
+                      markerCompletedByEntityId[marker.entityId] ?? false
+                    }
+                    spoilerHidden={
+                      markerSpoilerHiddenByEntityId[marker.entityId] ?? false
+                    }
                   />
                 </div>
               )

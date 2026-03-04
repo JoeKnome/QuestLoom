@@ -28,6 +28,14 @@ A companion app for mystery and adventure games that lets users track quests, in
 2. **Flexible** — Adapts to different game types: escape rooms, mystery boxes, tabletop RPGs, video game playthroughs.
 3. **Persistent** — User data persists across sessions. Save and resume at any time.
 
+## Visual Language (Entities and State)
+
+- **Type as color** — Each core entity type (Quest, Insight, Item, Person, Place, Path) has a distinct base color. This color is used consistently for Loom nodes and map marker badges so type is immediately recognizable.
+- **Unavailable** — When an entity is unavailable (requirements unmet or location unreachable), it remains **type-colored** but is visually de-emphasized (desaturated) so the user can still read the type while seeing it is not currently usable.
+- **Completed/resolved** — When an entity is completed or resolved for its type (e.g. completed/abandoned quests, acquired/used/lost items, known/irrelevant insights, dead persons), its node/marker is shown with **lower opacity** than active entities so it recedes from focus without disappearing.
+- **Actionable** — When an entity is actionable (Oracle / contextual progression), its Loom node and map markers receive a **teal emphasis ring** in addition to their base type color to draw attention to "what you can do next."
+- **Spoiler-hidden** — When spoiler protection hides an undiscovered entity, its Loom node and map markers use a **neutral grey** style and generic labelling so the entity’s type color (and therefore type) is not revealed until discovery rules mark it visible.
+
 ## Scope
 
 ### In Scope
