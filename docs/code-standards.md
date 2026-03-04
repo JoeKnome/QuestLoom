@@ -10,14 +10,14 @@ This document defines the code standards and conventions for the QuestLoom codeb
 
 All code **must** pass Prettier formatting. The project uses the following configuration (`.prettierrc`):
 
-| Option          | Value   |
-| --------------- | ------- |
-| `semi`          | `false` |
-| `singleQuote`   | `true`  |
-| `tabWidth`      | `2`     |
-| `trailingComma` | `es5`   |
+| Option          | Value  |
+| --------------- | ------ |
+| `semi`          | `true` |
+| `singleQuote`   | `true` |
+| `tabWidth`      | `2`    |
+| `trailingComma` | `es5`  |
 
-- No semicolons at end of statements
+- Semicolons at end of statements
 - Single quotes for strings
 - 2 spaces for indentation
 - Trailing commas where valid in ES5
@@ -92,9 +92,9 @@ export function QuestCard({
  * @property type - The kind of relationship
  */
 export interface Thread {
-  from: string
-  to: string
-  type: ThreadType
+  from: string;
+  to: string;
+  type: ThreadType;
 }
 ```
 
