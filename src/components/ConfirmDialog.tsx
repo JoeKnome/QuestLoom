@@ -8,21 +8,21 @@
  */
 export interface ConfirmDialogProps {
   /** When true, the dialog is visible. */
-  isOpen: boolean
+  isOpen: boolean;
   /** Main message shown in the dialog. */
-  message: string
+  message: string;
   /** Label for the confirm (destructive) button. */
-  confirmLabel?: string
+  confirmLabel?: string;
   /** Label for the cancel button. */
-  cancelLabel?: string
+  cancelLabel?: string;
   /** Called when the user confirms. */
-  onConfirm: () => void
+  onConfirm: () => void;
   /** Called when the user cancels or clicks the overlay. */
-  onCancel: () => void
+  onCancel: () => void;
   /** Optional title above the message. */
-  title?: string
+  title?: string;
   /** When 'danger', the confirm button uses destructive styling. */
-  variant?: 'default' | 'danger'
+  variant?: 'default' | 'danger';
 }
 
 /**
@@ -41,12 +41,12 @@ export function ConfirmDialog({
   title,
   variant = 'default',
 }: ConfirmDialogProps): JSX.Element | null {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const confirmClass =
     variant === 'danger'
       ? 'rounded border border-red-600 bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700'
-      : 'rounded border border-slate-300 bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800'
+      : 'rounded border border-slate-300 bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800';
 
   return (
     <div
@@ -86,5 +86,5 @@ export function ConfirmDialog({
         </div>
       </div>
     </div>
-  )
+  );
 }

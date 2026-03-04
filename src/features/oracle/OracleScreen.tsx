@@ -1,21 +1,21 @@
-import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
-import { useActionableNextSteps } from '../../hooks/useActionableNextSteps'
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids';
+import { useActionableNextSteps } from '../../hooks/useActionableNextSteps';
 
 /**
  * Props for the OracleScreen component.
  */
 export interface OracleScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
 
   /** Current playthrough ID (may be null). */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 
   /** Reachable place IDs from current position. */
-  reachablePlaceIds: Set<PlaceId>
+  reachablePlaceIds: Set<PlaceId>;
 
   /** Current position place ID (for route computation). */
-  currentPositionPlaceId: PlaceId | null
+  currentPositionPlaceId: PlaceId | null;
 }
 
 /**
@@ -37,7 +37,7 @@ export function OracleScreen({
     playthroughId,
     reachablePlaceIds,
     currentPositionPlaceId
-  )
+  );
 
   // Loading state.
   if (isLoading) {
@@ -45,7 +45,7 @@ export function OracleScreen({
       <div className="flex min-h-[200px] items-center justify-center text-slate-500">
         Loading…
       </div>
-    )
+    );
   }
 
   // Error state.
@@ -54,7 +54,7 @@ export function OracleScreen({
       <div className="flex min-h-[200px] items-center justify-center text-red-600">
         {error}
       </div>
-    )
+    );
   }
 
   // No actionable entities state.
@@ -70,7 +70,7 @@ export function OracleScreen({
               : 'Nothing actionable right now.'}
         </p>
       </div>
-    )
+    );
   }
 
   // Actionable entities state.
@@ -94,5 +94,5 @@ export function OracleScreen({
         ))}
       </ul>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import type { GameId, PlaceId, PlaythroughId } from './ids'
+import type { GameId, PlaceId, PlaythroughId } from './ids';
 
 /**
  * Playthrough: one user's run of a game.
@@ -6,23 +6,23 @@ import type { GameId, PlaceId, PlaythroughId } from './ids'
  */
 export interface Playthrough {
   /** Unique identifier. */
-  id: PlaythroughId
+  id: PlaythroughId;
 
   /** ID of the game this playthrough belongs to. */
 
-  gameId: GameId
+  gameId: GameId;
   /** Optional playthrough name. */
 
-  name: string
+  name: string;
   /**
    * Typed ID of the current position place for this playthrough.
    * When null, the playthrough has no current position set.
    */
-  currentPositionPlaceId: PlaceId | null
+  currentPositionPlaceId: PlaceId | null;
 
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
 
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

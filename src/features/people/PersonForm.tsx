@@ -1,22 +1,22 @@
-import { useCallback, useState } from 'react'
-import { LocationPlacesEditor } from '../../components/LocationPlacesEditor'
-import { syncLocationThreads } from '../../lib/location'
-import { personRepository } from '../../lib/repositories'
-import type { GameId, PlaceId } from '../../types/ids'
-import type { Person } from '../../types/Person'
+import { useCallback, useState } from 'react';
+import { LocationPlacesEditor } from '../../components/LocationPlacesEditor';
+import { syncLocationThreads } from '../../lib/location';
+import { personRepository } from '../../lib/repositories';
+import type { GameId, PlaceId } from '../../types/ids';
+import type { Person } from '../../types/Person';
 
 /**
  * Props for PersonForm when creating a new person.
  */
 export interface PersonFormCreateProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'create'
+  mode: 'create';
   /** Game ID the person belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Called after successful create. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
@@ -24,19 +24,19 @@ export interface PersonFormCreateProps {
  */
 export interface PersonFormEditProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'edit'
+  mode: 'edit';
   /** The person to edit. */
-  person: Person
+  person: Person;
   /** Called after successful update. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
  * Props for PersonForm.
  */
-export type PersonFormProps = PersonFormCreateProps | PersonFormEditProps
+export type PersonFormProps = PersonFormCreateProps | PersonFormEditProps;
 
 /**
  * Form to create or edit a person. In create mode requires gameId;
@@ -48,57 +48,57 @@ export type PersonFormProps = PersonFormCreateProps | PersonFormEditProps
 export function PersonForm(props: PersonFormProps): JSX.Element {
   const [name, setName] = useState(
     props.mode === 'edit' ? props.person.name : ''
-  )
+  );
   const [notes, setNotes] = useState(
     props.mode === 'edit' ? props.person.notes : ''
-  )
-  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const gameId = props.mode === 'create' ? props.gameId : props.person.gameId
+  );
+  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const gameId = props.mode === 'create' ? props.gameId : props.person.gameId;
 
   /**
    * Handles the submission of the person form.
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmedName = name.trim()
+      e.preventDefault();
+      const trimmedName = name.trim();
       if (!trimmedName) {
-        setError('Enter a name.')
-        return
+        setError('Enter a name.');
+        return;
       }
-      setError(null)
-      setIsSubmitting(true)
+      setError(null);
+      setIsSubmitting(true);
       try {
         if (props.mode === 'create') {
           const person = await personRepository.create({
             gameId: props.gameId,
             name: trimmedName,
             notes: notes.trim() || undefined,
-          })
-          await syncLocationThreads(props.gameId, person.id, locationPlaceIds)
+          });
+          await syncLocationThreads(props.gameId, person.id, locationPlaceIds);
         } else {
           await personRepository.update({
             ...props.person,
             name: trimmedName,
             notes: notes.trim(),
-          })
+          });
           await syncLocationThreads(
             props.person.gameId,
             props.person.id,
             locationPlaceIds
-          )
+          );
         }
-        props.onSaved()
+        props.onSaved();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save person.')
+        setError(err instanceof Error ? err.message : 'Failed to save person.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [name, notes, locationPlaceIds, props]
-  )
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -172,5 +172,5 @@ export function PersonForm(props: PersonFormProps): JSX.Element {
         </button>
       </div>
     </form>
-  )
+  );
 }

@@ -1,35 +1,35 @@
-import { useCallback, useState } from 'react'
-import { EntityPicker } from '../../components/EntityPicker'
-import { threadRepository } from '../../lib/repositories'
+import { useCallback, useState } from 'react';
+import { EntityPicker } from '../../components/EntityPicker';
+import { threadRepository } from '../../lib/repositories';
 import {
   EntityType,
   THREAD_ENDPOINT_ENTITY_TYPES,
-} from '../../types/EntityType'
-import type { GameId, PlaythroughId } from '../../types/ids'
-import type { Thread } from '../../types/Thread'
-import { ThreadSubtype } from '../../types/ThreadSubtype'
-import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
-import { getEntityTypeFromId } from '../../utils/parseEntityId'
+} from '../../types/EntityType';
+import type { GameId, PlaythroughId } from '../../types/ids';
+import type { Thread } from '../../types/Thread';
+import { ThreadSubtype } from '../../types/ThreadSubtype';
+import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels';
+import { getEntityTypeFromId } from '../../utils/parseEntityId';
 import {
   getThreadSubtype,
   getThreadSubtypeDisplayLabel,
-} from '../../utils/threadSubtype'
-import { STATUS_OPTIONS } from '../../utils/requirementStatusOptions'
+} from '../../utils/threadSubtype';
+import { STATUS_OPTIONS } from '../../utils/requirementStatusOptions';
 
 /**
  * Props for ThreadForm when creating a new thread.
  */
 export interface ThreadFormCreateProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'create'
+  mode: 'create';
   /** Game ID the thread belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Current playthrough ID; when set, thread can be playthrough-scoped. */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
   /** Called after successful create. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
@@ -37,19 +37,19 @@ export interface ThreadFormCreateProps {
  */
 export interface ThreadFormEditProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'edit'
+  mode: 'edit';
   /** The thread to edit. */
-  thread: Thread
+  thread: Thread;
   /** Called after successful update. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
  * Represents the props for the ThreadForm component.
  */
-export type ThreadFormProps = ThreadFormCreateProps | ThreadFormEditProps
+export type ThreadFormProps = ThreadFormCreateProps | ThreadFormEditProps;
 
 /**
  * Form to create or edit a thread. Uses threadRepository and EntityPicker for source/target.
@@ -60,88 +60,90 @@ export type ThreadFormProps = ThreadFormCreateProps | ThreadFormEditProps
  * @returns A JSX element representing the ThreadForm component.
  */
 export function ThreadForm(props: ThreadFormProps): JSX.Element {
-  const isCreate = props.mode === 'create'
+  const isCreate = props.mode === 'create';
   const [sourceType, setSourceType] = useState<EntityType>(() =>
     isCreate
       ? EntityType.PERSON
       : (getEntityTypeFromId(props.thread.sourceId) ?? EntityType.PERSON)
-  )
+  );
   const [sourceId, setSourceId] = useState(
     isCreate ? '' : props.thread.sourceId
-  )
+  );
   const [targetType, setTargetType] = useState<EntityType>(() =>
     isCreate
       ? EntityType.PLACE
       : (getEntityTypeFromId(props.thread.targetId) ?? EntityType.PLACE)
-  )
+  );
   const [targetId, setTargetId] = useState(
     isCreate ? '' : props.thread.targetId
-  )
-  const [label, setLabel] = useState(isCreate ? '' : props.thread.label)
+  );
+  const [label, setLabel] = useState(isCreate ? '' : props.thread.label);
   /** Subtype preset for the dropdown; in edit mode initialized from thread.subtype. */
   const [subtypePreset, setSubtypePreset] = useState<
     '' | 'requires' | 'objective_requires'
   >(() => {
     if (!isCreate) {
-      const subtype = getThreadSubtype(props.thread)
-      if (subtype === ThreadSubtype.REQUIRES) return 'requires'
+      const subtype = getThreadSubtype(props.thread);
+      if (subtype === ThreadSubtype.REQUIRES) return 'requires';
       if (subtype === ThreadSubtype.OBJECTIVE_REQUIRES)
-        return 'objective_requires'
+        return 'objective_requires';
     }
-    return ''
-  })
+    return '';
+  });
   const [requirementAllowedStatuses, setRequirementAllowedStatuses] = useState<
     number[]
-  >(() => (isCreate ? [] : (props.thread.requirementAllowedStatuses ?? [])))
+  >(() => (isCreate ? [] : (props.thread.requirementAllowedStatuses ?? [])));
   const [objectiveIndex, setObjectiveIndex] = useState<number>(() =>
     isCreate ? 0 : (props.thread.objectiveIndex ?? 0)
-  )
+  );
   const [playthroughOnly, setPlaythroughOnly] = useState(
     isCreate ? false : Boolean(props.thread.playthroughId)
-  )
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const gameId = isCreate ? props.gameId : props.thread.gameId
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const gameId = isCreate ? props.gameId : props.thread.gameId;
   /** Whether the selected subtype is a requirement type (derived from subtype, not label). */
   const isRequirementSubtype =
-    subtypePreset === 'requires' || subtypePreset === 'objective_requires'
-  const statusOptions = STATUS_OPTIONS[targetType]
+    subtypePreset === 'requires' || subtypePreset === 'objective_requires';
+  const statusOptions = STATUS_OPTIONS[targetType];
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
+      e.preventDefault();
       if (sourceId === '') {
-        setError('Select a source entity.')
-        return
+        setError('Select a source entity.');
+        return;
       }
       if (targetId === '') {
-        setError('Select a target entity.')
-        return
+        setError('Select a target entity.');
+        return;
       }
       if (sourceId === targetId) {
-        setError('Source and target must be different.')
-        return
+        setError('Source and target must be different.');
+        return;
       }
       const subtype: ThreadSubtype =
         subtypePreset === 'requires'
           ? ThreadSubtype.REQUIRES
           : subtypePreset === 'objective_requires'
             ? ThreadSubtype.OBJECTIVE_REQUIRES
-            : ThreadSubtype.CUSTOM
+            : ThreadSubtype.CUSTOM;
       const resolvedLabel =
-        subtype === ThreadSubtype.CUSTOM ? label.trim() || undefined : undefined
+        subtype === ThreadSubtype.CUSTOM
+          ? label.trim() || undefined
+          : undefined;
 
       // Check if the thread is a requirement type and playthrough-only is set,
       // and if so, set an error.
       if (isRequirementSubtype && playthroughOnly) {
         setError(
           'Requirement threads must be game-level (not playthrough-only).'
-        )
-        return
+        );
+        return;
       }
 
-      setError(null)
-      setIsSubmitting(true)
+      setError(null);
+      setIsSubmitting(true);
       try {
         if (isCreate) {
           await threadRepository.create({
@@ -163,12 +165,12 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               subtypePreset === 'objective_requires'
                 ? objectiveIndex
                 : undefined,
-          })
+          });
         } else {
           const updatedLabel =
             subtype === ThreadSubtype.CUSTOM
               ? (resolvedLabel ?? props.thread.label)
-              : getThreadSubtypeDisplayLabel(subtype)
+              : getThreadSubtypeDisplayLabel(subtype);
           await threadRepository.update({
             ...props.thread,
             subtype,
@@ -181,13 +183,13 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
               subtypePreset === 'objective_requires'
                 ? objectiveIndex
                 : undefined,
-          })
+          });
         }
-        props.onSaved()
+        props.onSaved();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save thread.')
+        setError(err instanceof Error ? err.message : 'Failed to save thread.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [
@@ -202,10 +204,10 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
       isCreate,
       props,
     ]
-  )
+  );
 
-  const clearSourceId = useCallback(() => setSourceId(''), [])
-  const clearTargetId = useCallback(() => setTargetId(''), [])
+  const clearSourceId = useCallback(() => setSourceId(''), []);
+  const clearTargetId = useCallback(() => setTargetId(''), []);
 
   /**
    * Toggles the allowed status for a requirement thread.
@@ -217,8 +219,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
   const toggleAllowedStatus = useCallback((value: number, checked: boolean) => {
     setRequirementAllowedStatuses((prev) =>
       checked ? [...prev, value] : prev.filter((v) => v !== value)
-    )
-  }, [])
+    );
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -231,8 +233,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
             <select
               value={sourceType}
               onChange={(e) => {
-                setSourceType(Number(e.target.value) as EntityType)
-                clearSourceId()
+                setSourceType(Number(e.target.value) as EntityType);
+                clearSourceId();
               }}
               disabled={isSubmitting}
               className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
@@ -264,8 +266,8 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
             <select
               value={targetType}
               onChange={(e) => {
-                setTargetType(Number(e.target.value) as EntityType)
-                clearTargetId()
+                setTargetType(Number(e.target.value) as EntityType);
+                clearTargetId();
               }}
               disabled={isSubmitting}
               className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
@@ -302,9 +304,9 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
                 const v = e.target.value as
                   | ''
                   | 'requires'
-                  | 'objective_requires'
-                setSubtypePreset(v)
-                if (v === '') setLabel('')
+                  | 'objective_requires';
+                setSubtypePreset(v);
+                if (v === '') setLabel('');
               }}
               disabled={isSubmitting}
               className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
@@ -412,9 +414,9 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
                 const v = e.target.value as
                   | ''
                   | 'requires'
-                  | 'objective_requires'
-                setSubtypePreset(v)
-                setLabel(v === '' ? props.thread.label : '')
+                  | 'objective_requires';
+                setSubtypePreset(v);
+                setLabel(v === '' ? props.thread.label : '');
               }}
               disabled={isSubmitting}
               className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:bg-slate-100"
@@ -508,5 +510,5 @@ export function ThreadForm(props: ThreadFormProps): JSX.Element {
         </button>
       </div>
     </form>
-  )
+  );
 }

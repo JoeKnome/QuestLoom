@@ -4,34 +4,34 @@
  */
 
 /** Unique identifier for a game (session container). */
-export type GameId = string
+export type GameId = string;
 
 /** Unique identifier for a playthrough (one user's run of a game). */
-export type PlaythroughId = string
+export type PlaythroughId = string;
 
 /** Unique identifier for a quest. */
-export type QuestId = string
+export type QuestId = string;
 
 /** Unique identifier for an insight. */
-export type InsightId = string
+export type InsightId = string;
 
 /** Unique identifier for an item. */
-export type ItemId = string
+export type ItemId = string;
 
 /** Unique identifier for a person. */
-export type PersonId = string
+export type PersonId = string;
 
 /** Unique identifier for a place. */
-export type PlaceId = string
+export type PlaceId = string;
 
 /** Unique identifier for a map. */
-export type MapId = string
+export type MapId = string;
 
 /** Unique identifier for a map marker. */
-export type MapMarkerId = string
+export type MapMarkerId = string;
 
 /** Unique identifier for a thread (link between two entities). */
-export type ThreadId = string
+export type ThreadId = string;
 
 /** Unique identifier for a path (connects places; game-scoped). */
-export type PathId = string
+export type PathId = string;

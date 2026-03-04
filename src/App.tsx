@@ -1,7 +1,7 @@
-import { useCallback } from 'react'
-import { GameListScreen } from './features/games/GameListScreen'
-import { GameView } from './features/games/GameView'
-import { useAppStore } from './stores/appStore'
+import { useCallback } from 'react';
+import { GameListScreen } from './features/games/GameListScreen';
+import { GameView } from './features/games/GameView';
+import { useAppStore } from './stores/appStore';
 
 /**
  * Root app component: shell layout and main content.
@@ -9,18 +9,18 @@ import { useAppStore } from './stores/appStore'
  * Logo click clears selection and returns to the game list.
  */
 function App() {
-  const currentGameId = useAppStore((s) => s.currentGameId)
+  const currentGameId = useAppStore((s) => s.currentGameId);
   const setCurrentGameAndPlaythrough = useAppStore(
     (s) => s.setCurrentGameAndPlaythrough
-  )
+  );
 
   const handleLogoClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
-      setCurrentGameAndPlaythrough(null, null)
-      e.currentTarget.blur()
+      setCurrentGameAndPlaythrough(null, null);
+      e.currentTarget.blur();
     },
     [setCurrentGameAndPlaythrough]
-  )
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
@@ -38,7 +38,7 @@ function App() {
         {currentGameId !== null ? <GameView /> : <GameListScreen />}
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

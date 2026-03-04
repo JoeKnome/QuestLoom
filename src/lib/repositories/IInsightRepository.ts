@@ -1,7 +1,7 @@
-import type { Insight } from '../../types/Insight'
-import type { InsightProgress } from '../../types/InsightProgress'
-import type { GameId, InsightId, PlaythroughId } from '../../types/ids'
-import type { CreateInsightInput } from './CreateInsightInput'
+import type { Insight } from '../../types/Insight';
+import type { InsightProgress } from '../../types/InsightProgress';
+import type { GameId, InsightId, PlaythroughId } from '../../types/ids';
+import type { CreateInsightInput } from './CreateInsightInput';
 
 /**
  * Contract for insight and insight progress data access.
@@ -14,7 +14,7 @@ export interface IInsightRepository {
    * @param gameId - The game ID.
    * @returns All insights for the game.
    */
-  getByGameId(gameId: GameId): Promise<Insight[]>
+  getByGameId(gameId: GameId): Promise<Insight[]>;
 
   /**
    * Returns an insight by ID.
@@ -22,7 +22,7 @@ export interface IInsightRepository {
    * @param id - The ID of the insight.
    * @returns The insight, or undefined if not found.
    */
-  getById(id: InsightId): Promise<Insight | undefined>
+  getById(id: InsightId): Promise<Insight | undefined>;
 
   /**
    * Creates an insight; ID and timestamps are set by the repository.
@@ -30,28 +30,28 @@ export interface IInsightRepository {
    * @param input - The input to create the insight.
    * @returns The created insight.
    */
-  create(input: CreateInsightInput): Promise<Insight>
+  create(input: CreateInsightInput): Promise<Insight>;
 
   /**
    * Updates an existing insight; updatedAt is set by the repository.
    *
    * @param insight - The insight to update.
    */
-  update(insight: Insight): Promise<void>
+  update(insight: Insight): Promise<void>;
 
   /**
    * Deletes an insight by ID.
    *
    * @param id - The ID of the insight to delete.
    */
-  delete(id: InsightId): Promise<void>
+  delete(id: InsightId): Promise<void>;
 
   /**
    * Deletes all insights for a game (cascade when deleting game).
    *
    * @param gameId - The ID of the game to delete.
    */
-  deleteByGameId(gameId: GameId): Promise<void>
+  deleteByGameId(gameId: GameId): Promise<void>;
 
   /**
    * Returns progress for a single insight in a playthrough, or undefined.
@@ -63,7 +63,7 @@ export interface IInsightRepository {
   getProgress(
     playthroughId: PlaythroughId,
     insightId: InsightId
-  ): Promise<InsightProgress | undefined>
+  ): Promise<InsightProgress | undefined>;
 
   /**
    * Returns all insight progress for a playthrough.
@@ -73,19 +73,19 @@ export interface IInsightRepository {
    */
   getAllProgressForPlaythrough(
     playthroughId: PlaythroughId
-  ): Promise<InsightProgress[]>
+  ): Promise<InsightProgress[]>;
 
   /**
    * Inserts or updates insight progress; id is generated if missing.
    *
    * @param progress - The insight progress to upsert.
    */
-  upsertProgress(progress: InsightProgress): Promise<void>
+  upsertProgress(progress: InsightProgress): Promise<void>;
 
   /**
    * Deletes all insight progress for a playthrough (cascade when deleting playthrough).
    *
    * @param playthroughId - The playthrough ID.
    */
-  deleteProgressByPlaythroughId(playthroughId: PlaythroughId): Promise<void>
+  deleteProgressByPlaythroughId(playthroughId: PlaythroughId): Promise<void>;
 }

@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
-import { personRepository, placeRepository } from '../lib/repositories'
-import type { GameId } from '../types/ids'
+import { useCallback, useEffect, useState } from 'react';
+import { personRepository, placeRepository } from '../lib/repositories';
+import type { GameId } from '../types/ids';
 
 /**
  * Option shown in the giver picker (id + display label with type).
  */
 export interface GiverOption {
   /** Entity ID (person or place). */
-  id: string
+  id: string;
   /** Display label, e.g. "Person: Alice" or "Place: Tavern". */
-  label: string
+  label: string;
 }
 
 /**
@@ -17,17 +17,17 @@ export interface GiverOption {
  */
 export interface GiverPickerProps {
   /** Game ID to load people and places from. */
-  gameId: GameId
+  gameId: GameId;
   /** Currently selected giver entity ID, or empty string for none. */
-  value: string
+  value: string;
   /** Called when the selection changes. */
-  onChange: (entityId: string) => void
+  onChange: (entityId: string) => void;
   /** When true, the control is disabled. */
-  disabled?: boolean
+  disabled?: boolean;
   /** Optional id for the select element. */
-  id?: string
+  id?: string;
   /** Optional label for the select (e.g. "Giver"). */
-  'aria-label'?: string
+  'aria-label'?: string;
 }
 
 /**
@@ -37,16 +37,16 @@ async function loadOptions(gameId: GameId): Promise<GiverOption[]> {
   const [people, places] = await Promise.all([
     personRepository.getByGameId(gameId),
     placeRepository.getByGameId(gameId),
-  ])
+  ]);
   const personOpts: GiverOption[] = people.map((p) => ({
     id: p.id,
     label: `Person: ${p.name}`,
-  }))
+  }));
   const placeOpts: GiverOption[] = places.map((p) => ({
     id: p.id,
     label: `Place: ${p.name}`,
-  }))
-  return [...personOpts, ...placeOpts]
+  }));
+  return [...personOpts, ...placeOpts];
 }
 
 /**
@@ -69,28 +69,28 @@ export function GiverPicker({
   id,
   'aria-label': ariaLabel,
 }: GiverPickerProps): JSX.Element {
-  const [options, setOptions] = useState<GiverOption[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [options, setOptions] = useState<GiverOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     loadOptions(gameId).then((list) => {
       if (!cancelled) {
-        setOptions(list)
-        setIsLoading(false)
+        setOptions(list);
+        setIsLoading(false);
       }
-    })
+    });
     return () => {
-      cancelled = true
-    }
-  }, [gameId])
+      cancelled = true;
+    };
+  }, [gameId]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange(e.target.value)
+      onChange(e.target.value);
     },
     [onChange]
-  )
+  );
 
   if (isLoading) {
     return (
@@ -102,7 +102,7 @@ export function GiverPicker({
       >
         <option value="">Loading…</option>
       </select>
-    )
+    );
   }
 
   return (
@@ -121,5 +121,5 @@ export function GiverPicker({
         </option>
       ))}
     </select>
-  )
+  );
 }

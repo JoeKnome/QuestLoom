@@ -1,4 +1,4 @@
-import type { MapMarker } from '../../types/MapMarker'
+import type { MapMarker } from '../../types/MapMarker';
 import type {
   EntityType,
   GameId,
@@ -10,7 +10,7 @@ import type {
   PersonId,
   PlaceId,
   PathId,
-} from '../../types'
+} from '../../types';
 
 /**
  * Input used when creating a new map marker.
@@ -18,40 +18,40 @@ import type {
  */
 export interface CreateMapMarkerInput {
   /** ID of the game this marker belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** ID of the map the marker is placed on. */
-  mapId: MapId
+  mapId: MapId;
   /**
    * Optional playthrough that owns this marker.
    * When set, the marker is scoped to a specific playthrough; when undefined,
    * the marker is shared across all playthroughs for the game.
    */
-  playthroughId?: PlaythroughId
+  playthroughId?: PlaythroughId;
   /**
    * Type of the entity this marker represents.
    * Must be one of the thread endpoint entity types (quest, insight, item, person, place).
    */
-  entityType: EntityType
+  entityType: EntityType;
   /**
    * ID of the entity this marker represents.
    * Must correspond to the provided entityType.
    */
-  entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId
+  entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId;
   /**
    * Optional short description used to differentiate markers for the same
    * entity (for example, \"at bar\" vs \"after raid\").
    */
-  label?: string
+  label?: string;
   /**
    * Logical coordinates in the map's coordinate space.
    * Values must be finite numbers but are not clamped to the image bounds.
    */
   position: {
     /** Logical horizontal coordinate in map space. */
-    x: number
+    x: number;
     /** Logical vertical coordinate in map space. */
-    y: number
-  }
+    y: number;
+  };
 }
 
 /**
@@ -76,7 +76,7 @@ export interface IMapMarkerRepository {
     gameId: GameId,
     mapId: MapId,
     playthroughId?: PlaythroughId | null
-  ): Promise<MapMarker[]>
+  ): Promise<MapMarker[]>;
 
   /**
    * Creates a new map marker.
@@ -87,7 +87,7 @@ export interface IMapMarkerRepository {
    * @param input - Input describing the marker to create.
    * @returns The created marker.
    */
-  create(input: CreateMapMarkerInput): Promise<MapMarker>
+  create(input: CreateMapMarkerInput): Promise<MapMarker>;
 
   /**
    * Updates an existing map marker.
@@ -97,14 +97,14 @@ export interface IMapMarkerRepository {
    *
    * @param marker - The marker to update.
    */
-  update(marker: MapMarker): Promise<void>
+  update(marker: MapMarker): Promise<void>;
 
   /**
    * Deletes a marker by ID.
    *
    * @param id - The ID of the marker to delete.
    */
-  delete(id: string): Promise<void>
+  delete(id: string): Promise<void>;
 
   /**
    * Deletes all markers for a given game and map.
@@ -112,7 +112,7 @@ export interface IMapMarkerRepository {
    * @param gameId - The game ID to scope the delete.
    * @param mapId - The map ID to delete markers for.
    */
-  deleteByMapId(gameId: GameId, mapId: MapId): Promise<void>
+  deleteByMapId(gameId: GameId, mapId: MapId): Promise<void>;
 
   /**
    * Deletes all markers referencing a given entity in a game.
@@ -125,5 +125,5 @@ export interface IMapMarkerRepository {
     gameId: GameId,
     entityType: EntityType,
     entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId
-  ): Promise<void>
+  ): Promise<void>;
 }

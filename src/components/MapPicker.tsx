@@ -1,24 +1,24 @@
-import { useCallback, useEffect, useState } from 'react'
-import { mapRepository } from '../lib/repositories'
-import type { GameId, MapId } from '../types/ids'
-import type { Map } from '../types/Map'
+import { useCallback, useEffect, useState } from 'react';
+import { mapRepository } from '../lib/repositories';
+import type { GameId, MapId } from '../types/ids';
+import type { Map } from '../types/Map';
 
 /**
  * Props for the MapPicker component.
  */
 export interface MapPickerProps {
   /** Game ID to load maps from. */
-  gameId: GameId
+  gameId: GameId;
   /** Currently selected map ID, or empty string for none. */
-  value: MapId | ''
+  value: MapId | '';
   /** Called when the selection changes. */
-  onChange: (mapId: MapId | '') => void
+  onChange: (mapId: MapId | '') => void;
   /** When true, the control is disabled. */
-  disabled?: boolean
+  disabled?: boolean;
   /** Optional id for the select element. */
-  id?: string
+  id?: string;
   /** Optional title for the select element (used for tooltips). */
-  title?: string
+  title?: string;
 }
 
 /**
@@ -40,32 +40,32 @@ export function MapPicker({
   id,
   title,
 }: MapPickerProps): JSX.Element {
-  const [maps, setMaps] = useState<Map[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [maps, setMaps] = useState<Map[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     mapRepository.getByGameId(gameId).then((list) => {
       if (!cancelled) {
-        setMaps(list)
-        setIsLoading(false)
+        setMaps(list);
+        setIsLoading(false);
       }
-    })
+    });
     return () => {
-      cancelled = true
-    }
-  }, [gameId])
+      cancelled = true;
+    };
+  }, [gameId]);
 
   /**
    * Handles the change of the selected map.
    */
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const v = e.target.value
-      onChange(v === '' ? '' : (v as MapId))
+      const v = e.target.value;
+      onChange(v === '' ? '' : (v as MapId));
     },
     [onChange]
-  )
+  );
 
   if (isLoading) {
     return (
@@ -78,7 +78,7 @@ export function MapPicker({
       >
         <option value="">Loading…</option>
       </select>
-    )
+    );
   }
 
   return (
@@ -98,5 +98,5 @@ export function MapPicker({
         </option>
       ))}
     </select>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import type { GameId } from '../../types/ids'
+import type { GameId } from '../../types/ids';
 
 /**
  * Input for creating an item.
@@ -6,9 +6,9 @@ import type { GameId } from '../../types/ids'
  */
 export interface CreateItemInput {
   /** ID of the game this item belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Item name. */
-  name: string
+  name: string;
   /** Optional description. */
-  description?: string
+  description?: string;
 }

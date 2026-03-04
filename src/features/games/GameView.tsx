@@ -1,22 +1,22 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react';
 import {
   gameRepository,
   placeRepository,
   playthroughRepository,
-} from '../../lib/repositories'
-import { useAppStore } from '../../stores/appStore'
-import type { Game } from '../../types/Game'
-import type { Playthrough } from '../../types/Playthrough'
-import type { PlaceId } from '../../types/ids'
-import { useReachablePlaces } from '../../hooks/useReachablePlaces'
-import { useActionableNextSteps } from '../../hooks/useActionableNextSteps'
-import { MainViewType } from '../../types/MainViewType'
-import { SECTIONS } from './gameViewSections'
-import { useGameViewStore } from '../../stores/gameViewStore'
-import { PlacePicker } from '../../components/PlacePicker'
-import { GameViewContent } from './GameViewContent'
-import { GameViewSidebar } from './GameViewSidebar'
-import { PlaythroughPanel } from './PlaythroughPanel'
+} from '../../lib/repositories';
+import { useAppStore } from '../../stores/appStore';
+import type { Game } from '../../types/Game';
+import type { Playthrough } from '../../types/Playthrough';
+import type { PlaceId } from '../../types/ids';
+import { useReachablePlaces } from '../../hooks/useReachablePlaces';
+import { useActionableNextSteps } from '../../hooks/useActionableNextSteps';
+import { MainViewType } from '../../types/MainViewType';
+import { SECTIONS } from './gameViewSections';
+import { useGameViewStore } from '../../stores/gameViewStore';
+import { PlacePicker } from '../../components/PlacePicker';
+import { GameViewContent } from './GameViewContent';
+import { GameViewSidebar } from './GameViewSidebar';
+import { PlaythroughPanel } from './PlaythroughPanel';
 
 /**
  * Game view screen shown when a game is set as current.
@@ -26,54 +26,54 @@ import { PlaythroughPanel } from './PlaythroughPanel'
  * playthrough is missing, shows the game name and "No playthrough."
  */
 export function GameView(): JSX.Element {
-  const currentGameId = useAppStore((s) => s.currentGameId)
-  const currentPlaythroughId = useAppStore((s) => s.currentPlaythroughId)
+  const currentGameId = useAppStore((s) => s.currentGameId);
+  const currentPlaythroughId = useAppStore((s) => s.currentPlaythroughId);
   const setCurrentGameAndPlaythrough = useAppStore(
     (s) => s.setCurrentGameAndPlaythrough
-  )
+  );
 
-  const [game, setGame] = useState<Game | null>(null)
-  const [playthroughs, setPlaythroughs] = useState<Playthrough[]>([])
+  const [game, setGame] = useState<Game | null>(null);
+  const [playthroughs, setPlaythroughs] = useState<Playthrough[]>([]);
   const [playthrough, setPlaythrough] = useState<
     Playthrough | null | undefined
-  >(undefined)
+  >(undefined);
   const [placeNamesById, setPlaceNamesById] = useState<Record<string, string>>(
     {}
-  )
-  const [isLoading, setIsLoading] = useState(true)
-  const [isPlaythroughPanelOpen, setIsPlaythroughPanelOpen] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [activeSection, setActiveSection] = useState<MainViewType>(SECTIONS[0])
-  const [isPositionSelectorOpen, setIsPositionSelectorOpen] = useState(false)
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPlaythroughPanelOpen, setIsPlaythroughPanelOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [activeSection, setActiveSection] = useState<MainViewType>(SECTIONS[0]);
+  const [isPositionSelectorOpen, setIsPositionSelectorOpen] = useState(false);
   const [positionDraftPlaceId, setPositionDraftPlaceId] = useState<
     PlaceId | ''
-  >('')
-  const mapUiMode = useGameViewStore((s) => s.mapUiMode)
-  const lastViewedMapId = useGameViewStore((s) => s.lastViewedMapId)
-  const openMapSelection = useGameViewStore((s) => s.openMapSelection)
-  const openMapView = useGameViewStore((s) => s.openMapView)
+  >('');
+  const mapUiMode = useGameViewStore((s) => s.mapUiMode);
+  const lastViewedMapId = useGameViewStore((s) => s.lastViewedMapId);
+  const openMapSelection = useGameViewStore((s) => s.openMapSelection);
+  const openMapView = useGameViewStore((s) => s.openMapView);
 
   const hasPlaythroughForReachability =
-    playthrough !== undefined && playthrough !== null
+    playthrough !== undefined && playthrough !== null;
   const currentPositionPlaceIdForReachability = hasPlaythroughForReachability
     ? (playthrough?.currentPositionPlaceId as PlaceId | null)
-    : null
+    : null;
   const { reachablePlaceIds } = useReachablePlaces(
     currentGameId,
     currentPlaythroughId,
     currentPositionPlaceIdForReachability ?? null
-  )
+  );
   const { actionableEntityIds, actionableRouteEdgeIds } =
     useActionableNextSteps(
       currentGameId,
       currentPlaythroughId,
       reachablePlaceIds,
       currentPositionPlaceIdForReachability ?? null
-    )
+    );
 
   const refetchPlaythroughs = useCallback(() => {
-    setRefreshKey((k) => k + 1)
-  }, [])
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   /**
    * Handles sidebar section selection, including custom behavior
@@ -86,104 +86,104 @@ export function GameView(): JSX.Element {
   const handleSelectSection = useCallback(
     (section: MainViewType) => {
       if (section !== MainViewType.MAPS) {
-        setActiveSection(section)
-        return
+        setActiveSection(section);
+        return;
       }
 
       if (activeSection !== MainViewType.MAPS) {
         if (lastViewedMapId !== null) {
-          openMapView(lastViewedMapId)
+          openMapView(lastViewedMapId);
         } else {
-          openMapSelection()
+          openMapSelection();
         }
-        setActiveSection(MainViewType.MAPS)
-        return
+        setActiveSection(MainViewType.MAPS);
+        return;
       }
 
       if (mapUiMode === 'view') {
-        openMapSelection()
+        openMapSelection();
       }
 
-      setActiveSection(MainViewType.MAPS)
+      setActiveSection(MainViewType.MAPS);
     },
     [activeSection, lastViewedMapId, mapUiMode, openMapSelection, openMapView]
-  )
+  );
 
   useEffect(() => {
-    if (currentGameId === null) return
+    if (currentGameId === null) return;
 
-    setGame(null)
-    setPlaythrough(undefined)
-    setPlaceNamesById({})
-    setIsPositionSelectorOpen(false)
-    let cancelled = false
+    setGame(null);
+    setPlaythrough(undefined);
+    setPlaceNamesById({});
+    setIsPositionSelectorOpen(false);
+    let cancelled = false;
 
     async function load() {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
         const [fetchedGame, playthroughs, places] = await Promise.all([
           gameRepository.getById(currentGameId!),
           playthroughRepository.getByGameId(currentGameId!),
           placeRepository.getByGameId(currentGameId!),
-        ])
+        ]);
 
-        if (cancelled) return
+        if (cancelled) return;
 
         if (fetchedGame === undefined) {
-          setCurrentGameAndPlaythrough(null, null)
-          return
+          setCurrentGameAndPlaythrough(null, null);
+          return;
         }
 
-        setGame(fetchedGame)
-        setPlaythroughs(playthroughs)
-        const placeNameEntries = places.map((p) => [p.id, p.name] as const)
-        setPlaceNamesById(Object.fromEntries(placeNameEntries))
+        setGame(fetchedGame);
+        setPlaythroughs(playthroughs);
+        const placeNameEntries = places.map((p) => [p.id, p.name] as const);
+        setPlaceNamesById(Object.fromEntries(placeNameEntries));
         const current = currentPlaythroughId
           ? playthroughs.find((p) => p.id === currentPlaythroughId)
-          : null
-        const resolvedPlaythrough = current ?? null
-        setPlaythrough(resolvedPlaythrough)
+          : null;
+        const resolvedPlaythrough = current ?? null;
+        setPlaythrough(resolvedPlaythrough);
         setPositionDraftPlaceId(
           (resolvedPlaythrough?.currentPositionPlaceId as PlaceId | null) ?? ''
-        )
+        );
       } finally {
-        if (!cancelled) setIsLoading(false)
+        if (!cancelled) setIsLoading(false);
       }
     }
 
-    load()
+    load();
     return () => {
-      cancelled = true
-    }
+      cancelled = true;
+    };
   }, [
     currentGameId,
     currentPlaythroughId,
     setCurrentGameAndPlaythrough,
     refreshKey,
-  ])
+  ]);
 
   if (currentGameId === null) {
-    return <></>
+    return <></>;
   }
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading…</p>
+    return <p className="text-slate-500">Loading…</p>;
   }
 
   if (game === null) {
-    return <></>
+    return <></>;
   }
 
-  const hasPlaythrough = playthrough !== undefined && playthrough !== null
+  const hasPlaythrough = playthrough !== undefined && playthrough !== null;
   const currentPositionPlaceId = hasPlaythrough
     ? (playthrough.currentPositionPlaceId as PlaceId | null)
-    : null
+    : null;
   const currentPositionLabel =
     !hasPlaythrough || currentPlaythroughId === null
       ? 'No playthrough'
       : currentPositionPlaceId
         ? (placeNamesById[currentPositionPlaceId] ?? 'Unknown place')
-        : 'Not set'
+        : 'Not set';
 
   /**
    * Handles the saving of the current position.
@@ -191,16 +191,16 @@ export function GameView(): JSX.Element {
    * recomputes without waiting for a refetch or a navigation away/back.
    */
   const handleSaveCurrentPosition = async () => {
-    if (!hasPlaythrough || !currentPlaythroughId || !playthrough) return
+    if (!hasPlaythrough || !currentPlaythroughId || !playthrough) return;
     const updated: Playthrough = {
       ...playthrough,
       currentPositionPlaceId: positionDraftPlaceId || null,
-    }
-    await playthroughRepository.update(updated)
-    setPlaythrough(updated)
-    setPositionDraftPlaceId(updated.currentPositionPlaceId ?? '')
-    setIsPositionSelectorOpen(false)
-  }
+    };
+    await playthroughRepository.update(updated);
+    setPlaythrough(updated);
+    setPositionDraftPlaceId(updated.currentPositionPlaceId ?? '');
+    setIsPositionSelectorOpen(false);
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -223,8 +223,8 @@ export function GameView(): JSX.Element {
           <button
             type="button"
             onClick={() => {
-              if (!hasPlaythrough || currentPlaythroughId === null) return
-              setIsPositionSelectorOpen((open) => !open)
+              if (!hasPlaythrough || currentPlaythroughId === null) return;
+              setIsPositionSelectorOpen((open) => !open);
             }}
             disabled={!hasPlaythrough || currentPlaythroughId === null}
             className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
@@ -272,11 +272,11 @@ export function GameView(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => {
-                    setIsPositionSelectorOpen(false)
+                    setIsPositionSelectorOpen(false);
                     setPositionDraftPlaceId(
                       (playthrough.currentPositionPlaceId as PlaceId | null) ??
                         ''
-                    )
+                    );
                   }}
                   className="rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
                 >
@@ -314,5 +314,5 @@ export function GameView(): JSX.Element {
         />
       ) : null}
     </div>
-  )
+  );
 }

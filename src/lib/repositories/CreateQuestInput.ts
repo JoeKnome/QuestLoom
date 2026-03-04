@@ -1,5 +1,5 @@
-import type { GameId } from '../../types/ids'
-import type { QuestObjective } from '../../types/QuestObjective'
+import type { GameId } from '../../types/ids';
+import type { QuestObjective } from '../../types/QuestObjective';
 
 /**
  * Input for creating a quest.
@@ -7,11 +7,11 @@ import type { QuestObjective } from '../../types/QuestObjective'
  */
 export interface CreateQuestInput {
   /** ID of the game this quest belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Quest name. */
-  title: string
+  title: string;
   /** ID of the entity that gave the quest (e.g. person, place). */
-  giver: string
+  giver: string;
   /** Optional sub-objectives. */
-  objectives?: QuestObjective[]
+  objectives?: QuestObjective[];
 }

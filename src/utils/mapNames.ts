@@ -1,7 +1,7 @@
 /**
  * Prefix used for the top-level place that represents a map.
  */
-export const TOP_LEVEL_MAP_PLACE_PREFIX = 'Map: '
+export const TOP_LEVEL_MAP_PLACE_PREFIX = 'Map: ';
 
 /**
  * Formats the name for a top-level place that represents a map.
@@ -12,16 +12,16 @@ export const TOP_LEVEL_MAP_PLACE_PREFIX = 'Map: '
  * @returns The formatted place name with a single prefix.
  */
 export function formatTopLevelPlaceName(mapName: string): string {
-  let base = mapName.trim()
+  let base = mapName.trim();
   while (base.startsWith(TOP_LEVEL_MAP_PLACE_PREFIX)) {
-    base = base.slice(TOP_LEVEL_MAP_PLACE_PREFIX.length).trim()
+    base = base.slice(TOP_LEVEL_MAP_PLACE_PREFIX.length).trim();
   }
 
   if (!base) {
-    return TOP_LEVEL_MAP_PLACE_PREFIX
+    return TOP_LEVEL_MAP_PLACE_PREFIX;
   }
 
-  return `${TOP_LEVEL_MAP_PLACE_PREFIX}${base}`
+  return `${TOP_LEVEL_MAP_PLACE_PREFIX}${base}`;
 }
 
 /**
@@ -33,13 +33,13 @@ export function formatTopLevelPlaceName(mapName: string): string {
  * @returns The map name without the "Map: " prefix.
  */
 export function deriveMapNameFromTopLevelPlaceName(placeName: string): string {
-  let base = placeName.trim()
+  let base = placeName.trim();
   while (base.startsWith(TOP_LEVEL_MAP_PLACE_PREFIX)) {
-    const next = base.slice(TOP_LEVEL_MAP_PLACE_PREFIX.length).trim()
+    const next = base.slice(TOP_LEVEL_MAP_PLACE_PREFIX.length).trim();
     if (!next) {
-      break
+      break;
     }
-    base = next
+    base = next;
   }
-  return base
+  return base;
 }

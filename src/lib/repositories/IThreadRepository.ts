@@ -1,6 +1,6 @@
-import type { Thread } from '../../types/Thread'
-import type { GameId, PlaythroughId, ThreadId } from '../../types/ids'
-import type { CreateThreadInput } from './CreateThreadInput'
+import type { Thread } from '../../types/Thread';
+import type { GameId, PlaythroughId, ThreadId } from '../../types/ids';
+import type { CreateThreadInput } from './CreateThreadInput';
 
 /**
  * Contract for thread data access.
@@ -20,7 +20,7 @@ export interface IThreadRepository {
   getByGameId(
     gameId: GameId,
     playthroughId?: PlaythroughId | null
-  ): Promise<Thread[]>
+  ): Promise<Thread[]>;
 
   /**
    * Returns a thread by ID.
@@ -28,7 +28,7 @@ export interface IThreadRepository {
    * @param id - The ID of the thread.
    * @returns The thread, or undefined if not found.
    */
-  getById(id: ThreadId): Promise<Thread | undefined>
+  getById(id: ThreadId): Promise<Thread | undefined>;
 
   /**
    * Creates a thread; ID and createdAt are set by the repository.
@@ -36,35 +36,35 @@ export interface IThreadRepository {
    * @param input - The input to create the thread.
    * @returns The created thread.
    */
-  create(input: CreateThreadInput): Promise<Thread>
+  create(input: CreateThreadInput): Promise<Thread>;
 
   /**
    * Updates an existing thread.
    *
    * @param thread - The thread to update.
    */
-  update(thread: Thread): Promise<void>
+  update(thread: Thread): Promise<void>;
 
   /**
    * Deletes a thread by ID.
    *
    * @param id - The ID of the thread to delete.
    */
-  delete(id: ThreadId): Promise<void>
+  delete(id: ThreadId): Promise<void>;
 
   /**
    * Deletes all threads for a game (cascade when deleting game).
    *
    * @param gameId - The ID of the game to delete.
    */
-  deleteByGameId(gameId: GameId): Promise<void>
+  deleteByGameId(gameId: GameId): Promise<void>;
 
   /**
    * Deletes all threads for a playthrough (cascade when deleting playthrough).
    *
    * @param playthroughId - The ID of the playthrough to delete.
    */
-  deleteByPlaythroughId(playthroughId: PlaythroughId): Promise<void>
+  deleteByPlaythroughId(playthroughId: PlaythroughId): Promise<void>;
 
   /**
    * Returns threads where the given entity is source or target, for the game
@@ -79,7 +79,7 @@ export interface IThreadRepository {
     gameId: GameId,
     entityId: string,
     playthroughId?: PlaythroughId | null
-  ): Promise<Thread[]>
+  ): Promise<Thread[]>;
 
   /**
    * Deletes all threads for the game where the entity is source or target.
@@ -88,7 +88,7 @@ export interface IThreadRepository {
    * @param gameId - The ID of the game.
    * @param entityId - Typed entity ID (source or target).
    */
-  deleteThreadsInvolvingEntity(gameId: GameId, entityId: string): Promise<void>
+  deleteThreadsInvolvingEntity(gameId: GameId, entityId: string): Promise<void>;
 
   /**
    * Returns entity-level requirement threads (subtype Requires) where the given entity is the source.
@@ -101,5 +101,5 @@ export interface IThreadRepository {
   getRequirementThreadsFromEntity(
     gameId: GameId,
     entityId: string
-  ): Promise<Thread[]>
+  ): Promise<Thread[]>;
 }

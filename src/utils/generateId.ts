@@ -1,4 +1,4 @@
-import { EntityType } from '../types/EntityType'
+import { EntityType } from '../types/EntityType';
 
 /**
  * Generates a new unique identifier (raw UUID).
@@ -7,7 +7,7 @@ import { EntityType } from '../types/EntityType'
  * @returns A new UUID string
  */
 export function generateId(): string {
-  return crypto.randomUUID()
+  return crypto.randomUUID();
 }
 
 /**
@@ -18,5 +18,5 @@ export function generateId(): string {
  * @returns A typed entity ID string.
  */
 export function generateEntityId(entityType: EntityType): string {
-  return `${entityType}:${crypto.randomUUID()}`
+  return `${entityType}:${crypto.randomUUID()}`;
 }

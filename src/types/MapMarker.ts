@@ -9,8 +9,8 @@ import type {
   PlaceId,
   PathId,
   MapMarkerId,
-} from './ids'
-import { EntityType } from './EntityType'
+} from './ids';
+import { EntityType } from './EntityType';
 
 /**
  * Map marker: a pinned reference to an entity at a logical position on a map.
@@ -23,32 +23,32 @@ import { EntityType } from './EntityType'
  */
 export interface MapMarker {
   /** Unique identifier for this marker. */
-  id: MapMarkerId
+  id: MapMarkerId;
   /** ID of the game this marker belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** ID of the map the marker is placed on. */
-  mapId: MapId
+  mapId: MapId;
   /**
    * Optional playthrough that owns this marker.
    * When set, the marker is scoped to a specific playthrough; when undefined,
    * the marker is shared across all playthroughs for the game.
    */
-  playthroughId?: PlaythroughId
+  playthroughId?: PlaythroughId;
   /**
    * Type of the entity this marker represents.
    * Restricted to the same set used for thread endpoints (quests, insights, items, people, places, paths).
    */
-  entityType: EntityType
+  entityType: EntityType;
   /**
    * ID of the entity this marker represents.
    * Must correspond to the provided entityType.
    */
-  entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId
+  entityId: QuestId | InsightId | ItemId | PersonId | PlaceId | PathId;
   /**
    * Optional short description used to distinguish multiple markers for the
    * same entity (for example, different locations or narrative states).
    */
-  label?: string
+  label?: string;
   /**
    * Logical coordinates in the map's coordinate space.
    * Values are finite numbers but not clamped to image bounds so markers can
@@ -56,12 +56,12 @@ export interface MapMarker {
    */
   position: {
     /** Logical horizontal coordinate in map space. */
-    x: number
+    x: number;
     /** Logical vertical coordinate in map space. */
-    y: number
-  }
+    y: number;
+  };
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

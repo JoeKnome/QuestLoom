@@ -1,4 +1,4 @@
-import type { GameId } from '../../types/ids'
+import type { GameId } from '../../types/ids';
 
 /**
  * Input for creating an insight.
@@ -6,9 +6,9 @@ import type { GameId } from '../../types/ids'
  */
 export interface CreateInsightInput {
   /** ID of the game this insight belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Short label. */
-  title: string
+  title: string;
   /** Full insight text (key info, lore, or description). */
-  content: string
+  content: string;
 }

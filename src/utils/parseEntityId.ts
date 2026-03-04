@@ -1,11 +1,11 @@
-import { EntityType } from '../types/EntityType'
+import { EntityType } from '../types/EntityType';
 
 /** Result of parsing a typed entity ID. */
 export interface ParsedEntityId {
   /** Entity type from the prefix. */
-  type: EntityType
+  type: EntityType;
   /** Raw UUID part after the separator. */
-  rawId: string
+  rawId: string;
 }
 
 /**
@@ -15,14 +15,14 @@ export interface ParsedEntityId {
  * @returns Parsed type and raw ID, or null if invalid / legacy unprefixed ID
  */
 export function parseEntityId(id: string): ParsedEntityId | null {
-  if (!id || typeof id !== 'string') return null
-  const idx = id.indexOf(':')
-  if (idx <= 0) return null
-  const typeNum = Number(id.slice(0, idx))
-  const rawId = id.slice(idx + 1)
-  if (rawId === '' || !Number.isInteger(typeNum)) return null
-  if (typeNum < EntityType.QUEST || typeNum > EntityType.PATH) return null
-  return { type: typeNum as EntityType, rawId }
+  if (!id || typeof id !== 'string') return null;
+  const idx = id.indexOf(':');
+  if (idx <= 0) return null;
+  const typeNum = Number(id.slice(0, idx));
+  const rawId = id.slice(idx + 1);
+  if (rawId === '' || !Number.isInteger(typeNum)) return null;
+  if (typeNum < EntityType.QUEST || typeNum > EntityType.PATH) return null;
+  return { type: typeNum as EntityType, rawId };
 }
 
 /**
@@ -32,6 +32,6 @@ export function parseEntityId(id: string): ParsedEntityId | null {
  * @returns EntityType or null
  */
 export function getEntityTypeFromId(id: string): EntityType | null {
-  const parsed = parseEntityId(id)
-  return parsed?.type ?? null
+  const parsed = parseEntityId(id);
+  return parsed?.type ?? null;
 }

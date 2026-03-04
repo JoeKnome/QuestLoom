@@ -1,23 +1,23 @@
-import { useGameViewStore } from '../../stores/gameViewStore'
-import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
-import { MapListScreen } from './MapListScreen'
-import { MapView } from './MapView'
+import { useGameViewStore } from '../../stores/gameViewStore';
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids';
+import { MapListScreen } from './MapListScreen';
+import { MapView } from './MapView';
 
 /**
  * Props for the MapsSection component.
  */
 export interface MapsSectionProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
 
   /** Current playthrough ID, or null. */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 
   /** Reachable place IDs from current position (for marker availability). */
-  reachablePlaceIds: Set<PlaceId>
+  reachablePlaceIds: Set<PlaceId>;
 
   /** Set of actionable entity IDs (for marker emphasis styling). */
-  actionableEntityIds: Set<string>
+  actionableEntityIds: Set<string>;
 }
 
 /**
@@ -35,8 +35,8 @@ export function MapsSection({
   reachablePlaceIds,
   actionableEntityIds,
 }: MapsSectionProps): JSX.Element {
-  const mapUiMode = useGameViewStore((s) => s.mapUiMode)
-  const lastViewedMapId = useGameViewStore((s) => s.lastViewedMapId)
+  const mapUiMode = useGameViewStore((s) => s.mapUiMode);
+  const lastViewedMapId = useGameViewStore((s) => s.lastViewedMapId);
 
   if (mapUiMode === 'view' && lastViewedMapId !== null) {
     return (
@@ -48,8 +48,8 @@ export function MapsSection({
           actionableEntityIds={actionableEntityIds}
         />
       </div>
-    )
+    );
   }
 
-  return <MapListScreen gameId={gameId} playthroughId={playthroughId} />
+  return <MapListScreen gameId={gameId} playthroughId={playthroughId} />;
 }

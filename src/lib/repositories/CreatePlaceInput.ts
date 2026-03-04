@@ -1,4 +1,4 @@
-import type { GameId, MapId } from '../../types/ids'
+import type { GameId, MapId } from '../../types/ids';
 
 /**
  * Input for creating a place.
@@ -6,11 +6,11 @@ import type { GameId, MapId } from '../../types/ids'
  */
 export interface CreatePlaceInput {
   /** ID of the game this place belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Location name. */
-  name: string
+  name: string;
   /** Optional notes. */
-  notes?: string
+  notes?: string;
   /** Optional ID of the map this place is linked to. */
-  map?: MapId
+  map?: MapId;
 }

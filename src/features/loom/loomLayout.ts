@@ -9,22 +9,22 @@ import {
   forceLink,
   forceManyBody,
   forceSimulation,
-} from 'd3-force'
+} from 'd3-force';
 
 /**
  * Mutable node shape used by d3-force (x, y are updated by the simulation).
  */
 export interface D3ForceNode {
   /** The node ID. */
-  id: string
+  id: string;
   /** The node X position. */
-  x: number
+  x: number;
   /** The node Y position. */
-  y: number
+  y: number;
   /** The node X velocity. */
-  vx?: number
+  vx?: number;
   /** The node Y velocity. */
-  vy?: number
+  vy?: number;
 }
 
 /**
@@ -32,9 +32,9 @@ export interface D3ForceNode {
  */
 export interface D3ForceLink {
   /** The source node. */
-  source: string | D3ForceNode
+  source: string | D3ForceNode;
   /** The target node. */
-  target: string | D3ForceNode
+  target: string | D3ForceNode;
 }
 
 /**
@@ -53,19 +53,19 @@ export function runForceLayout(
   height = 600
 ): Map<string, { x: number; y: number }> {
   if (nodeIds.length === 0) {
-    return new Map()
+    return new Map();
   }
 
   const nodes: D3ForceNode[] = nodeIds.map((id) => ({
     id,
     x: 0,
     y: 0,
-  }))
+  }));
 
-  const nodeIdSet = new Set(nodeIds)
+  const nodeIdSet = new Set(nodeIds);
   const d3Links = links.filter(
     (l) => nodeIdSet.has(l.source) && nodeIdSet.has(l.target)
-  )
+  );
 
   const simulation = forceSimulation(
     nodes as unknown as { x: number; y: number }[]
@@ -78,17 +78,17 @@ export function runForceLayout(
     )
     .force('charge', forceManyBody().strength(-90))
     .force('collide', forceCollide().radius(36).strength(0.8))
-    .force('center', forceCenter(width / 2, height / 2))
+    .force('center', forceCenter(width / 2, height / 2));
 
   // Run simulation synchronously for a fixed number of ticks
   for (let i = 0; i < 350; i++) {
-    simulation.tick()
+    simulation.tick();
   }
-  simulation.stop()
+  simulation.stop();
 
-  const result = new Map<string, { x: number; y: number }>()
+  const result = new Map<string, { x: number; y: number }>();
   nodes.forEach((n) => {
-    result.set(n.id, { x: n.x, y: n.y })
-  })
-  return result
+    result.set(n.id, { x: n.x, y: n.y });
+  });
+  return result;
 }

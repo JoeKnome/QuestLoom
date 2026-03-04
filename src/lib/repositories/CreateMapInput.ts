@@ -1,5 +1,5 @@
-import type { GameId } from '../../types/ids'
-import type { MapImageSourceType } from '../../types/Map'
+import type { GameId } from '../../types/ids';
+import type { MapImageSourceType } from '../../types/Map';
 
 /**
  * Input for creating a map.
@@ -8,13 +8,13 @@ import type { MapImageSourceType } from '../../types/Map'
  */
 export interface CreateMapInput {
   /** ID of the game this map belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Map label. */
-  name: string
+  name: string;
   /** How the image is provided. */
-  imageSourceType?: MapImageSourceType
+  imageSourceType?: MapImageSourceType;
   /** HTTP(S) URL; used when imageSourceType === 'url'. */
-  imageUrl?: string
+  imageUrl?: string;
   /** Reference to uploaded image; used when imageSourceType === 'upload'. */
-  imageBlobId?: string
+  imageBlobId?: string;
 }

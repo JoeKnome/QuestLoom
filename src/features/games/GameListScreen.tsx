@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { purgeDatabase, purgeLocalStorageSelection } from '../../lib/debug'
-import { gameRepository, playthroughRepository } from '../../lib/repositories'
-import { useAppStore } from '../../stores/appStore'
-import type { Game } from '../../types/Game'
-import { CreateGameForm } from './CreateGameForm'
+import { useState, useEffect, useCallback } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { purgeDatabase, purgeLocalStorageSelection } from '../../lib/debug';
+import { gameRepository, playthroughRepository } from '../../lib/repositories';
+import { useAppStore } from '../../stores/appStore';
+import type { Game } from '../../types/Game';
+import { CreateGameForm } from './CreateGameForm';
 
-type ConfirmKind = 'delete-game' | 'purge-db' | 'purge-storage'
+type ConfirmKind = 'delete-game' | 'purge-db' | 'purge-storage';
 interface ConfirmState {
-  kind: ConfirmKind
-  game?: Game
+  kind: ConfirmKind;
+  game?: Game;
 }
 
 /**
@@ -18,30 +18,30 @@ interface ConfirmState {
  * Clicking a game sets it (and its first playthrough) as current and navigates to the game view.
  */
 export function GameListScreen(): JSX.Element {
-  const [games, setGames] = useState<Game[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [confirm, setConfirm] = useState<ConfirmState | null>(null)
-  const currentGameId = useAppStore((s) => s.currentGameId)
+  const [games, setGames] = useState<Game[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+  const currentGameId = useAppStore((s) => s.currentGameId);
   const setCurrentGameAndPlaythrough = useAppStore(
     (s) => s.setCurrentGameAndPlaythrough
-  )
+  );
 
   /**
    * Loads the games from the repository.
    */
   const loadGames = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const list = await gameRepository.getAll()
-      setGames(list)
+      const list = await gameRepository.getAll();
+      setGames(list);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    loadGames()
-  }, [loadGames])
+    loadGames();
+  }, [loadGames]);
 
   /**
    * Selects a game and sets it as the current game.
@@ -51,12 +51,12 @@ export function GameListScreen(): JSX.Element {
    */
   const handleSelectGame = useCallback(
     async (gameId: Game['id']) => {
-      const playthroughs = await playthroughRepository.getByGameId(gameId)
-      const first = playthroughs[0] ?? null
-      setCurrentGameAndPlaythrough(gameId, first?.id ?? null)
+      const playthroughs = await playthroughRepository.getByGameId(gameId);
+      const first = playthroughs[0] ?? null;
+      setCurrentGameAndPlaythrough(gameId, first?.id ?? null);
     },
     [setCurrentGameAndPlaythrough]
-  )
+  );
 
   /**
    * Opens the confirmation dialog to delete a game.
@@ -66,11 +66,11 @@ export function GameListScreen(): JSX.Element {
    */
   const handleDeleteGameClick = useCallback(
     (e: React.MouseEvent, game: Game) => {
-      e.stopPropagation()
-      setConfirm({ kind: 'delete-game', game })
+      e.stopPropagation();
+      setConfirm({ kind: 'delete-game', game });
     },
     []
-  )
+  );
 
   /**
    * Opens the confirmation dialog to purge the database.
@@ -78,9 +78,9 @@ export function GameListScreen(): JSX.Element {
    * @param e - The mouse event
    */
   const handlePurgeDatabaseClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    setConfirm({ kind: 'purge-db' })
-  }, [])
+    e.stopPropagation();
+    setConfirm({ kind: 'purge-db' });
+  }, []);
 
   /**
    * Opens the confirmation dialog to purge localStorage selection.
@@ -88,38 +88,38 @@ export function GameListScreen(): JSX.Element {
    * @param e - The mouse event
    */
   const handlePurgeLocalStorageClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    setConfirm({ kind: 'purge-storage' })
-  }, [])
+    e.stopPropagation();
+    setConfirm({ kind: 'purge-storage' });
+  }, []);
 
   /**
    * Runs the confirmed destructive action and closes the dialog.
    */
   const handleConfirmationDialogConfirm = useCallback(async () => {
-    if (!confirm) return
+    if (!confirm) return;
     try {
       if (confirm.kind === 'delete-game' && confirm.game) {
-        await gameRepository.delete(confirm.game.id)
+        await gameRepository.delete(confirm.game.id);
         if (confirm.game.id === currentGameId) {
-          setCurrentGameAndPlaythrough(null, null)
+          setCurrentGameAndPlaythrough(null, null);
         }
-        loadGames()
+        loadGames();
       } else if (confirm.kind === 'purge-db') {
-        await purgeDatabase()
-        setCurrentGameAndPlaythrough(null, null)
-        loadGames()
+        await purgeDatabase();
+        setCurrentGameAndPlaythrough(null, null);
+        loadGames();
       } else if (confirm.kind === 'purge-storage') {
-        purgeLocalStorageSelection()
-        loadGames()
+        purgeLocalStorageSelection();
+        loadGames();
       }
     } finally {
-      setConfirm(null)
+      setConfirm(null);
     }
-  }, [confirm, currentGameId, setCurrentGameAndPlaythrough, loadGames])
+  }, [confirm, currentGameId, setCurrentGameAndPlaythrough, loadGames]);
 
   const handleConfirmationDialogCancel = useCallback(() => {
-    setConfirm(null)
-  }, [])
+    setConfirm(null);
+  }, []);
 
   const confirmConfig =
     confirm?.kind === 'delete-game'
@@ -143,7 +143,7 @@ export function GameListScreen(): JSX.Element {
               confirmLabel: 'Purge localStorage',
               variant: 'default' as const,
             }
-          : null
+          : null;
 
   return (
     <div className="space-y-6">
@@ -215,5 +215,5 @@ export function GameListScreen(): JSX.Element {
         </div>
       </section>
     </div>
-  )
+  );
 }

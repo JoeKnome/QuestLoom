@@ -1,22 +1,22 @@
-import { useCallback, useState } from 'react'
-import { syncLocationThreads } from '../../lib/location'
-import { itemRepository } from '../../lib/repositories'
-import type { GameId, PlaceId } from '../../types/ids'
-import type { Item } from '../../types/Item'
-import { LocationPlacesEditor } from '../../components/LocationPlacesEditor'
+import { useCallback, useState } from 'react';
+import { syncLocationThreads } from '../../lib/location';
+import { itemRepository } from '../../lib/repositories';
+import type { GameId, PlaceId } from '../../types/ids';
+import type { Item } from '../../types/Item';
+import { LocationPlacesEditor } from '../../components/LocationPlacesEditor';
 
 /**
  * Props for ItemForm when creating a new item.
  */
 export interface ItemFormCreateProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'create'
+  mode: 'create';
   /** Game ID the item belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Called after successful create. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
@@ -24,19 +24,19 @@ export interface ItemFormCreateProps {
  */
 export interface ItemFormEditProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'edit'
+  mode: 'edit';
   /** The item to edit. */
-  item: Item
+  item: Item;
   /** Called after successful update. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
  * Props for ItemForm.
  */
-export type ItemFormProps = ItemFormCreateProps | ItemFormEditProps
+export type ItemFormProps = ItemFormCreateProps | ItemFormEditProps;
 
 /**
  * Form to create or edit an item. Locations are managed via LOCATION threads (multiple places allowed).
@@ -45,56 +45,58 @@ export type ItemFormProps = ItemFormCreateProps | ItemFormEditProps
  * @returns A JSX element representing the ItemForm component.
  */
 export function ItemForm(props: ItemFormProps): JSX.Element {
-  const [name, setName] = useState(props.mode === 'edit' ? props.item.name : '')
-  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([])
+  const [name, setName] = useState(
+    props.mode === 'edit' ? props.item.name : ''
+  );
+  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([]);
   const [description, setDescription] = useState(
     props.mode === 'edit' ? props.item.description : ''
-  )
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const gameId = props.mode === 'create' ? props.gameId : props.item.gameId
-  const entityId = props.mode === 'edit' ? props.item.id : undefined
+  const gameId = props.mode === 'create' ? props.gameId : props.item.gameId;
+  const entityId = props.mode === 'edit' ? props.item.id : undefined;
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmedName = name.trim()
+      e.preventDefault();
+      const trimmedName = name.trim();
       if (!trimmedName) {
-        setError('Enter a name.')
-        return
+        setError('Enter a name.');
+        return;
       }
-      setError(null)
-      setIsSubmitting(true)
+      setError(null);
+      setIsSubmitting(true);
       try {
         if (props.mode === 'create') {
           const item = await itemRepository.create({
             gameId: props.gameId,
             name: trimmedName,
             description: description.trim() || undefined,
-          })
-          await syncLocationThreads(props.gameId, item.id, locationPlaceIds)
+          });
+          await syncLocationThreads(props.gameId, item.id, locationPlaceIds);
         } else {
           await itemRepository.update({
             ...props.item,
             name: trimmedName,
             description: description.trim(),
-          })
+          });
           await syncLocationThreads(
             props.item.gameId,
             props.item.id,
             locationPlaceIds
-          )
+          );
         }
-        props.onSaved()
+        props.onSaved();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save item.')
+        setError(err instanceof Error ? err.message : 'Failed to save item.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [name, description, locationPlaceIds, props]
-  )
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -168,5 +170,5 @@ export function ItemForm(props: ItemFormProps): JSX.Element {
         </button>
       </div>
     </form>
-  )
+  );
 }

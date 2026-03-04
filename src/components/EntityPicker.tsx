@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react';
 import {
   insightRepository,
   itemRepository,
@@ -6,19 +6,19 @@ import {
   personRepository,
   placeRepository,
   questRepository,
-} from '../lib/repositories'
-import { EntityType } from '../types/EntityType'
-import type { GameId } from '../types/ids'
-import { ENTITY_TYPE_LABELS } from '../utils/entityTypeLabels'
+} from '../lib/repositories';
+import { EntityType } from '../types/EntityType';
+import type { GameId } from '../types/ids';
+import { ENTITY_TYPE_LABELS } from '../utils/entityTypeLabels';
 
 /**
  * Option shown in the entity picker (id + display label).
  */
 export interface EntityOption {
   /** Entity ID. */
-  id: string
+  id: string;
   /** Display label (e.g. quest title, person name). */
-  label: string
+  label: string;
 }
 
 /**
@@ -26,19 +26,19 @@ export interface EntityOption {
  */
 export interface EntityPickerProps {
   /** Game ID to load entities from. */
-  gameId: GameId
+  gameId: GameId;
   /** Type of entity to list (quest, insight, item, person, place, path). */
-  entityType: EntityType
+  entityType: EntityType;
   /** Currently selected entity ID, or empty string for none. */
-  value: string
+  value: string;
   /** Called when the selection changes. */
-  onChange: (entityId: string) => void
+  onChange: (entityId: string) => void;
   /** When true, the control is disabled. */
-  disabled?: boolean
+  disabled?: boolean;
   /** Optional id for the select element. */
-  id?: string
+  id?: string;
   /** Optional label for the select (e.g. "Source", "Target"). */
-  'aria-label'?: string
+  'aria-label'?: string;
 }
 
 /**
@@ -50,33 +50,33 @@ async function loadOptions(
 ): Promise<EntityOption[]> {
   switch (entityType) {
     case EntityType.QUEST: {
-      const list = await questRepository.getByGameId(gameId)
-      return list.map((q) => ({ id: q.id, label: q.title }))
+      const list = await questRepository.getByGameId(gameId);
+      return list.map((q) => ({ id: q.id, label: q.title }));
     }
     case EntityType.INSIGHT: {
-      const list = await insightRepository.getByGameId(gameId)
-      return list.map((i) => ({ id: i.id, label: i.title }))
+      const list = await insightRepository.getByGameId(gameId);
+      return list.map((i) => ({ id: i.id, label: i.title }));
     }
     case EntityType.ITEM: {
-      const list = await itemRepository.getByGameId(gameId)
-      return list.map((i) => ({ id: i.id, label: i.name }))
+      const list = await itemRepository.getByGameId(gameId);
+      return list.map((i) => ({ id: i.id, label: i.name }));
     }
     case EntityType.PERSON: {
-      const list = await personRepository.getByGameId(gameId)
-      return list.map((p) => ({ id: p.id, label: p.name }))
+      const list = await personRepository.getByGameId(gameId);
+      return list.map((p) => ({ id: p.id, label: p.name }));
     }
     case EntityType.PLACE: {
-      const list = await placeRepository.getByGameId(gameId)
-      return list.map((p) => ({ id: p.id, label: p.name }))
+      const list = await placeRepository.getByGameId(gameId);
+      return list.map((p) => ({ id: p.id, label: p.name }));
     }
     case EntityType.PATH: {
-      const list = await pathRepository.getByGameId(gameId)
-      return list.map((p) => ({ id: p.id, label: p.name }))
+      const list = await pathRepository.getByGameId(gameId);
+      return list.map((p) => ({ id: p.id, label: p.name }));
     }
     case EntityType.MAP:
     case EntityType.THREAD:
     default:
-      return []
+      return [];
   }
 }
 
@@ -102,33 +102,33 @@ export function EntityPicker({
   id,
   'aria-label': ariaLabel,
 }: EntityPickerProps): JSX.Element {
-  const [options, setOptions] = useState<EntityOption[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [options, setOptions] = useState<EntityOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     loadOptions(gameId, entityType).then((list) => {
       if (!cancelled) {
-        setOptions(list)
-        setIsLoading(false)
+        setOptions(list);
+        setIsLoading(false);
       }
-    })
+    });
     return () => {
-      cancelled = true
-    }
-  }, [gameId, entityType])
+      cancelled = true;
+    };
+  }, [gameId, entityType]);
 
   /**
    * Handles the change of the selected entity.
    */
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange(e.target.value)
+      onChange(e.target.value);
     },
     [onChange]
-  )
+  );
 
-  const typeLabel = ENTITY_TYPE_LABELS[entityType]
+  const typeLabel = ENTITY_TYPE_LABELS[entityType];
 
   if (isLoading) {
     return (
@@ -140,7 +140,7 @@ export function EntityPicker({
       >
         <option value="">Loading…</option>
       </select>
-    )
+    );
   }
 
   return (
@@ -159,5 +159,5 @@ export function EntityPicker({
         </option>
       ))}
     </select>
-  )
+  );
 }

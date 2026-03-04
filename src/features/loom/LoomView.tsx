@@ -12,34 +12,34 @@ import {
   getConnectedEdges,
   Panel,
   type Edge,
-} from '@xyflow/react'
-import '@xyflow/react/dist/style.css'
-import { useCallback, useEffect, useRef } from 'react'
-import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
-import { EntityNode } from './EntityNode'
-import { useLoomGraph } from './useLoomGraph'
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { useCallback, useEffect, useRef } from 'react';
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids';
+import { EntityNode } from './EntityNode';
+import { useLoomGraph } from './useLoomGraph';
 
 /** Custom node types for the Loom. */
-const nodeTypes = { entityNode: EntityNode }
+const nodeTypes = { entityNode: EntityNode };
 
 /**
  * Props for the LoomView component.
  */
 export interface LoomViewProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
 
   /** Current playthrough ID (threads include game-level and this playthrough). */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 
   /** Reachable place IDs from current position (for node availability styling). */
-  reachablePlaceIds: Set<PlaceId>
+  reachablePlaceIds: Set<PlaceId>;
 
   /** Set of actionable entity IDs (for node emphasis styling). */
-  actionableEntityIds: Set<string>
+  actionableEntityIds: Set<string>;
 
   /** Set of thread IDs on actionable routes (for edge emphasis styling). */
-  actionableRouteEdgeIds: Set<string>
+  actionableRouteEdgeIds: Set<string>;
 }
 
 /**
@@ -63,35 +63,35 @@ function LoomContent({
     reachablePlaceIds,
     actionableEntityIds,
     actionableRouteEdgeIds
-  )
+  );
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-  const { fitView } = useReactFlow()
-  const prevLoading = useRef(true)
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { fitView } = useReactFlow();
+  const prevLoading = useRef(true);
 
   // Sync when graph data finishes loading (e.g. game/playthrough change)
   useEffect(() => {
     if (prevLoading.current && !isLoading) {
-      setNodes(initialNodes)
-      setEdges(initialEdges)
+      setNodes(initialNodes);
+      setEdges(initialEdges);
     }
-    prevLoading.current = isLoading
-  }, [isLoading, initialNodes, initialEdges, setNodes, setEdges])
+    prevLoading.current = isLoading;
+  }, [isLoading, initialNodes, initialEdges, setNodes, setEdges]);
 
   // Sync edge selection whenever node selection changes (so connected edges highlight)
   useEffect(() => {
-    const selectedNodes = nodes.filter((n) => n.selected)
+    const selectedNodes = nodes.filter((n) => n.selected);
     if (selectedNodes.length === 0) {
-      setEdges((eds) => eds.map((e) => ({ ...e, selected: false })))
-      return
+      setEdges((eds) => eds.map((e) => ({ ...e, selected: false })));
+      return;
     }
     setEdges((eds) => {
-      const connected = getConnectedEdges(selectedNodes, eds)
-      const connectedIds = new Set(connected.map((e) => e.id))
-      return eds.map((e) => ({ ...e, selected: connectedIds.has(e.id) }))
-    })
-  }, [nodes, setEdges])
+      const connected = getConnectedEdges(selectedNodes, eds);
+      const connectedIds = new Set(connected.map((e) => e.id));
+      return eds.map((e) => ({ ...e, selected: connectedIds.has(e.id) }));
+    });
+  }, [nodes, setEdges]);
 
   /**
    * Handles the click event on an edge.
@@ -107,27 +107,27 @@ function LoomContent({
           selected:
             node.id === clickedEdge.source || node.id === clickedEdge.target,
         }))
-      )
+      );
       setEdges((edges) =>
         edges.map((e) => ({ ...e, selected: e.id === clickedEdge.id }))
-      )
+      );
     },
     [setNodes, setEdges]
-  )
+  );
 
   /**
    * Fits the view to the nodes.
    */
   useEffect(() => {
-    if (nodes.length > 0) fitView({ padding: 0.2, duration: 0 })
-  }, [nodes.length, fitView])
+    if (nodes.length > 0) fitView({ padding: 0.2, duration: 0 });
+  }, [nodes.length, fitView]);
 
   if (isLoading) {
     return (
       <div className="flex h-full min-h-[200px] items-center justify-center text-slate-500">
         Loading loom…
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -135,7 +135,7 @@ function LoomContent({
       <div className="flex h-full min-h-[200px] items-center justify-center text-red-600">
         {error}
       </div>
-    )
+    );
   }
 
   if (nodes.length === 0 && edges.length === 0) {
@@ -146,7 +146,7 @@ function LoomContent({
           Add quests, people, places, and link them from their Connections.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -176,7 +176,7 @@ function LoomContent({
         </button>
       </Panel>
     </div>
-  )
+  );
 }
 
 /**
@@ -207,5 +207,5 @@ export function LoomView({
         actionableRouteEdgeIds={actionableRouteEdgeIds}
       />
     </ReactFlowProvider>
-  )
+  );
 }

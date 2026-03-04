@@ -1,13 +1,13 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react';
 
 /**
  * Single context menu item.
  */
 export interface ContextMenuItem {
   /** Label shown in the menu. */
-  label: string
+  label: string;
   /** Called when the item is activated. */
-  onClick: () => void
+  onClick: () => void;
 }
 
 /**
@@ -15,13 +15,13 @@ export interface ContextMenuItem {
  */
 export interface ContextMenuProps {
   /** Position in client coordinates (e.g. from event.clientX/clientY). */
-  position: { x: number; y: number }
+  position: { x: number; y: number };
   /** Menu items. */
-  items: ContextMenuItem[]
+  items: ContextMenuItem[];
   /** Called when the menu should close (outside click, Escape, or after action). */
-  onClose: () => void
+  onClose: () => void;
   /** Optional aria-label for the menu. */
-  'aria-label'?: string
+  'aria-label'?: string;
 }
 
 /**
@@ -41,23 +41,23 @@ export function ContextMenu({
   onClose,
   'aria-label': ariaLabel = 'Context menu',
 }: ContextMenuProps): JSX.Element {
-  const menuRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
+      if (e.key === 'Escape') onClose();
+    };
     const handlePointerDown = (e: PointerEvent) => {
-      const el = menuRef.current
-      if (el && !el.contains(e.target as Node)) onClose()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('pointerdown', handlePointerDown)
+      const el = menuRef.current;
+      if (el && !el.contains(e.target as Node)) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('pointerdown', handlePointerDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('pointerdown', handlePointerDown)
-    }
-  }, [onClose])
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [onClose]);
 
   return (
     <div
@@ -74,13 +74,13 @@ export function ContextMenu({
           role="menuitem"
           className="w-full px-3 py-2 text-left text-sm text-slate-800 hover:bg-slate-100"
           onClick={() => {
-            item.onClick()
-            onClose()
+            item.onClick();
+            onClose();
           }}
         >
           {item.label}
         </button>
       ))}
     </div>
-  )
+  );
 }

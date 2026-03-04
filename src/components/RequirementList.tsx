@@ -1,27 +1,27 @@
-import { useCallback, useEffect, useState } from 'react'
-import { RequirementForm } from './RequirementForm'
-import { threadRepository } from '../lib/repositories'
-import type { GameId, PlaythroughId } from '../types/ids'
-import type { Thread } from '../types/Thread'
-import { getEntityTypeFromId } from '../utils/parseEntityId'
-import { getEntityDisplayName } from '../utils/getEntityDisplayName'
-import { STATUS_OPTIONS } from '../utils/requirementStatusOptions'
+import { useCallback, useEffect, useState } from 'react';
+import { RequirementForm } from './RequirementForm';
+import { threadRepository } from '../lib/repositories';
+import type { GameId, PlaythroughId } from '../types/ids';
+import type { Thread } from '../types/Thread';
+import { getEntityTypeFromId } from '../utils/parseEntityId';
+import { getEntityDisplayName } from '../utils/getEntityDisplayName';
+import { STATUS_OPTIONS } from '../utils/requirementStatusOptions';
 
 /**
  * Props for the RequirementList component.
  */
 export interface RequirementListProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
 
   /** Entity ID that has the requirements (source of requirement threads). */
-  entityId: string
+  entityId: string;
 
   /** Optional. Passed for context; requirements are game-level only. */
-  playthroughId?: PlaythroughId | null
+  playthroughId?: PlaythroughId | null;
 
   /** Optional heading (e.g. entity name) for the requirements block. */
-  entityDisplayName?: string
+  entityDisplayName?: string;
 }
 
 /**
@@ -41,41 +41,41 @@ export function RequirementList({
   entityId,
   entityDisplayName,
 }: RequirementListProps): JSX.Element {
-  const [threads, setThreads] = useState<Thread[]>([])
-  const [targetLabels, setTargetLabels] = useState<Record<string, string>>({})
-  const [isLoading, setIsLoading] = useState(true)
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [targetLabels, setTargetLabels] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; thread: Thread } | null
-  >(null)
+  >(null);
 
   /**
    * Loads the requirements for the entity.
    */
   const load = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const list = await threadRepository.getRequirementThreadsFromEntity(
         gameId,
         entityId
-      )
-      setThreads(list)
+      );
+      setThreads(list);
 
       // Set the target labels for the requirements.
-      const nextLabels: Record<string, string> = {}
+      const nextLabels: Record<string, string> = {};
       await Promise.all(
         list.map(async (t) => {
-          nextLabels[t.id] = await getEntityDisplayName(t.targetId)
+          nextLabels[t.id] = await getEntityDisplayName(t.targetId);
         })
-      )
-      setTargetLabels(nextLabels)
+      );
+      setTargetLabels(nextLabels);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId, entityId])
+  }, [gameId, entityId]);
 
   useEffect(() => {
-    load()
-  }, [load])
+    load();
+  }, [load]);
 
   /**
    * Handles the deletion of a requirement.
@@ -84,17 +84,17 @@ export function RequirementList({
    */
   const handleDelete = useCallback(
     async (thread: Thread) => {
-      await threadRepository.delete(thread.id)
-      load()
+      await threadRepository.delete(thread.id);
+      load();
     },
     [load]
-  )
+  );
 
   /**
    * Renders the loading state.
    */
   if (isLoading) {
-    return <p className="text-sm text-slate-500">Loading requirements…</p>
+    return <p className="text-sm text-slate-500">Loading requirements…</p>;
   }
 
   /**
@@ -117,8 +117,8 @@ export function RequirementList({
             gameId={gameId}
             sourceId={entityId}
             onSaved={() => {
-              setFormState(null)
-              load()
+              setFormState(null);
+              load();
             }}
             onCancel={() => setFormState(null)}
           />
@@ -128,14 +128,14 @@ export function RequirementList({
             mode="edit"
             thread={formState.thread}
             onSaved={() => {
-              setFormState(null)
-              load()
+              setFormState(null);
+              load();
             }}
             onCancel={() => setFormState(null)}
           />
         )}
       </div>
-    )
+    );
   }
 
   /**
@@ -158,14 +158,14 @@ export function RequirementList({
         <ul className="space-y-1.5 text-sm text-slate-800">
           {threads.map((thread) => {
             // Get the target label for the thread.
-            const targetLabel = targetLabels[thread.id] ?? thread.targetId
+            const targetLabel = targetLabels[thread.id] ?? thread.targetId;
 
             // Get the target type for the thread.
-            const targetType = getEntityTypeFromId(thread.targetId)
+            const targetType = getEntityTypeFromId(thread.targetId);
 
             // Get the status options for the target type.
             const statusOpts =
-              targetType !== null ? STATUS_OPTIONS[targetType] : {}
+              targetType !== null ? STATUS_OPTIONS[targetType] : {};
 
             // Get the status labels for the thread.
             const statusLabels =
@@ -175,7 +175,7 @@ export function RequirementList({
                     .map((v) => statusOpts[v])
                     .filter(Boolean)
                     .join(', ')
-                : null
+                : null;
 
             // Render the requirement item.
             return (
@@ -212,7 +212,7 @@ export function RequirementList({
                   </button>
                 </span>
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -226,5 +226,5 @@ export function RequirementList({
         Add requirement
       </button>
     </div>
-  )
+  );
 }

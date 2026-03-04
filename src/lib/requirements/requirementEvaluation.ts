@@ -1,26 +1,26 @@
-import { EntityType } from '../../types/EntityType'
-import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
-import type { Quest } from '../../types/Quest'
-import type { Thread } from '../../types/Thread'
-import { getEntityTypeFromId } from '../../utils/parseEntityId'
-import { getEntityLocationPlaceIds } from '../location'
+import { EntityType } from '../../types/EntityType';
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids';
+import type { Quest } from '../../types/Quest';
+import type { Thread } from '../../types/Thread';
+import { getEntityTypeFromId } from '../../utils/parseEntityId';
+import { getEntityLocationPlaceIds } from '../location';
 import {
   insightRepository,
   itemRepository,
   personRepository,
   questRepository,
   threadRepository,
-} from '../repositories'
-import { DEFAULT_ALLOWED_STATUSES } from './defaultAllowedStatuses'
+} from '../repositories';
+import { DEFAULT_ALLOWED_STATUSES } from './defaultAllowedStatuses';
 
 /**
  * Result of checking whether an entity is available (its requirements are satisfied).
  */
 export interface AvailabilityResult {
   /** True if all requirement threads for this entity are satisfied. */
-  available: boolean
+  available: boolean;
   /** Typed entity IDs of requirement targets that are not satisfied. */
-  unmetRequirementTargetIds: string[]
+  unmetRequirementTargetIds: string[];
 }
 
 /**
@@ -41,8 +41,8 @@ export function isRequirementSatisfied(
     thread.requirementAllowedStatuses != null &&
     thread.requirementAllowedStatuses.length > 0
       ? thread.requirementAllowedStatuses
-      : DEFAULT_ALLOWED_STATUSES[targetEntityType]
-  return allowed.includes(currentStatus)
+      : DEFAULT_ALLOWED_STATUSES[targetEntityType];
+  return allowed.includes(currentStatus);
 }
 
 /**
@@ -57,30 +57,30 @@ export async function getPlaythroughStatusForEntity(
   playthroughId: PlaythroughId,
   entityId: string
 ): Promise<number | null> {
-  const type = getEntityTypeFromId(entityId)
-  if (type == null) return null
+  const type = getEntityTypeFromId(entityId);
+  if (type == null) return null;
   switch (type) {
     case EntityType.QUEST: {
-      const p = await questRepository.getProgress(playthroughId, entityId)
-      return p?.status ?? null
+      const p = await questRepository.getProgress(playthroughId, entityId);
+      return p?.status ?? null;
     }
     case EntityType.INSIGHT: {
-      const p = await insightRepository.getProgress(playthroughId, entityId)
-      return p?.status ?? null
+      const p = await insightRepository.getProgress(playthroughId, entityId);
+      return p?.status ?? null;
     }
     case EntityType.ITEM: {
-      const s = await itemRepository.getState(playthroughId, entityId)
-      return s?.status ?? null
+      const s = await itemRepository.getState(playthroughId, entityId);
+      return s?.status ?? null;
     }
     case EntityType.PERSON: {
-      const p = await personRepository.getProgress(playthroughId, entityId)
-      return p?.status ?? null
+      const p = await personRepository.getProgress(playthroughId, entityId);
+      return p?.status ?? null;
     }
     case EntityType.PLACE:
     case EntityType.MAP:
     case EntityType.THREAD:
     default:
-      return null
+      return null;
   }
 }
 
@@ -101,13 +101,13 @@ export async function checkEntityAvailability(
   const threads = await threadRepository.getRequirementThreadsFromEntity(
     gameId,
     entityId
-  )
+  );
 
   // Get the IDs of the unmet requirement targets.
-  const unmetRequirementTargetIds: string[] = []
+  const unmetRequirementTargetIds: string[] = [];
   for (const thread of threads) {
-    const targetType = getEntityTypeFromId(thread.targetId)
-    if (targetType == null) continue
+    const targetType = getEntityTypeFromId(thread.targetId);
+    if (targetType == null) continue;
 
     // Place/Map/Thread have no playthrough status, so they are not considered for availability.
     if (
@@ -115,24 +115,24 @@ export async function checkEntityAvailability(
       targetType === EntityType.MAP ||
       targetType === EntityType.THREAD
     ) {
-      continue
+      continue;
     }
     const currentStatus = await getPlaythroughStatusForEntity(
       playthroughId,
       thread.targetId
-    )
+    );
     if (currentStatus === null) {
-      unmetRequirementTargetIds.push(thread.targetId)
-      continue
+      unmetRequirementTargetIds.push(thread.targetId);
+      continue;
     }
     if (!isRequirementSatisfied(thread, targetType, currentStatus)) {
-      unmetRequirementTargetIds.push(thread.targetId)
+      unmetRequirementTargetIds.push(thread.targetId);
     }
   }
   return {
     available: unmetRequirementTargetIds.length === 0,
     unmetRequirementTargetIds,
-  }
+  };
 }
 
 /**
@@ -151,11 +151,11 @@ export async function checkEntityAvailabilityWithReachability(
   entityId: string,
   reachablePlaceIds: Set<PlaceId>
 ): Promise<boolean> {
-  const result = await checkEntityAvailability(gameId, playthroughId, entityId)
-  if (!result.available) return false
-  const locationPlaceIds = await getEntityLocationPlaceIds(gameId, entityId)
-  if (locationPlaceIds.length === 0) return true
-  return locationPlaceIds.some((id) => reachablePlaceIds.has(id))
+  const result = await checkEntityAvailability(gameId, playthroughId, entityId);
+  if (!result.available) return false;
+  const locationPlaceIds = await getEntityLocationPlaceIds(gameId, entityId);
+  if (locationPlaceIds.length === 0) return true;
+  return locationPlaceIds.some((id) => reachablePlaceIds.has(id));
 }
 
 /**
@@ -173,18 +173,18 @@ export async function getObjectiveCompletability(
   quest: Quest,
   objectiveIndex: number
 ): Promise<boolean> {
-  const obj = quest.objectives[objectiveIndex]
-  if (!obj?.entityId) return true
+  const obj = quest.objectives[objectiveIndex];
+  if (!obj?.entityId) return true;
   const currentStatus = await getPlaythroughStatusForEntity(
     playthroughId,
     obj.entityId
-  )
-  if (currentStatus === null) return false
-  const type = getEntityTypeFromId(obj.entityId)
-  if (type == null) return false
+  );
+  if (currentStatus === null) return false;
+  const type = getEntityTypeFromId(obj.entityId);
+  if (type == null) return false;
   const allowed =
     obj.allowedStatuses != null && obj.allowedStatuses.length > 0
       ? obj.allowedStatuses
-      : DEFAULT_ALLOWED_STATUSES[type]
-  return allowed.includes(currentStatus)
+      : DEFAULT_ALLOWED_STATUSES[type];
+  return allowed.includes(currentStatus);
 }

@@ -1,5 +1,5 @@
-import type { GameId, QuestId } from './ids'
-import type { QuestObjective } from './QuestObjective'
+import type { GameId, QuestId } from './ids';
+import type { QuestObjective } from './QuestObjective';
 
 /**
  * Quest definition (game-scoped).
@@ -15,17 +15,17 @@ import type { QuestObjective } from './QuestObjective'
  */
 export interface Quest {
   /** Unique identifier. */
-  id: QuestId
+  id: QuestId;
   /** ID of the game this quest belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Quest name. */
-  title: string
+  title: string;
   /** ID of the entity that gave the quest (e.g. person, place). */
-  giver: string
+  giver: string;
   /** Optional sub-objectives. */
-  objectives: QuestObjective[]
+  objectives: QuestObjective[];
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

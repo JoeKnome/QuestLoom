@@ -1,8 +1,8 @@
-import { EntityType } from '../../types/EntityType'
-import { InsightStatus } from '../../types/InsightStatus'
-import { ItemStatus } from '../../types/ItemStatus'
-import { PersonStatus } from '../../types/PersonStatus'
-import { QuestStatus } from '../../types/QuestStatus'
+import { EntityType } from '../../types/EntityType';
+import { InsightStatus } from '../../types/InsightStatus';
+import { ItemStatus } from '../../types/ItemStatus';
+import { PersonStatus } from '../../types/PersonStatus';
+import { QuestStatus } from '../../types/QuestStatus';
 
 /**
  * Default allowed status sets per entity type when a requirement or objective
@@ -25,4 +25,4 @@ export const DEFAULT_ALLOWED_STATUSES: Record<EntityType, number[]> = {
   [EntityType.MAP]: [],
   [EntityType.THREAD]: [],
   [EntityType.PATH]: [],
-}
+};

@@ -3,18 +3,18 @@
  * Computes "what you can do next" from playthrough state, position, and reachability.
  */
 
-import { EntityType } from '../../types/EntityType'
-import { PathStatus } from '../../types/PathStatus'
-import { QuestStatus } from '../../types/QuestStatus'
-import { ItemStatus } from '../../types/ItemStatus'
-import { InsightStatus } from '../../types/InsightStatus'
-import type { GameId, PlaceId, PlaythroughId } from '../../types/ids'
+import { EntityType } from '../../types/EntityType';
+import { PathStatus } from '../../types/PathStatus';
+import { QuestStatus } from '../../types/QuestStatus';
+import { ItemStatus } from '../../types/ItemStatus';
+import { InsightStatus } from '../../types/InsightStatus';
+import type { GameId, PlaceId, PlaythroughId } from '../../types/ids';
 import {
   checkEntityAvailability,
   checkEntityAvailabilityWithReachability,
   getObjectiveCompletability,
-} from '../requirements'
-import { getEntityLocationPlaceIds } from '../location'
+} from '../requirements';
+import { getEntityLocationPlaceIds } from '../location';
 import {
   insightRepository,
   itemRepository,
@@ -22,28 +22,28 @@ import {
   placeRepository,
   questRepository,
   threadRepository,
-} from '../repositories'
-import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
-import { getEntityTypeFromId } from '../../utils/parseEntityId'
-import { ThreadSubtype } from '../../types/ThreadSubtype'
-import type { Path } from '../../types/Path'
+} from '../repositories';
+import { getEntityDisplayName } from '../../utils/getEntityDisplayName';
+import { getEntityTypeFromId } from '../../utils/parseEntityId';
+import { ThreadSubtype } from '../../types/ThreadSubtype';
+import type { Path } from '../../types/Path';
 
 /** One actionable item for display (e.g. in Oracle). */
 export interface ActionableEntity {
   /** Typed entity ID. */
-  entityId: string
+  entityId: string;
 
   /** Entity type. */
-  entityType: EntityType
+  entityType: EntityType;
 
   /** Display name (quest title, item name, etc.). */
-  label: string
+  label: string;
 
   /** Short action label (e.g. "Start quest", "Acquire item"). */
-  actionLabel: string
+  actionLabel: string;
 
   /** Optional objective index for quest objectives; used for "Complete objective". */
-  objectiveIndex?: number
+  objectiveIndex?: number;
 }
 
 /**
@@ -61,42 +61,42 @@ async function buildPathTraversabilityMap(
 ): Promise<Map<string, boolean>> {
   // Get path progress for the playthrough.
   const progressList =
-    await pathRepository.getAllProgressForPlaythrough(playthroughId)
+    await pathRepository.getAllProgressForPlaythrough(playthroughId);
 
   // Map path IDs to their progress status.
-  const statusById = new Map<string, PathStatus>()
+  const statusById = new Map<string, PathStatus>();
   for (const row of progressList as { pathId: string; status: PathStatus }[]) {
-    statusById.set(row.pathId, row.status)
+    statusById.set(row.pathId, row.status);
   }
 
   // Check availability of each path.
   const results = await Promise.all(
     paths.map(async (p) => {
-      const r = await checkEntityAvailability(gameId, playthroughId, p.id)
-      return { id: p.id, available: r.available }
+      const r = await checkEntityAvailability(gameId, playthroughId, p.id);
+      return { id: p.id, available: r.available };
     })
-  )
+  );
 
   // Map path IDs to their availability status.
-  const pathAvailabilityById = new Map<string, boolean>()
+  const pathAvailabilityById = new Map<string, boolean>();
   for (const r of results) {
-    pathAvailabilityById.set(r.id, r.available)
+    pathAvailabilityById.set(r.id, r.available);
   }
   // Map path IDs to their traversability status.
-  const traversableById = new Map<string, boolean>()
+  const traversableById = new Map<string, boolean>();
   for (const p of paths) {
-    const status = statusById.get(p.id) ?? PathStatus.RESTRICTED
+    const status = statusById.get(p.id) ?? PathStatus.RESTRICTED;
     if (status === PathStatus.BLOCKED) {
-      traversableById.set(p.id, false)
+      traversableById.set(p.id, false);
     } else if (status === PathStatus.OPENED) {
-      traversableById.set(p.id, true)
+      traversableById.set(p.id, true);
     } else {
       // If path is not blocked or opened, check if it is available.
-      traversableById.set(p.id, pathAvailabilityById.get(p.id) ?? false)
+      traversableById.set(p.id, pathAvailabilityById.get(p.id) ?? false);
     }
   }
   // Return the map of path IDs to their traversability status.
-  return traversableById
+  return traversableById;
 }
 
 /**
@@ -119,17 +119,17 @@ async function buildTraversableGraphWithThreadIds(
 ): Promise<Map<PlaceId, Array<{ neighbor: PlaceId; threadIds: string[] }>>> {
   // For connectivity we consider both game-level and playthrough-level threads
   // because connectivity (movement) can be gated per playthrough.
-  const threads = await threadRepository.getByGameId(gameId, playthroughId)
+  const threads = await threadRepository.getByGameId(gameId, playthroughId);
 
   // Map place IDs to their neighbors and thread IDs.
   const adjacency = new Map<
     PlaceId,
     Array<{ neighbor: PlaceId; threadIds: string[] }>
-  >()
+  >();
 
   // Initialize the adjacency map with empty arrays for each place ID.
   for (const id of placeIds) {
-    adjacency.set(id, [])
+    adjacency.set(id, []);
   }
 
   // Path endpoints: pathId -> { placeId, threadId }[], and for each (path, place)
@@ -137,87 +137,87 @@ async function buildTraversableGraphWithThreadIds(
   const pathToPlacesAndThreads = new Map<
     string,
     Array<{ placeId: PlaceId; threadId: string }>
-  >()
+  >();
 
   // Process each thread.
   for (const thread of threads) {
-    const subtype = thread.subtype
+    const subtype = thread.subtype;
 
     // If thread is a direct place link, add the source and target places to the adjacency map.
     if (subtype === ThreadSubtype.DIRECT_PLACE_LINK) {
-      const sourceType = getEntityTypeFromId(thread.sourceId)
-      const targetType = getEntityTypeFromId(thread.targetId)
+      const sourceType = getEntityTypeFromId(thread.sourceId);
+      const targetType = getEntityTypeFromId(thread.targetId);
       if (sourceType === EntityType.PLACE && targetType === EntityType.PLACE) {
-        const sourceId = thread.sourceId as PlaceId
-        const targetId = thread.targetId as PlaceId
+        const sourceId = thread.sourceId as PlaceId;
+        const targetId = thread.targetId as PlaceId;
         if (placeIds.has(sourceId) && placeIds.has(targetId)) {
           adjacency
             .get(sourceId)
-            ?.push({ neighbor: targetId, threadIds: [thread.id] })
+            ?.push({ neighbor: targetId, threadIds: [thread.id] });
           adjacency
             .get(targetId)
-            ?.push({ neighbor: sourceId, threadIds: [thread.id] })
+            ?.push({ neighbor: sourceId, threadIds: [thread.id] });
         }
       }
-      continue
+      continue;
     }
 
     // If thread connects a path, add the source and target places to the adjacency map.
     if (subtype === ThreadSubtype.CONNECTS_PATH) {
       // Get the source and target entity types.
-      const sourceType = getEntityTypeFromId(thread.sourceId)
-      const targetType = getEntityTypeFromId(thread.targetId)
-      const isSourcePath = sourceType === EntityType.PATH
-      const isTargetPath = targetType === EntityType.PATH
-      if (!isSourcePath && !isTargetPath) continue
+      const sourceType = getEntityTypeFromId(thread.sourceId);
+      const targetType = getEntityTypeFromId(thread.targetId);
+      const isSourcePath = sourceType === EntityType.PATH;
+      const isTargetPath = targetType === EntityType.PATH;
+      if (!isSourcePath && !isTargetPath) continue;
 
       // Get the path ID.
-      const pathId = isSourcePath ? thread.sourceId : thread.targetId
+      const pathId = isSourcePath ? thread.sourceId : thread.targetId;
 
       // Get the place ID.
       const placeId = (
         isSourcePath ? thread.targetId : thread.sourceId
-      ) as PlaceId
+      ) as PlaceId;
 
       // If the place ID is not in the set of place IDs, continue.
-      if (!placeIds.has(placeId)) continue
+      if (!placeIds.has(placeId)) continue;
 
       // Get the list of places and threads for the path.
-      let list = pathToPlacesAndThreads.get(pathId)
+      let list = pathToPlacesAndThreads.get(pathId);
 
       // If the list is not found, create it.
       if (!list) {
-        list = []
-        pathToPlacesAndThreads.set(pathId, list)
+        list = [];
+        pathToPlacesAndThreads.set(pathId, list);
       }
 
       // Add the place and thread ID to the list.
-      list.push({ placeId, threadId: thread.id })
+      list.push({ placeId, threadId: thread.id });
     }
   }
 
   // For each traversable path, connect all its endpoint places (bidirectional) with both thread IDs
   for (const [pathId, placesAndThreads] of pathToPlacesAndThreads.entries()) {
-    if (!traversableByPathId.get(pathId)) continue
+    if (!traversableByPathId.get(pathId)) continue;
 
     // Get the thread IDs for the path.
-    const threadIds = placesAndThreads.map((x) => x.threadId)
+    const threadIds = placesAndThreads.map((x) => x.threadId);
 
     // Get the places for the path.
-    const places = placesAndThreads.map((x) => x.placeId)
+    const places = placesAndThreads.map((x) => x.placeId);
 
     // Connect all the places with each other.
     for (let i = 0; i < places.length; i += 1) {
       for (let j = i + 1; j < places.length; j += 1) {
-        const a = places[i]
-        const b = places[j]
-        adjacency.get(a)?.push({ neighbor: b, threadIds })
-        adjacency.get(b)?.push({ neighbor: a, threadIds })
+        const a = places[i];
+        const b = places[j];
+        adjacency.get(a)?.push({ neighbor: b, threadIds });
+        adjacency.get(b)?.push({ neighbor: a, threadIds });
       }
     }
   }
 
-  return adjacency
+  return adjacency;
 }
 
 /**
@@ -231,25 +231,25 @@ function shortestPathThreadIds(
   startPlaceId: PlaceId,
   adjacency: Map<PlaceId, Array<{ neighbor: PlaceId; threadIds: string[] }>>
 ): Map<PlaceId, Set<string>> {
-  const result = new Map<PlaceId, Set<string>>()
-  result.set(startPlaceId, new Set())
-  const queue: PlaceId[] = [startPlaceId]
-  const visited = new Set<PlaceId>([startPlaceId])
+  const result = new Map<PlaceId, Set<string>>();
+  result.set(startPlaceId, new Set());
+  const queue: PlaceId[] = [startPlaceId];
+  const visited = new Set<PlaceId>([startPlaceId]);
 
   while (queue.length > 0) {
-    const current = queue.shift() as PlaceId
-    const currentThreadIds = result.get(current) ?? new Set()
-    const neighbors = adjacency.get(current) ?? []
+    const current = queue.shift() as PlaceId;
+    const currentThreadIds = result.get(current) ?? new Set();
+    const neighbors = adjacency.get(current) ?? [];
     for (const { neighbor, threadIds } of neighbors) {
-      if (visited.has(neighbor)) continue
-      visited.add(neighbor)
-      const nextSet = new Set(currentThreadIds)
-      for (const t of threadIds) nextSet.add(t)
-      result.set(neighbor, nextSet)
-      queue.push(neighbor)
+      if (visited.has(neighbor)) continue;
+      visited.add(neighbor);
+      const nextSet = new Set(currentThreadIds);
+      for (const t of threadIds) nextSet.add(t);
+      result.set(neighbor, nextSet);
+      queue.push(neighbor);
     }
   }
-  return result
+  return result;
 }
 
 /**
@@ -271,37 +271,37 @@ export async function getActionableEntities(
     insightRepository.getByGameId(gameId),
     itemRepository.getByGameId(gameId),
     pathRepository.getByGameId(gameId),
-  ])
+  ]);
 
   // Get all quest progress for the playthrough.
   const progressList =
-    await questRepository.getAllProgressForPlaythrough(playthroughId)
-  const questProgressById = new Map(progressList.map((p) => [p.questId, p]))
+    await questRepository.getAllProgressForPlaythrough(playthroughId);
+  const questProgressById = new Map(progressList.map((p) => [p.questId, p]));
 
   // Get all insight progress for the playthrough.
   const insightProgressList =
-    await insightRepository.getAllProgressForPlaythrough(playthroughId)
+    await insightRepository.getAllProgressForPlaythrough(playthroughId);
   const insightProgressById = new Map(
     insightProgressList.map((p) => [p.insightId, p])
-  )
+  );
 
   // Get all item state for the playthrough.
   const itemStateList =
-    await itemRepository.getAllStateForPlaythrough(playthroughId)
-  const itemStateById = new Map(itemStateList.map((s) => [s.itemId, s]))
+    await itemRepository.getAllStateForPlaythrough(playthroughId);
+  const itemStateById = new Map(itemStateList.map((s) => [s.itemId, s]));
 
   // Get all path progress for the playthrough.
   const pathProgressList =
-    await pathRepository.getAllProgressForPlaythrough(playthroughId)
+    await pathRepository.getAllProgressForPlaythrough(playthroughId);
   const pathProgressById = new Map(
     (pathProgressList as { pathId: string; status: PathStatus }[]).map((r) => [
       r.pathId,
       r.status,
     ])
-  )
+  );
 
   // Create the output list.
-  const out: ActionableEntity[] = []
+  const out: ActionableEntity[] = [];
 
   // Process each quest.
   for (const quest of quests) {
@@ -311,56 +311,56 @@ export async function getActionableEntities(
       playthroughId,
       quest.id,
       reachablePlaceIds
-    )
-    if (!available) continue
+    );
+    if (!available) continue;
 
     // Get the quest progress.
-    const progress = questProgressById.get(quest.id)
-    const status = progress?.status ?? QuestStatus.AVAILABLE
+    const progress = questProgressById.get(quest.id);
+    const status = progress?.status ?? QuestStatus.AVAILABLE;
 
     // If the quest is available, add it to the output list.
     if (status === QuestStatus.AVAILABLE) {
-      const label = await getEntityDisplayName(quest.id)
+      const label = await getEntityDisplayName(quest.id);
       out.push({
         entityId: quest.id,
         entityType: EntityType.QUEST,
         label,
         actionLabel: 'Start quest',
-      })
-      continue
+      });
+      continue;
     }
 
     // If the quest is active and has objectives, add the objectives to the output list.
     if (status === QuestStatus.ACTIVE && quest.objectives.length > 0) {
       // Get the completed objective indexes.
-      const completedSet = new Set(progress?.completedObjectiveIndexes ?? [])
+      const completedSet = new Set(progress?.completedObjectiveIndexes ?? []);
 
       // Process each objective.
       for (let i = 0; i < quest.objectives.length; i += 1) {
         // If the objective is completed, continue.
-        if (completedSet.has(i)) continue
+        if (completedSet.has(i)) continue;
 
         // Check if the objective is completable.
         const completable = await getObjectiveCompletability(
           playthroughId,
           quest,
           i
-        )
+        );
 
         // If the objective is not completable, continue.
-        if (!completable) continue
+        if (!completable) continue;
 
         // Add the objective to the output list.
-        const obj = quest.objectives[i]
-        const objLabel = obj?.label ?? `Objective ${i + 1}`
-        const label = await getEntityDisplayName(quest.id)
+        const obj = quest.objectives[i];
+        const objLabel = obj?.label ?? `Objective ${i + 1}`;
+        const label = await getEntityDisplayName(quest.id);
         out.push({
           entityId: quest.id,
           entityType: EntityType.QUEST,
           label,
           actionLabel: `Complete objective: ${objLabel}`,
           objectiveIndex: i,
-        })
+        });
       }
     }
   }
@@ -373,26 +373,26 @@ export async function getActionableEntities(
       playthroughId,
       insight.id,
       reachablePlaceIds
-    )
+    );
 
     // If the insight is not available, continue.
-    if (!available) continue
+    if (!available) continue;
 
     // Get the insight progress.
-    const progress = insightProgressById.get(insight.id)
-    const status = progress?.status ?? InsightStatus.UNKNOWN
+    const progress = insightProgressById.get(insight.id);
+    const status = progress?.status ?? InsightStatus.UNKNOWN;
 
     // If the insight is not unknown, continue.
-    if (status !== InsightStatus.UNKNOWN) continue
+    if (status !== InsightStatus.UNKNOWN) continue;
 
     // Add the insight to the output list.
-    const label = await getEntityDisplayName(insight.id)
+    const label = await getEntityDisplayName(insight.id);
     out.push({
       entityId: insight.id,
       entityType: EntityType.INSIGHT,
       label,
       actionLabel: 'Discover ',
-    })
+    });
   }
 
   // Process each item.
@@ -403,26 +403,26 @@ export async function getActionableEntities(
       playthroughId,
       item.id,
       reachablePlaceIds
-    )
+    );
 
     // If the item is not available, continue.
-    if (!available) continue
+    if (!available) continue;
 
     // Get the item state.
-    const state = itemStateById.get(item.id)
-    const status = state?.status ?? ItemStatus.NOT_ACQUIRED
+    const state = itemStateById.get(item.id);
+    const status = state?.status ?? ItemStatus.NOT_ACQUIRED;
 
     // If the item is not not acquired, continue.
-    if (status !== ItemStatus.NOT_ACQUIRED) continue
+    if (status !== ItemStatus.NOT_ACQUIRED) continue;
 
     // Add the item to the output list.
-    const label = await getEntityDisplayName(item.id)
+    const label = await getEntityDisplayName(item.id);
     out.push({
       entityId: item.id,
       entityType: EntityType.ITEM,
       label,
       actionLabel: 'Acquire item',
-    })
+    });
   }
 
   // Process each path.
@@ -432,28 +432,28 @@ export async function getActionableEntities(
       gameId,
       playthroughId,
       path.id
-    )
+    );
 
     // If the path is not available, continue.
-    if (!available.available) continue
+    if (!available.available) continue;
 
     // Get the path progress.
-    const status = pathProgressById.get(path.id) ?? PathStatus.RESTRICTED
+    const status = pathProgressById.get(path.id) ?? PathStatus.RESTRICTED;
 
     // If the path is not restricted, continue.
-    if (status !== PathStatus.RESTRICTED) continue
+    if (status !== PathStatus.RESTRICTED) continue;
 
     // Add the path to the output list.
-    const label = await getEntityDisplayName(path.id)
+    const label = await getEntityDisplayName(path.id);
     out.push({
       entityId: path.id,
       entityType: EntityType.PATH,
       label,
       actionLabel: 'Open path',
-    })
+    });
   }
 
-  return out
+  return out;
 }
 
 /**
@@ -476,21 +476,21 @@ export async function getActionableRouteEdgeIds(
 ): Promise<Set<string>> {
   // If there is no current position or no actionable entities, return an empty set.
   if (!currentPositionPlaceId || actionableEntityIds.size === 0) {
-    return new Set<string>()
+    return new Set<string>();
   }
 
   // Get all places for the game.
-  const places = await placeRepository.getByGameId(gameId)
-  const placeIds = new Set<PlaceId>(places.map((p) => p.id as PlaceId))
-  if (!placeIds.has(currentPositionPlaceId)) return new Set<string>()
+  const places = await placeRepository.getByGameId(gameId);
+  const placeIds = new Set<PlaceId>(places.map((p) => p.id as PlaceId));
+  if (!placeIds.has(currentPositionPlaceId)) return new Set<string>();
 
   // Get all paths for the game.
-  const paths = await pathRepository.getByGameId(gameId)
+  const paths = await pathRepository.getByGameId(gameId);
   const traversableByPathId = await buildPathTraversabilityMap(
     gameId,
     playthroughId,
     paths
-  )
+  );
 
   // Build the traversable graph with thread IDs.
   const adjacency = await buildTraversableGraphWithThreadIds(
@@ -498,76 +498,76 @@ export async function getActionableRouteEdgeIds(
     playthroughId,
     placeIds,
     traversableByPathId
-  )
+  );
 
   // Get the thread IDs for the path.
   const pathThreadIdsByPlace = shortestPathThreadIds(
     currentPositionPlaceId,
     adjacency
-  )
+  );
 
   // Preload LOCATION threads once so we can highlight edges from places
   // to actionable entities located at those places.
-  const allThreads = await threadRepository.getByGameId(gameId, null)
-  const locationThreadsByEntityAndPlace = new Map<string, string[]>()
+  const allThreads = await threadRepository.getByGameId(gameId, null);
+  const locationThreadsByEntityAndPlace = new Map<string, string[]>();
 
   // Build map of LOCATION threads keyed by (entityId, placeId). We only
   // care about actionable entities located at known places.
   for (const thread of allThreads) {
-    const subtype = ThreadSubtype.LOCATION
-    if (subtype !== ThreadSubtype.LOCATION) continue
-    const sourceType = getEntityTypeFromId(thread.sourceId)
-    const targetType = getEntityTypeFromId(thread.targetId)
-    let entityId: string | null = null
-    let placeId: PlaceId | null = null
+    const subtype = ThreadSubtype.LOCATION;
+    if (subtype !== ThreadSubtype.LOCATION) continue;
+    const sourceType = getEntityTypeFromId(thread.sourceId);
+    const targetType = getEntityTypeFromId(thread.targetId);
+    let entityId: string | null = null;
+    let placeId: PlaceId | null = null;
     if (sourceType === EntityType.PLACE && targetType != null) {
-      placeId = thread.sourceId as PlaceId
-      entityId = thread.targetId
+      placeId = thread.sourceId as PlaceId;
+      entityId = thread.targetId;
     } else if (targetType === EntityType.PLACE && sourceType != null) {
-      placeId = thread.targetId as PlaceId
-      entityId = thread.sourceId
+      placeId = thread.targetId as PlaceId;
+      entityId = thread.sourceId;
     }
-    if (!entityId || !placeId) continue
-    if (!actionableEntityIds.has(entityId)) continue
-    if (!placeIds.has(placeId)) continue
-    const key = `${entityId}|${placeId}`
-    const list = locationThreadsByEntityAndPlace.get(key) ?? []
-    list.push(thread.id)
-    locationThreadsByEntityAndPlace.set(key, list)
+    if (!entityId || !placeId) continue;
+    if (!actionableEntityIds.has(entityId)) continue;
+    if (!placeIds.has(placeId)) continue;
+    const key = `${entityId}|${placeId}`;
+    const list = locationThreadsByEntityAndPlace.get(key) ?? [];
+    list.push(thread.id);
+    locationThreadsByEntityAndPlace.set(key, list);
   }
 
   // Collect all thread IDs that form actionable routes:
   // - shortest path from current position to each relevant place
   // - LOCATION edges from those places to actionable entities.
-  const allThreadIds = new Set<string>()
+  const allThreadIds = new Set<string>();
 
   for (const entityId of actionableEntityIds) {
-    const type = getEntityTypeFromId(entityId)
+    const type = getEntityTypeFromId(entityId);
 
     // When the actionable entity is itself a place, highlight only the
     // path edges needed to reach it.
     if (type === EntityType.PLACE) {
-      if (!placeIds.has(entityId as PlaceId)) continue
-      const routeThreadIds = pathThreadIdsByPlace.get(entityId as PlaceId)
-      if (!routeThreadIds) continue
-      for (const t of routeThreadIds) allThreadIds.add(t)
-      continue
+      if (!placeIds.has(entityId as PlaceId)) continue;
+      const routeThreadIds = pathThreadIdsByPlace.get(entityId as PlaceId);
+      if (!routeThreadIds) continue;
+      for (const t of routeThreadIds) allThreadIds.add(t);
+      continue;
     }
 
     // For non-place entities, highlight:
     // - the path from current position to each of their location places
     // - the LOCATION edge(s) from those places to the entity.
-    const locs = await getEntityLocationPlaceIds(gameId, entityId)
+    const locs = await getEntityLocationPlaceIds(gameId, entityId);
     for (const placeId of locs) {
-      if (!placeIds.has(placeId)) continue
-      const routeThreadIds = pathThreadIdsByPlace.get(placeId)
-      if (!routeThreadIds) continue
-      for (const t of routeThreadIds) allThreadIds.add(t)
-      const key = `${entityId}|${placeId}`
-      const locationThreadIds = locationThreadsByEntityAndPlace.get(key) ?? []
-      for (const t of locationThreadIds) allThreadIds.add(t)
+      if (!placeIds.has(placeId)) continue;
+      const routeThreadIds = pathThreadIdsByPlace.get(placeId);
+      if (!routeThreadIds) continue;
+      for (const t of routeThreadIds) allThreadIds.add(t);
+      const key = `${entityId}|${placeId}`;
+      const locationThreadIds = locationThreadsByEntityAndPlace.get(key) ?? [];
+      for (const t of locationThreadIds) allThreadIds.add(t);
     }
   }
 
-  return allThreadIds
+  return allThreadIds;
 }

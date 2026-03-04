@@ -49,7 +49,7 @@ export const MAIN_VIEW_TYPE_LABELS: Record<MainViewType, string> = {
   [MainViewType.PEOPLE]: 'People',
   [MainViewType.INSIGHTS]: 'Insights',
   [MainViewType.THREADS]: 'Threads',
-}
+};
 
 /**
  * Returns the display label for a main view type.
@@ -58,5 +58,5 @@ export const MAIN_VIEW_TYPE_LABELS: Record<MainViewType, string> = {
  * @returns Human-readable label for the view.
  */
 export function getMainViewTypeLabel(viewType: MainViewType): string {
-  return MAIN_VIEW_TYPE_LABELS[viewType] ?? 'Unknown'
+  return MAIN_VIEW_TYPE_LABELS[viewType] ?? 'Unknown';
 }

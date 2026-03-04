@@ -1,29 +1,29 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { EntityConnections } from '../../components/EntityConnections'
-import { RequirementList } from '../../components/RequirementList'
-import { insightRepository } from '../../lib/repositories'
-import type { GameId, InsightId, PlaythroughId } from '../../types/ids'
-import type { Insight } from '../../types/Insight'
-import type { InsightProgress } from '../../types/InsightProgress'
-import { InsightStatus } from '../../types/InsightStatus'
-import { InsightForm } from './InsightForm'
+import { useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { EntityConnections } from '../../components/EntityConnections';
+import { RequirementList } from '../../components/RequirementList';
+import { insightRepository } from '../../lib/repositories';
+import type { GameId, InsightId, PlaythroughId } from '../../types/ids';
+import type { Insight } from '../../types/Insight';
+import type { InsightProgress } from '../../types/InsightProgress';
+import { InsightStatus } from '../../types/InsightStatus';
+import { InsightForm } from './InsightForm';
 
 /**
  * Props for the InsightListScreen component.
  */
 export interface InsightListScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
   /** Current playthrough ID (for progress; may be null). */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 }
 
 const INSIGHT_STATUS_LABELS: Record<InsightStatus, string> = {
   [InsightStatus.UNKNOWN]: 'Unknown',
   [InsightStatus.KNOWN]: 'Known',
   [InsightStatus.IRRELEVANT]: 'Irrelevant',
-}
+};
 
 /**
  * List and CRUD screen for insights in the current game.
@@ -37,74 +37,74 @@ export function InsightListScreen({
   gameId,
   playthroughId,
 }: InsightListScreenProps): JSX.Element {
-  const [insights, setInsights] = useState<Insight[]>([])
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [progressByInsight, setProgressByInsight] = useState<
     Record<string, InsightProgress>
-  >({})
-  const [isLoading, setIsLoading] = useState(true)
+  >({});
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; insight: Insight } | null
-  >(null)
-  const [deleteTarget, setDeleteTarget] = useState<InsightId | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<InsightId | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   /**
    * Loads the insights for the current game.
    */
   const loadInsights = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const [list, progressList] = await Promise.all([
         insightRepository.getByGameId(gameId),
         playthroughId
           ? insightRepository.getAllProgressForPlaythrough(playthroughId)
           : Promise.resolve([]),
-      ])
-      setInsights(list)
-      const byInsight: Record<string, InsightProgress> = {}
+      ]);
+      setInsights(list);
+      const byInsight: Record<string, InsightProgress> = {};
       progressList.forEach((p) => {
-        byInsight[p.insightId] = p
-      })
-      setProgressByInsight(byInsight)
+        byInsight[p.insightId] = p;
+      });
+      setProgressByInsight(byInsight);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId, playthroughId])
+  }, [gameId, playthroughId]);
 
   useEffect(() => {
-    loadInsights()
-  }, [loadInsights])
+    loadInsights();
+  }, [loadInsights]);
 
   /**
    * Handles the confirmation of deleting an insight.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return
-    await insightRepository.delete(deleteTarget)
-    setDeleteTarget(null)
-    loadInsights()
-  }, [deleteTarget, loadInsights])
+    if (deleteTarget === null) return;
+    await insightRepository.delete(deleteTarget);
+    setDeleteTarget(null);
+    loadInsights();
+  }, [deleteTarget, loadInsights]);
 
   /**
    * Handles the change of status for an insight.
    */
   const handleStatusChange = useCallback(
     async (insightId: InsightId, newStatus: InsightStatus) => {
-      if (playthroughId === null) return
-      const existing = progressByInsight[insightId]
+      if (playthroughId === null) return;
+      const existing = progressByInsight[insightId];
       await insightRepository.upsertProgress({
         playthroughId,
         insightId,
         status: newStatus,
         notes: existing?.notes ?? '',
-      })
-      loadInsights()
+      });
+      loadInsights();
     },
     [playthroughId, progressByInsight, loadInsights]
-  )
+  );
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading insights…</p>
+    return <p className="text-slate-500">Loading insights…</p>;
   }
 
   return (
@@ -127,8 +127,8 @@ export function InsightListScreen({
               mode="create"
               gameId={gameId}
               onSaved={() => {
-                setFormState(null)
-                loadInsights()
+                setFormState(null);
+                loadInsights();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -137,8 +137,8 @@ export function InsightListScreen({
               mode="edit"
               insight={formState.insight}
               onSaved={() => {
-                setFormState(null)
-                loadInsights()
+                setFormState(null);
+                loadInsights();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -153,9 +153,9 @@ export function InsightListScreen({
       ) : (
         <ul className="space-y-2">
           {insights.map((insight) => {
-            const progress = progressByInsight[insight.id]
-            const status = progress?.status ?? InsightStatus.UNKNOWN
-            const isExpanded = expandedId === insight.id
+            const progress = progressByInsight[insight.id];
+            const status = progress?.status ?? InsightStatus.UNKNOWN;
+            const isExpanded = expandedId === insight.id;
             return (
               <li
                 key={insight.id}
@@ -237,7 +237,7 @@ export function InsightListScreen({
                   </div>
                 ) : null}
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -252,5 +252,5 @@ export function InsightListScreen({
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
-  )
+  );
 }

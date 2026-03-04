@@ -1,22 +1,22 @@
-import { useEffect, useState } from 'react'
-import type { GameId, PlaceId, PlaythroughId } from '../types/ids'
+import { useEffect, useState } from 'react';
+import type { GameId, PlaceId, PlaythroughId } from '../types/ids';
 import {
   computeReachablePlaces,
   type ReachabilityResult,
-} from '../lib/reachability'
+} from '../lib/reachability';
 
 /**
  * Result of the useReachablePlaces hook.
  */
 export interface UseReachablePlacesResult {
   /** Set of place IDs reachable from the start place. */
-  reachablePlaceIds: Set<PlaceId>
+  reachablePlaceIds: Set<PlaceId>;
 
   /** True while reachability is being computed. */
-  isLoading: boolean
+  isLoading: boolean;
 
   /** Error message when computation fails, or null. */
-  error: string | null
+  error: string | null;
 }
 
 /**
@@ -37,7 +37,7 @@ export function useReachablePlaces(
     reachablePlaceIds: new Set<PlaceId>(),
     isLoading: false,
     error: null,
-  })
+  });
 
   useEffect(() => {
     // If required identifiers are missing, treat as empty reachable set.
@@ -46,28 +46,28 @@ export function useReachablePlaces(
         reachablePlaceIds: new Set<PlaceId>(),
         isLoading: false,
         error: null,
-      })
-      return
+      });
+      return;
     }
 
-    let cancelled = false
+    let cancelled = false;
     setState((prev) => ({
       ...prev,
       isLoading: true,
       error: null,
-    }))
+    }));
 
     computeReachablePlaces(gameId, playthroughId, startPlaceId)
       .then((result: ReachabilityResult) => {
-        if (cancelled) return
+        if (cancelled) return;
         setState({
           reachablePlaceIds: result.reachablePlaceIds,
           isLoading: false,
           error: null,
-        })
+        });
       })
       .catch((err: unknown) => {
-        if (cancelled) return
+        if (cancelled) return;
         setState({
           reachablePlaceIds: new Set<PlaceId>(),
           isLoading: false,
@@ -75,13 +75,13 @@ export function useReachablePlaces(
             err instanceof Error
               ? err.message
               : 'Failed to compute reachability',
-        })
-      })
+        });
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [gameId, playthroughId, startPlaceId])
+      cancelled = true;
+    };
+  }, [gameId, playthroughId, startPlaceId]);
 
-  return state
+  return state;
 }

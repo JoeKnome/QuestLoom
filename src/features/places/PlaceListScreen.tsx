@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { EntityConnections } from '../../components/EntityConnections'
-import { RequirementList } from '../../components/RequirementList'
-import { placeRepository } from '../../lib/repositories'
-import type { GameId, PlaceId } from '../../types/ids'
-import type { Place } from '../../types/Place'
-import { PlaceForm } from './PlaceForm'
+import { useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { EntityConnections } from '../../components/EntityConnections';
+import { RequirementList } from '../../components/RequirementList';
+import { placeRepository } from '../../lib/repositories';
+import type { GameId, PlaceId } from '../../types/ids';
+import type { Place } from '../../types/Place';
+import { PlaceForm } from './PlaceForm';
 
 /**
  * Props for the PlaceListScreen component.
  */
 export interface PlaceListScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
   /** Current playthrough ID (unused for places; kept for consistent GameViewContent interface). */
-  playthroughId: string | null
+  playthroughId: string | null;
 }
 
 /**
@@ -29,43 +29,43 @@ export function PlaceListScreen({
   gameId,
   playthroughId,
 }: PlaceListScreenProps): JSX.Element {
-  const [places, setPlaces] = useState<Place[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; place: Place } | null
-  >(null)
-  const [deleteTarget, setDeleteTarget] = useState<PlaceId | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<PlaceId | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   /**
    * Loads the places for the current game.
    */
   const loadPlaces = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const list = await placeRepository.getByGameId(gameId)
-      setPlaces(list)
+      const list = await placeRepository.getByGameId(gameId);
+      setPlaces(list);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId])
+  }, [gameId]);
 
   useEffect(() => {
-    loadPlaces()
-  }, [loadPlaces])
+    loadPlaces();
+  }, [loadPlaces]);
 
   /**
    * Handles the confirmation of deleting a place.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return
-    await placeRepository.delete(deleteTarget)
-    setDeleteTarget(null)
-    loadPlaces()
-  }, [deleteTarget, loadPlaces])
+    if (deleteTarget === null) return;
+    await placeRepository.delete(deleteTarget);
+    setDeleteTarget(null);
+    loadPlaces();
+  }, [deleteTarget, loadPlaces]);
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading places…</p>
+    return <p className="text-slate-500">Loading places…</p>;
   }
 
   return (
@@ -88,8 +88,8 @@ export function PlaceListScreen({
               mode="create"
               gameId={gameId}
               onSaved={() => {
-                setFormState(null)
-                loadPlaces()
+                setFormState(null);
+                loadPlaces();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -98,8 +98,8 @@ export function PlaceListScreen({
               mode="edit"
               place={formState.place}
               onSaved={() => {
-                setFormState(null)
-                loadPlaces()
+                setFormState(null);
+                loadPlaces();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -112,7 +112,7 @@ export function PlaceListScreen({
       ) : (
         <ul className="space-y-2">
           {places.map((place) => {
-            const isExpanded = expandedId === place.id
+            const isExpanded = expandedId === place.id;
             return (
               <li
                 key={place.id}
@@ -171,7 +171,7 @@ export function PlaceListScreen({
                   </div>
                 ) : null}
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -186,5 +186,5 @@ export function PlaceListScreen({
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
-  )
+  );
 }

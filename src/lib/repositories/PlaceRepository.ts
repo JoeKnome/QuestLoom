@@ -3,30 +3,30 @@
  * Use this instead of Dexie directly; implements IPlaceRepository against IndexedDB.
  */
 
-import type { Place } from '../../types/Place'
-import { EntityType } from '../../types/EntityType'
-import type { GameId, PlaceId } from '../../types/ids'
-import { generateEntityId } from '../../utils/generateId'
-import { db } from '../db'
-import { deleteThreadsForEntity } from './cascadeDeleteThreads'
-import { mapMarkerRepository } from './MapMarkerRepository'
-import type { CreatePlaceInput } from './CreatePlaceInput'
-import type { IPlaceRepository } from './IPlaceRepository'
+import type { Place } from '../../types/Place';
+import { EntityType } from '../../types/EntityType';
+import type { GameId, PlaceId } from '../../types/ids';
+import { generateEntityId } from '../../utils/generateId';
+import { db } from '../db';
+import { deleteThreadsForEntity } from './cascadeDeleteThreads';
+import { mapMarkerRepository } from './MapMarkerRepository';
+import type { CreatePlaceInput } from './CreatePlaceInput';
+import type { IPlaceRepository } from './IPlaceRepository';
 
 /**
  * Dexie-backed implementation of IPlaceRepository.
  */
 class PlaceRepositoryImpl implements IPlaceRepository {
   async getByGameId(gameId: GameId): Promise<Place[]> {
-    return db.places.where('gameId').equals(gameId).toArray()
+    return db.places.where('gameId').equals(gameId).toArray();
   }
 
   async getById(id: PlaceId): Promise<Place | undefined> {
-    return db.places.get(id)
+    return db.places.get(id);
   }
 
   async create(input: CreatePlaceInput): Promise<Place> {
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     const place: Place = {
       id: generateEntityId(EntityType.PLACE) as PlaceId,
       gameId: input.gameId,
@@ -35,36 +35,36 @@ class PlaceRepositoryImpl implements IPlaceRepository {
       map: input.map,
       createdAt: now,
       updatedAt: now,
-    }
-    await db.places.add(place)
-    return place
+    };
+    await db.places.add(place);
+    return place;
   }
 
   async update(place: Place): Promise<void> {
     const updated: Place = {
       ...place,
       updatedAt: new Date().toISOString(),
-    }
-    await db.places.put(updated)
+    };
+    await db.places.put(updated);
   }
 
   async delete(id: PlaceId): Promise<void> {
-    const place = await db.places.get(id)
+    const place = await db.places.get(id);
     if (place) {
-      await deleteThreadsForEntity(place.gameId, id)
+      await deleteThreadsForEntity(place.gameId, id);
       await mapMarkerRepository.deleteByEntity(
         place.gameId,
         EntityType.PLACE,
         id
-      )
+      );
     }
-    await db.places.delete(id)
+    await db.places.delete(id);
   }
 
   async deleteByGameId(gameId: GameId): Promise<void> {
-    await db.places.where('gameId').equals(gameId).delete()
+    await db.places.where('gameId').equals(gameId).delete();
   }
 }
 
 /** Single place repository instance. */
-export const placeRepository: IPlaceRepository = new PlaceRepositoryImpl()
+export const placeRepository: IPlaceRepository = new PlaceRepositoryImpl();

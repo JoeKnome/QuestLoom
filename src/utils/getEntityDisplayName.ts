@@ -6,9 +6,9 @@ import {
   personRepository,
   placeRepository,
   questRepository,
-} from '../lib/repositories'
-import { EntityType } from '../types/EntityType'
-import { parseEntityId } from './parseEntityId'
+} from '../lib/repositories';
+import { EntityType } from '../types/EntityType';
+import { parseEntityId } from './parseEntityId';
 
 /**
  * Fetches the display name for an entity by its typed ID (format type:uuid).
@@ -19,45 +19,45 @@ import { parseEntityId } from './parseEntityId'
  * @returns The display label, or the id if not found; empty string for empty/invalid id
  */
 export async function getEntityDisplayName(entityId: string): Promise<string> {
-  const trimmed = entityId?.trim() ?? ''
-  if (trimmed === '') return ''
-  const parsed = parseEntityId(trimmed)
-  if (parsed == null) return trimmed
+  const trimmed = entityId?.trim() ?? '';
+  if (trimmed === '') return '';
+  const parsed = parseEntityId(trimmed);
+  if (parsed == null) return trimmed;
   try {
     switch (parsed.type) {
       case EntityType.QUEST: {
-        const q = await questRepository.getById(trimmed)
-        return q?.title ?? trimmed
+        const q = await questRepository.getById(trimmed);
+        return q?.title ?? trimmed;
       }
       case EntityType.INSIGHT: {
-        const i = await insightRepository.getById(trimmed)
-        return i?.title ?? trimmed
+        const i = await insightRepository.getById(trimmed);
+        return i?.title ?? trimmed;
       }
       case EntityType.ITEM: {
-        const i = await itemRepository.getById(trimmed)
-        return i?.name ?? trimmed
+        const i = await itemRepository.getById(trimmed);
+        return i?.name ?? trimmed;
       }
       case EntityType.PERSON: {
-        const p = await personRepository.getById(trimmed)
-        return p?.name ?? trimmed
+        const p = await personRepository.getById(trimmed);
+        return p?.name ?? trimmed;
       }
       case EntityType.PLACE: {
-        const p = await placeRepository.getById(trimmed)
-        return p?.name ?? trimmed
+        const p = await placeRepository.getById(trimmed);
+        return p?.name ?? trimmed;
       }
       case EntityType.MAP: {
-        const m = await mapRepository.getById(trimmed)
-        return m?.name ?? trimmed
+        const m = await mapRepository.getById(trimmed);
+        return m?.name ?? trimmed;
       }
       case EntityType.PATH: {
-        const p = await pathRepository.getById(trimmed)
-        return p?.name ?? trimmed
+        const p = await pathRepository.getById(trimmed);
+        return p?.name ?? trimmed;
       }
       case EntityType.THREAD:
       default:
-        return trimmed
+        return trimmed;
     }
   } catch {
-    return trimmed
+    return trimmed;
   }
 }

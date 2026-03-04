@@ -3,12 +3,12 @@
  * Use this instead of Dexie directly; implements IEntityDiscoveryRepository against IndexedDB.
  */
 
-import type { EntityDiscovery } from '../../types/EntityDiscovery'
-import type { DiscoveryEntityType } from '../../types/DiscoveryEntityType'
-import type { PlaythroughId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
-import { db, type EntityDiscoveryRow } from '../db'
-import type { IEntityDiscoveryRepository } from './IEntityDiscoveryRepository'
+import type { EntityDiscovery } from '../../types/EntityDiscovery';
+import type { DiscoveryEntityType } from '../../types/DiscoveryEntityType';
+import type { PlaythroughId } from '../../types/ids';
+import { generateId } from '../../utils/generateId';
+import { db, type EntityDiscoveryRow } from '../db';
+import type { IEntityDiscoveryRepository } from './IEntityDiscoveryRepository';
 
 /**
  * Dexie-backed implementation of IEntityDiscoveryRepository.
@@ -22,8 +22,8 @@ class EntityDiscoveryRepositoryImpl implements IEntityDiscoveryRepository {
     const row = await db.entityDiscovery
       .where('[playthroughId+entityType+entityId]')
       .equals([playthroughId, entityType, entityId])
-      .first()
-    return row ? toEntityDiscovery(row) : undefined
+      .first();
+    return row ? toEntityDiscovery(row) : undefined;
   }
 
   async getAllForPlaythrough(
@@ -32,8 +32,8 @@ class EntityDiscoveryRepositoryImpl implements IEntityDiscoveryRepository {
     const rows = await db.entityDiscovery
       .where('playthroughId')
       .equals(playthroughId)
-      .toArray()
-    return rows.map(toEntityDiscovery)
+      .toArray();
+    return rows.map(toEntityDiscovery);
   }
 
   async upsert(discovery: EntityDiscovery): Promise<void> {
@@ -43,15 +43,15 @@ class EntityDiscoveryRepositoryImpl implements IEntityDiscoveryRepository {
       entityType: discovery.entityType,
       entityId: discovery.entityId,
       discovered: discovery.discovered,
-    }
-    await db.entityDiscovery.put(row)
+    };
+    await db.entityDiscovery.put(row);
   }
 
   async deleteByPlaythroughId(playthroughId: PlaythroughId): Promise<void> {
     await db.entityDiscovery
       .where('playthroughId')
       .equals(playthroughId)
-      .delete()
+      .delete();
   }
 }
 
@@ -68,9 +68,9 @@ function toEntityDiscovery(row: EntityDiscoveryRow): EntityDiscovery {
     entityType: row.entityType,
     entityId: row.entityId,
     discovered: row.discovered,
-  }
+  };
 }
 
 /** Single entity discovery repository instance. */
 export const entityDiscoveryRepository: IEntityDiscoveryRepository =
-  new EntityDiscoveryRepositoryImpl()
+  new EntityDiscoveryRepositoryImpl();

@@ -1,4 +1,4 @@
-import type { GameId } from '../../types/ids'
+import type { GameId } from '../../types/ids';
 
 /**
  * Input for creating a path.
@@ -6,11 +6,11 @@ import type { GameId } from '../../types/ids'
  */
 export interface CreatePathInput {
   /** ID of the game this path belongs to. */
-  gameId: GameId
+  gameId: GameId;
 
   /** Path name. */
-  name: string
+  name: string;
 
   /** Optional description of how this path connects places. */
-  description?: string
+  description?: string;
 }

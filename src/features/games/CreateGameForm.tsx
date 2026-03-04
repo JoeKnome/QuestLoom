@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react'
-import { gameRepository, playthroughRepository } from '../../lib/repositories'
-import { useAppStore } from '../../stores/appStore'
-import type { CreateGameFormProps } from './CreateGameForm.types'
+import { useState, useCallback } from 'react';
+import { gameRepository, playthroughRepository } from '../../lib/repositories';
+import { useAppStore } from '../../stores/appStore';
+import type { CreateGameFormProps } from './CreateGameForm.types';
 
 /**
  * Form to create a new game and default playthrough, then set both as current.
@@ -12,12 +12,12 @@ import type { CreateGameFormProps } from './CreateGameForm.types'
 export function CreateGameForm({
   onCreated,
 }: CreateGameFormProps): JSX.Element {
-  const [name, setName] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [name, setName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const setCurrentGameAndPlaythrough = useAppStore(
     (s) => s.setCurrentGameAndPlaythrough
-  )
+  );
 
   /**
    * Handles the form submission.
@@ -27,31 +27,31 @@ export function CreateGameForm({
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmed = name.trim()
+      e.preventDefault();
+      const trimmed = name.trim();
       if (!trimmed) {
-        setError('Enter a game name.')
-        return
+        setError('Enter a game name.');
+        return;
       }
-      setError(null)
-      setIsSubmitting(true)
+      setError(null);
+      setIsSubmitting(true);
       try {
-        const game = await gameRepository.create({ name: trimmed })
+        const game = await gameRepository.create({ name: trimmed });
         const playthrough = await playthroughRepository.create({
           gameId: game.id,
           name: 'Default',
-        })
-        setCurrentGameAndPlaythrough(game.id, playthrough.id)
-        setName('')
-        onCreated?.()
+        });
+        setCurrentGameAndPlaythrough(game.id, playthrough.id);
+        setName('');
+        onCreated?.();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to create game.')
+        setError(err instanceof Error ? err.message : 'Failed to create game.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [name, onCreated, setCurrentGameAndPlaythrough]
-  )
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
@@ -84,5 +84,5 @@ export function CreateGameForm({
         </p>
       )}
     </form>
-  )
+  );
 }

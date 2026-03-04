@@ -9,16 +9,16 @@
  */
 export interface QuestObjective {
   /** Short description of the objective. */
-  label: string
+  label: string;
   /**
    * Optional typed entity ID. When set, the objective is *completable* when this entity's
    * playthrough status is in allowedStatuses (or type default). Completion remains manual
    * and is stored per playthrough, not on the quest.
    */
-  entityId?: string
+  entityId?: string;
   /**
    * Optional set of status enum values (for entityId's type) that make the objective completable.
    * If absent or empty, default for that entity type is used.
    */
-  allowedStatuses?: number[]
+  allowedStatuses?: number[];
 }

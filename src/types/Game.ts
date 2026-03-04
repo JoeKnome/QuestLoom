@@ -1,4 +1,4 @@
-import type { GameId } from './ids'
+import type { GameId } from './ids';
 
 /**
  * Game (session container): the intrinsic game world.
@@ -11,11 +11,11 @@ import type { GameId } from './ids'
  */
 export interface Game {
   /** Unique identifier. */
-  id: GameId
+  id: GameId;
   /** Game/session name. */
-  name: string
+  name: string;
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

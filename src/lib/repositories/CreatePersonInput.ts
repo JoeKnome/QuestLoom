@@ -1,4 +1,4 @@
-import type { GameId } from '../../types/ids'
+import type { GameId } from '../../types/ids';
 
 /**
  * Input for creating a person.
@@ -6,9 +6,9 @@ import type { GameId } from '../../types/ids'
  */
 export interface CreatePersonInput {
   /** ID of the game this person belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Character name. */
-  name: string
+  name: string;
   /** Optional author notes. */
-  notes?: string
+  notes?: string;
 }

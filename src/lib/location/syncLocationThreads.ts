@@ -1,7 +1,7 @@
-import type { GameId, PlaceId } from '../../types/ids'
-import { ThreadSubtype } from '../../types/ThreadSubtype'
-import { getThreadSubtype } from '../../utils/threadSubtype'
-import { threadRepository } from '../repositories'
+import type { GameId, PlaceId } from '../../types/ids';
+import { ThreadSubtype } from '../../types/ThreadSubtype';
+import { getThreadSubtype } from '../../utils/threadSubtype';
+import { threadRepository } from '../repositories';
 
 /**
  * Syncs LOCATION threads for an entity: removes all existing LOCATION threads,
@@ -20,12 +20,12 @@ export async function syncLocationThreads(
     gameId,
     entityId,
     null
-  )
+  );
   const locationThreads = threads.filter(
     (t) => getThreadSubtype(t) === ThreadSubtype.LOCATION
-  )
+  );
   for (const t of locationThreads) {
-    await threadRepository.delete(t.id)
+    await threadRepository.delete(t.id);
   }
   for (const placeId of placeIds) {
     await threadRepository.create({
@@ -33,6 +33,6 @@ export async function syncLocationThreads(
       sourceId: entityId,
       targetId: placeId,
       subtype: ThreadSubtype.LOCATION,
-    })
+    });
   }
 }

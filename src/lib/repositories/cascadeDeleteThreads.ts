@@ -1,5 +1,5 @@
-import type { GameId } from '../../types/ids'
-import { threadRepository } from './ThreadRepository'
+import type { GameId } from '../../types/ids';
+import { threadRepository } from './ThreadRepository';
 
 /**
  * Deletes all threads that reference the given entity (as source or target).
@@ -12,5 +12,5 @@ export async function deleteThreadsForEntity(
   gameId: GameId,
   entityId: string
 ): Promise<void> {
-  await threadRepository.deleteThreadsInvolvingEntity(gameId, entityId)
+  await threadRepository.deleteThreadsInvolvingEntity(gameId, entityId);
 }

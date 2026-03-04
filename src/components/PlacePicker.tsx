@@ -1,22 +1,22 @@
-import { useCallback, useEffect, useState } from 'react'
-import { placeRepository } from '../lib/repositories'
-import type { GameId, PlaceId } from '../types/ids'
-import type { Place } from '../types/Place'
+import { useCallback, useEffect, useState } from 'react';
+import { placeRepository } from '../lib/repositories';
+import type { GameId, PlaceId } from '../types/ids';
+import type { Place } from '../types/Place';
 
 /**
  * Props for the PlacePicker component.
  */
 export interface PlacePickerProps {
   /** Game ID to load places from. */
-  gameId: GameId
+  gameId: GameId;
   /** Currently selected place ID, or empty string for none. */
-  value: PlaceId | ''
+  value: PlaceId | '';
   /** Called when the selection changes. */
-  onChange: (placeId: PlaceId | '') => void
+  onChange: (placeId: PlaceId | '') => void;
   /** When true, the control is disabled. */
-  disabled?: boolean
+  disabled?: boolean;
   /** Optional id for the select element. */
-  id?: string
+  id?: string;
 }
 
 /**
@@ -37,32 +37,32 @@ export function PlacePicker({
   disabled = false,
   id,
 }: PlacePickerProps): JSX.Element {
-  const [places, setPlaces] = useState<Place[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     placeRepository.getByGameId(gameId).then((list) => {
       if (!cancelled) {
-        setPlaces(list)
-        setIsLoading(false)
+        setPlaces(list);
+        setIsLoading(false);
       }
-    })
+    });
     return () => {
-      cancelled = true
-    }
-  }, [gameId])
+      cancelled = true;
+    };
+  }, [gameId]);
 
   /**
    * Handles the change of the selected place.
    */
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const v = e.target.value
-      onChange(v === '' ? '' : (v as PlaceId))
+      const v = e.target.value;
+      onChange(v === '' ? '' : (v as PlaceId));
     },
     [onChange]
-  )
+  );
 
   if (isLoading) {
     return (
@@ -74,7 +74,7 @@ export function PlacePicker({
       >
         <option value="">Loading…</option>
       </select>
-    )
+    );
   }
 
   return (
@@ -93,5 +93,5 @@ export function PlacePicker({
         </option>
       ))}
     </select>
-  )
+  );
 }

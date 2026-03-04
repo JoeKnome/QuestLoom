@@ -1,21 +1,21 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { EntityConnections } from '../../components/EntityConnections'
-import { RequirementList } from '../../components/RequirementList'
-import { pathRepository } from '../../lib/repositories'
-import type { Path } from '../../types/Path'
-import type { GameId, PathId, PlaythroughId } from '../../types/ids'
-import { PathForm } from './PathForm'
+import { useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { EntityConnections } from '../../components/EntityConnections';
+import { RequirementList } from '../../components/RequirementList';
+import { pathRepository } from '../../lib/repositories';
+import type { Path } from '../../types/Path';
+import type { GameId, PathId, PlaythroughId } from '../../types/ids';
+import { PathForm } from './PathForm';
 
 /**
  * Props for the PathListScreen component.
  */
 export interface PathListScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
 
   /** Current playthrough ID (used for status and requirements). */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 }
 
 /**
@@ -30,44 +30,44 @@ export function PathListScreen({
   gameId,
   playthroughId,
 }: PathListScreenProps): JSX.Element {
-  const [paths, setPaths] = useState<Path[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [paths, setPaths] = useState<Path[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; path: Path } | null
-  >(null)
-  const [deleteTarget, setDeleteTarget] = useState<PathId | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<PathId | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   /**
    * Loads the paths for the current game.
    */
   const loadPaths = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const list = await pathRepository.getByGameId(gameId)
-      setPaths(list)
+      const list = await pathRepository.getByGameId(gameId);
+      setPaths(list);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId])
+  }, [gameId]);
 
   useEffect(() => {
-    loadPaths()
-  }, [loadPaths])
+    loadPaths();
+  }, [loadPaths]);
 
   /**
    * Handles the confirmation of deleting a path.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return
-    await pathRepository.delete(deleteTarget)
-    setDeleteTarget(null)
-    loadPaths()
-  }, [deleteTarget, loadPaths])
+    if (deleteTarget === null) return;
+    await pathRepository.delete(deleteTarget);
+    setDeleteTarget(null);
+    loadPaths();
+  }, [deleteTarget, loadPaths]);
 
   // Render the loading state if the paths are still loading.
   if (isLoading) {
-    return <p className="text-slate-500">Loading paths…</p>
+    return <p className="text-slate-500">Loading paths…</p>;
   }
 
   return (
@@ -100,8 +100,8 @@ export function PathListScreen({
               gameId={gameId}
               playthroughId={playthroughId}
               onSaved={() => {
-                setFormState(null)
-                loadPaths()
+                setFormState(null);
+                loadPaths();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -112,8 +112,8 @@ export function PathListScreen({
               path={formState.path}
               playthroughId={playthroughId}
               onSaved={() => {
-                setFormState(null)
-                loadPaths()
+                setFormState(null);
+                loadPaths();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -131,7 +131,7 @@ export function PathListScreen({
         // Render the paths list.
         <ul className="space-y-2">
           {paths.map((path) => {
-            const isExpanded = expandedId === path.id
+            const isExpanded = expandedId === path.id;
             // Render the path item.
             return (
               <li
@@ -196,7 +196,7 @@ export function PathListScreen({
                   </div>
                 ) : null}
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -212,5 +212,5 @@ export function PathListScreen({
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
-  )
+  );
 }

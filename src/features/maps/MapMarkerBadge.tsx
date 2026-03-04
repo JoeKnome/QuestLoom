@@ -1,28 +1,28 @@
-import type { EntityType } from '../../types/EntityType'
+import type { EntityType } from '../../types/EntityType';
 import {
   getEntityTypeColorClasses,
   getUnavailableEntityTypeColorClasses,
   getSpoilerHiddenColorClasses,
-} from '../../utils/entityTypeColors'
+} from '../../utils/entityTypeColors';
 
 /**
  * Props for the MapMarkerBadge component.
  */
 export interface MapMarkerBadgeProps {
   /** Entity type the marker represents. */
-  entityType: EntityType
+  entityType: EntityType;
 
   /** Single-character label to display inside the badge. */
-  initial: string
+  initial: string;
 
   /** Tooltip text (full entity name). */
-  title: string
+  title: string;
 
   /** False when entity is unavailable (requirements or location unreachable); greys out the badge. */
-  available?: boolean
+  available?: boolean;
 
   /** True when entity is actionable (what you can do next); adds accent ring for emphasis. */
-  actionable?: boolean
+  actionable?: boolean;
 
   /**
    * True when this entity is completed/resolved for visual purposes
@@ -30,14 +30,14 @@ export interface MapMarkerBadgeProps {
    * insights, dead persons). Completed markers are de-emphasized via lower
    * opacity.
    */
-  completed?: boolean
+  completed?: boolean;
 
   /**
    * True when this entity is hidden by spoiler protection (driven by discovery
    * rules). When set, type-specific coloring is not shown so the entity type
    * is not revealed.
    */
-  spoilerHidden?: boolean
+  spoilerHidden?: boolean;
 }
 
 /**
@@ -57,41 +57,41 @@ export function MapMarkerBadge({
   completed = false,
   spoilerHidden = false,
 }: MapMarkerBadgeProps): JSX.Element {
-  const colorClasses = getEntityTypeColorClasses(entityType)
+  const colorClasses = getEntityTypeColorClasses(entityType);
   const safeInitial = initial.trim()
     ? initial.trim().charAt(0).toUpperCase()
-    : '?'
+    : '?';
 
   const baseColorClasses = spoilerHidden
     ? getSpoilerHiddenColorClasses()
     : available
       ? colorClasses
-      : getUnavailableEntityTypeColorClasses(entityType)
+      : getUnavailableEntityTypeColorClasses(entityType);
 
   // Base styling: normal markers have no ring; actionable markers add a teal ring.
   // Unavailable entities use desaturated type colors; completed entities are
   // further de-emphasized via opacity. Spoiler-hidden markers ignore
   // availability/completion styling and use a neutral grey so type is not
   // revealed.
-  let opacityClass = ''
+  let opacityClass = '';
   if (!spoilerHidden) {
     if (completed) {
-      opacityClass = 'opacity-60'
+      opacityClass = 'opacity-60';
     }
   }
 
   const emphasisClasses =
     actionable && available && !spoilerHidden && !completed
       ? 'border-2 border-teal-500 shadow-lg'
-      : ''
+      : '';
 
   const textColorClass = spoilerHidden
     ? 'text-slate-700'
     : available
       ? ''
-      : 'text-slate-600'
+      : 'text-slate-600';
 
-  const displayedInitial = spoilerHidden ? '?' : safeInitial
+  const displayedInitial = spoilerHidden ? '?' : safeInitial;
 
   return (
     <div
@@ -103,11 +103,9 @@ export function MapMarkerBadge({
       tabIndex={0}
       aria-label={title}
     >
-      <span
-        className={`text-xs font-semibold leading-none ${textColorClass}`}
-      >
+      <span className={`text-xs font-semibold leading-none ${textColorClass}`}>
         {displayedInitial}
       </span>
     </div>
-  )
+  );
 }

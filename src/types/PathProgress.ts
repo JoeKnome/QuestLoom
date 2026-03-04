@@ -1,5 +1,5 @@
-import type { PathId, PlaythroughId } from './ids'
-import type { PathStatus } from './PathStatus'
+import type { PathId, PlaythroughId } from './ids';
+import type { PathStatus } from './PathStatus';
 
 /**
  * Path progress (playthrough-scoped).
@@ -8,14 +8,14 @@ import type { PathStatus } from './PathStatus'
  */
 export interface PathProgress {
   /** Optional unique identifier (for Dexie primary key). */
-  id?: string
+  id?: string;
 
   /** ID of the playthrough. */
-  playthroughId: PlaythroughId
+  playthroughId: PlaythroughId;
 
   /** ID of the path. */
-  pathId: PathId
+  pathId: PathId;
 
   /** Path traversal status. */
-  status: PathStatus
+  status: PathStatus;
 }

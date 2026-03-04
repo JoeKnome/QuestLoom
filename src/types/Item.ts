@@ -1,4 +1,4 @@
-import type { GameId, ItemId } from './ids'
+import type { GameId, ItemId } from './ids';
 
 /**
  * Item definition (game-scoped).
@@ -13,15 +13,15 @@ import type { GameId, ItemId } from './ids'
  */
 export interface Item {
   /** Unique identifier. */
-  id: ItemId
+  id: ItemId;
   /** ID of the game this item belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Item name. */
-  name: string
+  name: string;
   /** Optional description. */
-  description: string
+  description: string;
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

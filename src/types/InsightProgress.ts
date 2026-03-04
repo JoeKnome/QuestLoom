@@ -1,5 +1,5 @@
-import type { InsightId, PlaythroughId } from './ids'
-import type { InsightStatus } from './InsightStatus'
+import type { InsightId, PlaythroughId } from './ids';
+import type { InsightStatus } from './InsightStatus';
 
 /**
  * Insight progress (playthrough-scoped).
@@ -14,13 +14,13 @@ import type { InsightStatus } from './InsightStatus'
  */
 export interface InsightProgress {
   /** Optional unique identifier (for Dexie primary key). */
-  id?: string
+  id?: string;
   /** ID of the playthrough. */
-  playthroughId: PlaythroughId
+  playthroughId: PlaythroughId;
   /** ID of the insight. */
-  insightId: InsightId
+  insightId: InsightId;
   /** Insight resolution status. */
-  status: InsightStatus
+  status: InsightStatus;
   /** Optional user notes. */
-  notes: string
+  notes: string;
 }

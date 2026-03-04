@@ -1,4 +1,4 @@
-import type { GameId, MapId, PlaceId } from './ids'
+import type { GameId, MapId, PlaceId } from './ids';
 
 /**
  * Place (location) definition (game-scoped).
@@ -14,17 +14,17 @@ import type { GameId, MapId, PlaceId } from './ids'
  */
 export interface Place {
   /** Unique identifier. */
-  id: PlaceId
+  id: PlaceId;
   /** ID of the game this place belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Location name. */
-  name: string
+  name: string;
   /** Optional notes. */
-  notes: string
+  notes: string;
   /** Optional ID of the map this place is linked to. */
-  map?: MapId
+  map?: MapId;
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

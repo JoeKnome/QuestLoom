@@ -1,10 +1,10 @@
-import type { GameId, MapId, PlaceId } from './ids'
+import type { GameId, MapId, PlaceId } from './ids';
 
 /**
  * How the map image is provided.
  * Legacy: if imageSourceType is missing but imageUrl is non-empty, treat as 'url'.
  */
-export type MapImageSourceType = 'url' | 'upload'
+export type MapImageSourceType = 'url' | 'upload';
 
 /**
  * Map definition (game-scoped). Maps are view-only containers for images;
@@ -25,24 +25,24 @@ export type MapImageSourceType = 'url' | 'upload'
  */
 export interface Map {
   /** Unique identifier. */
-  id: MapId
+  id: MapId;
   /** ID of the game this map belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Map label. */
-  name: string
+  name: string;
   /** How the image is provided; legacy: missing + non-empty imageUrl is treated as 'url'. */
-  imageSourceType?: MapImageSourceType
+  imageSourceType?: MapImageSourceType;
   /** HTTP(S) URL to map image; used only when imageSourceType === 'url'. */
-  imageUrl?: string
+  imageUrl?: string;
   /** Reference to uploaded image in repository storage; used only when imageSourceType === 'upload'. */
-  imageBlobId?: string
+  imageBlobId?: string;
   /**
    * ID of the top-level place that represents this map in threads and the loom.
    * May be undefined for legacy maps created before this association existed.
    */
-  topLevelPlaceId?: PlaceId
+  topLevelPlaceId?: PlaceId;
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

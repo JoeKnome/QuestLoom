@@ -3,18 +3,18 @@
  * Single source of truth for "current" context; optionally persists last selection in localStorage.
  */
 
-import { create } from 'zustand'
-import type { GameId, PlaythroughId } from '../types/ids'
+import { create } from 'zustand';
+import type { GameId, PlaythroughId } from '../types/ids';
 
 /**
  * Storage key for current game ID. Exported for debug utilities (e.g. purge localStorage).
  */
-export const STORAGE_KEY_GAME = 'questloom-current-game-id'
+export const STORAGE_KEY_GAME = 'questloom-current-game-id';
 
 /**
  * Storage key for current playthrough ID. Exported for debug utilities (e.g. purge localStorage).
  */
-export const STORAGE_KEY_PLAYTHROUGH = 'questloom-current-playthrough-id'
+export const STORAGE_KEY_PLAYTHROUGH = 'questloom-current-playthrough-id';
 
 /**
  * Gets a stored ID from localStorage by key.
@@ -24,9 +24,9 @@ export const STORAGE_KEY_PLAYTHROUGH = 'questloom-current-playthrough-id'
  * @returns The stored ID (typed) or null if not found.
  */
 function getStoredId<T extends string>(key: string): T | null {
-  if (typeof window === 'undefined') return null
-  const value = localStorage.getItem(key)
-  return value && value.trim() !== '' ? (value as T) : null
+  if (typeof window === 'undefined') return null;
+  const value = localStorage.getItem(key);
+  return value && value.trim() !== '' ? (value as T) : null;
 }
 
 /**
@@ -35,7 +35,7 @@ function getStoredId<T extends string>(key: string): T | null {
  * @returns The stored game ID or null if not found.
  */
 function getStoredGameId(): GameId | null {
-  return getStoredId<GameId>(STORAGE_KEY_GAME)
+  return getStoredId<GameId>(STORAGE_KEY_GAME);
 }
 
 /**
@@ -44,7 +44,7 @@ function getStoredGameId(): GameId | null {
  * @returns The stored playthrough ID or null if not found.
  */
 function getStoredPlaythroughId(): PlaythroughId | null {
-  return getStoredId<PlaythroughId>(STORAGE_KEY_PLAYTHROUGH)
+  return getStoredId<PlaythroughId>(STORAGE_KEY_PLAYTHROUGH);
 }
 
 /**
@@ -53,22 +53,22 @@ function getStoredPlaythroughId(): PlaythroughId | null {
  */
 interface AppState {
   /** Currently selected game ID, or null if none. */
-  currentGameId: GameId | null
+  currentGameId: GameId | null;
 
   /** Currently selected playthrough ID, or null if none. */
-  currentPlaythroughId: PlaythroughId | null
+  currentPlaythroughId: PlaythroughId | null;
 
   /** Sets the current game; persists to localStorage when non-null.
    *
    * @param id - Game ID to set; null to clear.
    */
-  setCurrentGame: (id: GameId | null) => void
+  setCurrentGame: (id: GameId | null) => void;
 
   /** Sets the current playthrough; persists to localStorage when non-null.
    *
    * @param id - Playthrough ID to set; null to clear.
    */
-  setCurrentPlaythrough: (id: PlaythroughId | null) => void
+  setCurrentPlaythrough: (id: PlaythroughId | null) => void;
 
   /** Sets both current game and playthrough in one call; persists when non-null.
    *
@@ -78,7 +78,7 @@ interface AppState {
   setCurrentGameAndPlaythrough: (
     gameId: GameId | null,
     playthroughId: PlaythroughId | null
-  ) => void
+  ) => void;
 }
 
 /**
@@ -88,11 +88,11 @@ interface AppState {
  * @param value - Value to store, or null to remove
  */
 function persistToLocalStorage(key: string, value: string | null): void {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') return;
   if (value !== null) {
-    localStorage.setItem(key, value)
+    localStorage.setItem(key, value);
   } else {
-    localStorage.removeItem(key)
+    localStorage.removeItem(key);
   }
 }
 
@@ -104,18 +104,18 @@ export const useAppStore = create<AppState>((set) => ({
   currentPlaythroughId: getStoredPlaythroughId(),
 
   setCurrentGame: (id) => {
-    persistToLocalStorage(STORAGE_KEY_GAME, id)
-    set({ currentGameId: id })
+    persistToLocalStorage(STORAGE_KEY_GAME, id);
+    set({ currentGameId: id });
   },
 
   setCurrentPlaythrough: (id) => {
-    persistToLocalStorage(STORAGE_KEY_PLAYTHROUGH, id)
-    set({ currentPlaythroughId: id })
+    persistToLocalStorage(STORAGE_KEY_PLAYTHROUGH, id);
+    set({ currentPlaythroughId: id });
   },
 
   setCurrentGameAndPlaythrough: (gameId, playthroughId) => {
-    persistToLocalStorage(STORAGE_KEY_GAME, gameId)
-    persistToLocalStorage(STORAGE_KEY_PLAYTHROUGH, playthroughId)
-    set({ currentGameId: gameId, currentPlaythroughId: playthroughId })
+    persistToLocalStorage(STORAGE_KEY_GAME, gameId);
+    persistToLocalStorage(STORAGE_KEY_PLAYTHROUGH, playthroughId);
+    set({ currentGameId: gameId, currentPlaythroughId: playthroughId });
   },
-}))
+}));

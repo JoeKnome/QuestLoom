@@ -1,14 +1,14 @@
-import { MainViewType, getMainViewTypeLabel } from '../../types/MainViewType'
-import { SECTIONS } from './gameViewSections'
+import { MainViewType, getMainViewTypeLabel } from '../../types/MainViewType';
+import { SECTIONS } from './gameViewSections';
 
 /**
  * Props for the GameViewSidebar component.
  */
 export interface GameViewSidebarProps {
   /** Currently active section. */
-  activeSection: MainViewType
+  activeSection: MainViewType;
   /** Called when the user selects a section. */
-  onSelectSection: (section: MainViewType) => void
+  onSelectSection: (section: MainViewType) => void;
 }
 
 /**
@@ -31,7 +31,7 @@ export function GameViewSidebar({
     >
       <div className="flex overflow-x-auto md:flex-col md:overflow-x-visible">
         {SECTIONS.map((section) => {
-          const isActive = activeSection === section
+          const isActive = activeSection === section;
           return (
             <button
               key={section}
@@ -46,9 +46,9 @@ export function GameViewSidebar({
             >
               {getMainViewTypeLabel(section)}
             </button>
-          )
+          );
         })}
       </div>
     </nav>
-  )
+  );
 }

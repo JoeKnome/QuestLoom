@@ -1,4 +1,4 @@
-import { EntityType } from '../types/EntityType'
+import { EntityType } from '../types/EntityType';
 
 /**
  * Human-readable singular labels for each entity type (e.g. "Quest", "Person").
@@ -13,7 +13,7 @@ export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   [EntityType.MAP]: 'Map',
   [EntityType.THREAD]: 'Thread',
   [EntityType.PATH]: 'Path',
-}
+};
 
 /**
  * Human-readable plural labels for each entity type (e.g. "Quests", "People").
@@ -28,4 +28,4 @@ export const ENTITY_TYPE_PLURAL_LABELS: Record<EntityType, string> = {
   [EntityType.MAP]: 'Maps',
   [EntityType.THREAD]: 'Threads',
   [EntityType.PATH]: 'Paths',
-}
+};

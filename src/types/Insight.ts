@@ -1,4 +1,4 @@
-import type { GameId, InsightId } from './ids'
+import type { GameId, InsightId } from './ids';
 
 /**
  * Insight definition (game-scoped).
@@ -13,15 +13,15 @@ import type { GameId, InsightId } from './ids'
  */
 export interface Insight {
   /** Unique identifier. */
-  id: InsightId
+  id: InsightId;
   /** ID of the game this insight belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Short label. */
-  title: string
+  title: string;
   /** Full insight text (key info, lore, or description). */
-  content: string
+  content: string;
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

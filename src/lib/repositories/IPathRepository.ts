@@ -1,7 +1,7 @@
-import type { Path } from '../../types/Path'
-import type { PathProgress } from '../../types/PathProgress'
-import type { GameId, PathId, PlaythroughId } from '../../types/ids'
-import type { CreatePathInput } from './CreatePathInput'
+import type { Path } from '../../types/Path';
+import type { PathProgress } from '../../types/PathProgress';
+import type { GameId, PathId, PlaythroughId } from '../../types/ids';
+import type { CreatePathInput } from './CreatePathInput';
 
 /**
  * Contract for path and path progress data access.
@@ -14,7 +14,7 @@ export interface IPathRepository {
    * @param gameId - The ID of the game.
    * @returns All paths for the game.
    */
-  getByGameId(gameId: GameId): Promise<Path[]>
+  getByGameId(gameId: GameId): Promise<Path[]>;
 
   /**
    * Returns a path by ID.
@@ -22,7 +22,7 @@ export interface IPathRepository {
    * @param id - The ID of the path.
    * @returns The path, or undefined if not found.
    */
-  getById(id: PathId): Promise<Path | undefined>
+  getById(id: PathId): Promise<Path | undefined>;
 
   /**
    * Creates a path; ID and timestamps are set by the repository.
@@ -30,28 +30,28 @@ export interface IPathRepository {
    * @param input - The input to create the path.
    * @returns The created path.
    */
-  create(input: CreatePathInput): Promise<Path>
+  create(input: CreatePathInput): Promise<Path>;
 
   /**
    * Updates an existing path; updatedAt is set by the repository.
    *
    * @param path - The path to update.
    */
-  update(path: Path): Promise<void>
+  update(path: Path): Promise<void>;
 
   /**
    * Deletes a path by ID.
    *
    * @param id - The ID of the path to delete.
    */
-  delete(id: PathId): Promise<void>
+  delete(id: PathId): Promise<void>;
 
   /**
    * Deletes all paths for a game (cascade when deleting game).
    *
    * @param gameId - The ID of the game to delete.
    */
-  deleteByGameId(gameId: GameId): Promise<void>
+  deleteByGameId(gameId: GameId): Promise<void>;
 
   /**
    * Returns traversal progress for a single path in a playthrough, or undefined.
@@ -63,7 +63,7 @@ export interface IPathRepository {
   getProgress(
     playthroughId: PlaythroughId,
     pathId: PathId
-  ): Promise<PathProgress | undefined>
+  ): Promise<PathProgress | undefined>;
 
   /**
    * Returns all path progress rows for a playthrough.
@@ -73,7 +73,7 @@ export interface IPathRepository {
    */
   getAllProgressForPlaythrough(
     playthroughId: PlaythroughId
-  ): Promise<PathProgress[]>
+  ): Promise<PathProgress[]>;
 
   /**
    * Inserts or updates path progress; id is generated or reused for the
@@ -81,12 +81,12 @@ export interface IPathRepository {
    *
    * @param progress - The path progress to upsert.
    */
-  upsertProgress(progress: PathProgress): Promise<void>
+  upsertProgress(progress: PathProgress): Promise<void>;
 
   /**
    * Deletes all path progress for a playthrough (cascade when deleting playthrough).
    *
    * @param playthroughId - The playthrough ID.
    */
-  deleteProgressByPlaythroughId(playthroughId: PlaythroughId): Promise<void>
+  deleteProgressByPlaythroughId(playthroughId: PlaythroughId): Promise<void>;
 }

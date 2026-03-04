@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
-import { getEntityLocationPlaceIds } from '../lib/location'
-import { placeRepository } from '../lib/repositories'
-import type { GameId, PlaceId } from '../types/ids'
-import { PlacePicker } from './PlacePicker'
+import { useEffect, useRef, useState } from 'react';
+import { getEntityLocationPlaceIds } from '../lib/location';
+import { placeRepository } from '../lib/repositories';
+import type { GameId, PlaceId } from '../types/ids';
+import { PlacePicker } from './PlacePicker';
 
 /**
  * Props for the LocationPlacesEditor component.
@@ -10,19 +10,19 @@ import { PlacePicker } from './PlacePicker'
  */
 export interface LocationPlacesEditorProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
 
   /** Entity ID when editing (load existing LOCATION threads); omit in create mode. */
-  entityId?: string
+  entityId?: string;
 
   /** Current list of place IDs (controlled). */
-  value: PlaceId[]
+  value: PlaceId[];
 
   /** Called when the user adds or removes places. */
-  onChange: (placeIds: PlaceId[]) => void
+  onChange: (placeIds: PlaceId[]) => void;
 
   /** Whether the control is disabled. */
-  disabled?: boolean
+  disabled?: boolean;
 }
 
 /**
@@ -39,30 +39,30 @@ export function LocationPlacesEditor({
   onChange,
   disabled = false,
 }: LocationPlacesEditorProps): JSX.Element {
-  const [pickerValue, setPickerValue] = useState<PlaceId | ''>('')
-  const [placeNames, setPlaceNames] = useState<Record<string, string>>({})
-  const [isLoadingLocations, setIsLoadingLocations] = useState(false)
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
+  const [pickerValue, setPickerValue] = useState<PlaceId | ''>('');
+  const [placeNames, setPlaceNames] = useState<Record<string, string>>({});
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   /**
    * Loads the names of the places for the game.
    */
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     placeRepository.getByGameId(gameId).then((places) => {
       if (!cancelled) {
-        const names: Record<string, string> = {}
+        const names: Record<string, string> = {};
         places.forEach((p) => {
-          names[p.id] = p.name
-        })
-        setPlaceNames(names)
+          names[p.id] = p.name;
+        });
+        setPlaceNames(names);
       }
-    })
+    });
     return () => {
-      cancelled = true
-    }
-  }, [gameId])
+      cancelled = true;
+    };
+  }, [gameId]);
 
   /**
    * Loads the location places for the entity when editing.
@@ -71,36 +71,36 @@ export function LocationPlacesEditor({
    * and overwriting user edits.
    */
   useEffect(() => {
-    if (entityId == null || entityId === '') return
-    let cancelled = false
-    setIsLoadingLocations(true)
+    if (entityId == null || entityId === '') return;
+    let cancelled = false;
+    setIsLoadingLocations(true);
     getEntityLocationPlaceIds(gameId, entityId).then((ids) => {
       if (!cancelled) {
-        onChangeRef.current(ids)
-        setIsLoadingLocations(false)
+        onChangeRef.current(ids);
+        setIsLoadingLocations(false);
       }
-    })
+    });
     return () => {
-      cancelled = true
-      setIsLoadingLocations(false)
-    }
-  }, [gameId, entityId])
+      cancelled = true;
+      setIsLoadingLocations(false);
+    };
+  }, [gameId, entityId]);
 
   /**
    * Adds a place to the entity.
    */
   const addPlace = (placeId: PlaceId | '') => {
-    if (!placeId || value.includes(placeId)) return
-    onChange([...value, placeId])
-    setPickerValue('')
-  }
+    if (!placeId || value.includes(placeId)) return;
+    onChange([...value, placeId]);
+    setPickerValue('');
+  };
 
   /**
    * Removes a place from the entity.
    */
   const removePlace = (placeId: PlaceId) => {
-    onChange(value.filter((id) => id !== placeId))
-  }
+    onChange(value.filter((id) => id !== placeId));
+  };
 
   /**
    * Renders the LocationPlacesEditor component.
@@ -164,5 +164,5 @@ export function LocationPlacesEditor({
         </button>
       </div>
     </div>
-  )
+  );
 }

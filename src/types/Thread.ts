@@ -1,5 +1,5 @@
-import type { GameId, PlaythroughId, ThreadId } from './ids'
-import type { ThreadSubtype } from './ThreadSubtype'
+import type { GameId, PlaythroughId, ThreadId } from './ids';
+import type { ThreadSubtype } from './ThreadSubtype';
 
 /**
  * Thread: a link between two entities (game-scoped or playthrough-scoped).
@@ -21,37 +21,37 @@ import type { ThreadSubtype } from './ThreadSubtype'
  */
 export interface Thread {
   /** Unique identifier. */
-  id: ThreadId
+  id: ThreadId;
 
   /** ID of the game this thread belongs to. */
-  gameId: GameId
+  gameId: GameId;
 
   /** When set, thread is playthrough-scoped (user investigation); when null, game-authored. */
-  playthroughId?: PlaythroughId | null
+  playthroughId?: PlaythroughId | null;
 
   /** Typed ID of the source entity (entity type derivable via parseEntityId). */
-  sourceId: string
+  sourceId: string;
 
   /** Typed ID of the target entity (entity type derivable via parseEntityId). */
-  targetId: string
+  targetId: string;
 
   /** Relationship subtype (use for logic and filtering). */
-  subtype: ThreadSubtype
+  subtype: ThreadSubtype;
 
   /** Display label: canonical for reserved subtypes, user text for Custom. */
-  label: string
+  label: string;
 
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
 
   /**
    * For Requires and ObjectiveRequires: set of status enum values (target entity type)
    * that satisfy the requirement. If absent or empty, default for target type is used.
    */
-  requirementAllowedStatuses?: number[]
+  requirementAllowedStatuses?: number[];
 
   /**
    * For ObjectiveRequires: 0-based index of the quest objective (of the source quest) this dependency belongs to.
    */
-  objectiveIndex?: number
+  objectiveIndex?: number;
 }

@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { mapRepository } from '../../lib/repositories'
-import type { GameId, MapId } from '../../types/ids'
-import type { Map } from '../../types/Map'
-import { useGameViewStore } from '../../stores/gameViewStore'
-import { MapForm } from './MapForm'
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { mapRepository } from '../../lib/repositories';
+import type { GameId, MapId } from '../../types/ids';
+import type { Map } from '../../types/Map';
+import { useGameViewStore } from '../../stores/gameViewStore';
+import { MapForm } from './MapForm';
 
 /**
  * Resolves and displays a map image for a grid tile (URL or uploaded blob).
@@ -13,37 +13,37 @@ import { MapForm } from './MapForm'
 function MapTilePreview({ map }: { map: Map }): JSX.Element {
   const [displayUrl, setDisplayUrl] = useState<string | null>(
     map.imageUrl && map.imageUrl.trim() !== '' ? map.imageUrl : null
-  )
-  const revokeRef = useRef<(() => void) | undefined>(undefined)
+  );
+  const revokeRef = useRef<(() => void) | undefined>(undefined);
 
   useEffect(() => {
     if (map.imageUrl && map.imageUrl.trim() !== '') {
-      setDisplayUrl(map.imageUrl)
-      revokeRef.current = undefined
-      return
+      setDisplayUrl(map.imageUrl);
+      revokeRef.current = undefined;
+      return;
     }
     if (
       (map.imageSourceType === 'upload' || map.imageBlobId) &&
       map.imageBlobId
     ) {
-      let cancelled = false
+      let cancelled = false;
       mapRepository.getMapImageDisplayUrl(map.id).then((display) => {
-        if (cancelled || !display) return
-        setDisplayUrl(display.url)
-        revokeRef.current = display.revoke
-      })
+        if (cancelled || !display) return;
+        setDisplayUrl(display.url);
+        revokeRef.current = display.revoke;
+      });
       return () => {
-        cancelled = true
-        const revoke = revokeRef.current
+        cancelled = true;
+        const revoke = revokeRef.current;
         if (revoke) {
-          setTimeout(() => revoke(), 0)
+          setTimeout(() => revoke(), 0);
         }
-      }
+      };
     }
-    setDisplayUrl(null)
-    revokeRef.current = undefined
-    return undefined
-  }, [map.id, map.imageUrl, map.imageSourceType, map.imageBlobId])
+    setDisplayUrl(null);
+    revokeRef.current = undefined;
+    return undefined;
+  }, [map.id, map.imageUrl, map.imageSourceType, map.imageBlobId]);
 
   if (displayUrl) {
     return (
@@ -52,7 +52,7 @@ function MapTilePreview({ map }: { map: Map }): JSX.Element {
         alt={map.name}
         className="h-full w-full object-cover"
       />
-    )
+    );
   }
   return (
     <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
@@ -60,7 +60,7 @@ function MapTilePreview({ map }: { map: Map }): JSX.Element {
         ? 'Uploaded image'
         : 'No image'}
     </div>
-  )
+  );
 }
 
 /**
@@ -68,9 +68,9 @@ function MapTilePreview({ map }: { map: Map }): JSX.Element {
  */
 export interface MapListScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
   /** Current playthrough ID (unused for maps; kept for consistent GameViewContent interface). */
-  playthroughId: string | null
+  playthroughId: string | null;
 }
 
 /**
@@ -82,43 +82,43 @@ export interface MapListScreenProps {
  * @returns A JSX element representing the MapListScreen component.
  */
 export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
-  const [maps, setMaps] = useState<Map[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [maps, setMaps] = useState<Map[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; map: Map } | null
-  >(null)
-  const [deleteTarget, setDeleteTarget] = useState<MapId | null>(null)
-  const openMapView = useGameViewStore((s) => s.openMapView)
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<MapId | null>(null);
+  const openMapView = useGameViewStore((s) => s.openMapView);
 
   /**
    * Loads the maps for the current game.
    */
   const loadMaps = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const list = await mapRepository.getByGameId(gameId)
-      setMaps(list)
+      const list = await mapRepository.getByGameId(gameId);
+      setMaps(list);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId])
+  }, [gameId]);
 
   useEffect(() => {
-    loadMaps()
-  }, [loadMaps])
+    loadMaps();
+  }, [loadMaps]);
 
   /**
    * Handles the confirmation of deleting a map.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return
-    await mapRepository.delete(deleteTarget)
-    setDeleteTarget(null)
-    loadMaps()
-  }, [deleteTarget, loadMaps])
+    if (deleteTarget === null) return;
+    await mapRepository.delete(deleteTarget);
+    setDeleteTarget(null);
+    loadMaps();
+  }, [deleteTarget, loadMaps]);
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading maps…</p>
+    return <p className="text-slate-500">Loading maps…</p>;
   }
 
   return (
@@ -141,8 +141,8 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
               mode="create"
               gameId={gameId}
               onSaved={() => {
-                setFormState(null)
-                loadMaps()
+                setFormState(null);
+                loadMaps();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -151,8 +151,8 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
               mode="edit"
               map={formState.map}
               onSaved={() => {
-                setFormState(null)
-                loadMaps()
+                setFormState(null);
+                loadMaps();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -193,8 +193,8 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
                   <button
                     type="button"
                     onClick={(event) => {
-                      event.stopPropagation()
-                      setFormState({ type: 'edit', map })
+                      event.stopPropagation();
+                      setFormState({ type: 'edit', map });
                     }}
                     className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
                   >
@@ -203,8 +203,8 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
                   <button
                     type="button"
                     onClick={(event) => {
-                      event.stopPropagation()
-                      setDeleteTarget(map.id)
+                      event.stopPropagation();
+                      setDeleteTarget(map.id);
                     }}
                     className="rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-700 hover:bg-red-50"
                   >
@@ -227,5 +227,5 @@ export function MapListScreen({ gameId }: MapListScreenProps): JSX.Element {
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
-  )
+  );
 }

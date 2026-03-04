@@ -1,27 +1,27 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { EntityConnections } from '../../components/EntityConnections'
-import { RequirementList } from '../../components/RequirementList'
+import { useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { EntityConnections } from '../../components/EntityConnections';
+import { RequirementList } from '../../components/RequirementList';
 import {
   checkEntityAvailability,
   getObjectiveCompletability,
-} from '../../lib/requirements'
-import { questRepository } from '../../lib/repositories'
-import type { GameId, PlaythroughId, QuestId } from '../../types/ids'
-import type { Quest } from '../../types/Quest'
-import type { QuestProgress } from '../../types/QuestProgress'
-import { QuestStatus } from '../../types/QuestStatus'
-import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
-import { QuestForm } from './QuestForm'
+} from '../../lib/requirements';
+import { questRepository } from '../../lib/repositories';
+import type { GameId, PlaythroughId, QuestId } from '../../types/ids';
+import type { Quest } from '../../types/Quest';
+import type { QuestProgress } from '../../types/QuestProgress';
+import { QuestStatus } from '../../types/QuestStatus';
+import { getEntityDisplayName } from '../../utils/getEntityDisplayName';
+import { QuestForm } from './QuestForm';
 
 /**
  * Props for the QuestListScreen component.
  */
 export interface QuestListScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
   /** Current playthrough ID (for progress; may be null). */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 }
 
 const QUEST_STATUS_LABELS: Record<QuestStatus, string> = {
@@ -29,7 +29,7 @@ const QUEST_STATUS_LABELS: Record<QuestStatus, string> = {
   [QuestStatus.ACTIVE]: 'Active',
   [QuestStatus.COMPLETED]: 'Completed',
   [QuestStatus.ABANDONED]: 'Abandoned',
-}
+};
 
 /**
  * List and CRUD screen for quests in the current game.
@@ -43,52 +43,54 @@ export function QuestListScreen({
   gameId,
   playthroughId,
 }: QuestListScreenProps): JSX.Element {
-  const [quests, setQuests] = useState<Quest[]>([])
-  const [giverNames, setGiverNames] = useState<Record<string, string>>({})
+  const [quests, setQuests] = useState<Quest[]>([]);
+  const [giverNames, setGiverNames] = useState<Record<string, string>>({});
   const [progressByQuest, setProgressByQuest] = useState<
     Record<string, QuestProgress>
-  >({})
+  >({});
   const [availabilityByQuest, setAvailabilityByQuest] = useState<
     Record<string, { available: boolean; unmetRequirementTargetIds: string[] }>
-  >({})
+  >({});
   const [unmetRequirementNames, setUnmetRequirementNames] = useState<
     Record<string, string>
-  >({})
+  >({});
   const [objectiveCompletability, setObjectiveCompletability] = useState<
     Record<string, boolean>
-  >({})
-  const [isLoading, setIsLoading] = useState(true)
+  >({});
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; quest: Quest } | null
-  >(null)
-  const [deleteTarget, setDeleteTarget] = useState<QuestId | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<QuestId | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   /**
    * Loads the quests for the current game.
    */
   const loadQuests = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const [list, progressList] = await Promise.all([
         questRepository.getByGameId(gameId),
         playthroughId
           ? questRepository.getAllProgressForPlaythrough(playthroughId)
           : Promise.resolve([]),
-      ])
-      setQuests(list)
-      const byQuest: Record<string, QuestProgress> = {}
+      ]);
+      setQuests(list);
+      const byQuest: Record<string, QuestProgress> = {};
       progressList.forEach((p) => {
-        byQuest[p.questId] = p
-      })
-      setProgressByQuest(byQuest)
+        byQuest[p.questId] = p;
+      });
+      setProgressByQuest(byQuest);
       const names = await Promise.all(
         list.map(async (q) => ({
           id: q.id,
           name: q.giver ? await getEntityDisplayName(q.giver) : '',
         }))
-      )
-      setGiverNames(Object.fromEntries(names.map(({ id, name }) => [id, name])))
+      );
+      setGiverNames(
+        Object.fromEntries(names.map(({ id, name }) => [id, name]))
+      );
 
       // Check availability of quests based on current playthrough.
       if (playthroughId && list.length > 0) {
@@ -98,72 +100,72 @@ export function QuestListScreen({
               gameId,
               playthroughId,
               q.id
-            )
-            return { questId: q.id, ...result }
+            );
+            return { questId: q.id, ...result };
           })
-        )
+        );
 
         // Group results by quest ID.
         const byQuest: Record<
           string,
           { available: boolean; unmetRequirementTargetIds: string[] }
-        > = {}
+        > = {};
 
         // Get all unmet requirement target IDs.
-        const allUnmetIds = new Set<string>()
+        const allUnmetIds = new Set<string>();
         results.forEach((r) => {
           byQuest[r.questId] = {
             available: r.available,
             unmetRequirementTargetIds: r.unmetRequirementTargetIds,
-          }
-          r.unmetRequirementTargetIds.forEach((id) => allUnmetIds.add(id))
-        })
-        setAvailabilityByQuest(byQuest)
+          };
+          r.unmetRequirementTargetIds.forEach((id) => allUnmetIds.add(id));
+        });
+        setAvailabilityByQuest(byQuest);
 
         // Get names of unmet requirement targets.
         const nameEntries = await Promise.all(
           Array.from(allUnmetIds).map(async (id) => {
-            const name = await getEntityDisplayName(id)
-            return [id, name] as const
+            const name = await getEntityDisplayName(id);
+            return [id, name] as const;
           })
-        )
-        setUnmetRequirementNames(Object.fromEntries(nameEntries))
+        );
+        setUnmetRequirementNames(Object.fromEntries(nameEntries));
 
         // Check completability of objectives based on current playthrough.
-        const completabilityEntries: [string, boolean][] = []
+        const completabilityEntries: [string, boolean][] = [];
         for (const q of list) {
           for (let i = 0; i < (q.objectives?.length ?? 0); i++) {
             if (q.objectives[i].entityId && playthroughId) {
-              const ok = await getObjectiveCompletability(playthroughId, q, i)
-              completabilityEntries.push([`${q.id}-${i}`, ok])
+              const ok = await getObjectiveCompletability(playthroughId, q, i);
+              completabilityEntries.push([`${q.id}-${i}`, ok]);
             }
           }
         }
-        setObjectiveCompletability(Object.fromEntries(completabilityEntries))
+        setObjectiveCompletability(Object.fromEntries(completabilityEntries));
       } else {
         // No playthrough selected, so no availability to check.
-        setAvailabilityByQuest({})
-        setUnmetRequirementNames({})
-        setObjectiveCompletability({})
+        setAvailabilityByQuest({});
+        setUnmetRequirementNames({});
+        setObjectiveCompletability({});
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId, playthroughId])
+  }, [gameId, playthroughId]);
 
   useEffect(() => {
-    loadQuests()
-  }, [loadQuests])
+    loadQuests();
+  }, [loadQuests]);
 
   /**
    * Handles the confirmation of deleting a quest.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return
-    await questRepository.delete(deleteTarget)
-    setDeleteTarget(null)
-    loadQuests()
-  }, [deleteTarget, loadQuests])
+    if (deleteTarget === null) return;
+    await questRepository.delete(deleteTarget);
+    setDeleteTarget(null);
+    loadQuests();
+  }, [deleteTarget, loadQuests]);
 
   /**
    * Toggles objective completion for a quest within the current playthrough.
@@ -176,19 +178,19 @@ export function QuestListScreen({
   const handleObjectiveCompletedChange = useCallback(
     async (questId: QuestId, objectiveIndex: number, completed: boolean) => {
       // If no playthrough is selected, do nothing.
-      if (playthroughId === null) return
+      if (playthroughId === null) return;
 
       // Get the existing quest progress.
-      const existing = progressByQuest[questId]
+      const existing = progressByQuest[questId];
 
       // Get the current completed objective indexes.
-      const currentIndexes = new Set(existing?.completedObjectiveIndexes ?? [])
+      const currentIndexes = new Set(existing?.completedObjectiveIndexes ?? []);
 
       // Add or remove the objective index from the completed objective indexes.
       if (completed) {
-        currentIndexes.add(objectiveIndex)
+        currentIndexes.add(objectiveIndex);
       } else {
-        currentIndexes.delete(objectiveIndex)
+        currentIndexes.delete(objectiveIndex);
       }
 
       // Upsert the quest progress.
@@ -200,35 +202,35 @@ export function QuestListScreen({
           (a, b) => a - b
         ),
         notes: existing?.notes ?? '',
-      })
+      });
 
       // Reload the quests.
-      loadQuests()
+      loadQuests();
     },
     [playthroughId, progressByQuest, loadQuests]
-  )
+  );
 
   /**
    * Handles the change of status for a quest.
    */
   const handleStatusChange = useCallback(
     async (questId: QuestId, newStatus: QuestStatus) => {
-      if (playthroughId === null) return
-      const existing = progressByQuest[questId]
+      if (playthroughId === null) return;
+      const existing = progressByQuest[questId];
       await questRepository.upsertProgress({
         playthroughId,
         questId,
         status: newStatus,
         completedObjectiveIndexes: existing?.completedObjectiveIndexes ?? [],
         notes: existing?.notes ?? '',
-      })
-      loadQuests()
+      });
+      loadQuests();
     },
     [playthroughId, progressByQuest, loadQuests]
-  )
+  );
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading quests…</p>
+    return <p className="text-slate-500">Loading quests…</p>;
   }
 
   return (
@@ -251,8 +253,8 @@ export function QuestListScreen({
               mode="create"
               gameId={gameId}
               onSaved={() => {
-                setFormState(null)
-                loadQuests()
+                setFormState(null);
+                loadQuests();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -261,8 +263,8 @@ export function QuestListScreen({
               mode="edit"
               quest={formState.quest}
               onSaved={() => {
-                setFormState(null)
-                loadQuests()
+                setFormState(null);
+                loadQuests();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -275,11 +277,11 @@ export function QuestListScreen({
       ) : (
         <ul className="space-y-2">
           {quests.map((quest) => {
-            const progress = progressByQuest[quest.id]
-            const status = progress?.status ?? QuestStatus.AVAILABLE
-            const isExpanded = expandedId === quest.id
+            const progress = progressByQuest[quest.id];
+            const status = progress?.status ?? QuestStatus.AVAILABLE;
+            const isExpanded = expandedId === quest.id;
             const completedObjectiveIndexes =
-              progress?.completedObjectiveIndexes ?? []
+              progress?.completedObjectiveIndexes ?? [];
             return (
               <li
                 key={quest.id}
@@ -384,7 +386,8 @@ export function QuestListScreen({
                   <ul className="mt-2 space-y-1 border-t border-slate-100 pt-2">
                     {/* Show objectives. */}
                     {(quest.objectives ?? []).map((obj, oi) => {
-                      const isCompleted = completedObjectiveIndexes.includes(oi)
+                      const isCompleted =
+                        completedObjectiveIndexes.includes(oi);
                       return (
                         <li
                           key={oi}
@@ -427,7 +430,7 @@ export function QuestListScreen({
                               </span>
                             )}
                         </li>
-                      )
+                      );
                     })}
                   </ul>
                 )}
@@ -448,7 +451,7 @@ export function QuestListScreen({
                   </div>
                 ) : null}
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -463,5 +466,5 @@ export function QuestListScreen({
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
-  )
+  );
 }

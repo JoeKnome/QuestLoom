@@ -1,31 +1,31 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   mapRepository,
   placeRepository,
   threadRepository,
-} from '../../lib/repositories'
-import type { GameId, MapId } from '../../types/ids'
-import type { Place } from '../../types/Place'
-import { MapPicker } from '../../components/MapPicker'
+} from '../../lib/repositories';
+import type { GameId, MapId } from '../../types/ids';
+import type { Place } from '../../types/Place';
+import { MapPicker } from '../../components/MapPicker';
 import {
   deriveMapNameFromTopLevelPlaceName,
   formatTopLevelPlaceName,
-} from '../../utils/mapNames'
-import { ThreadSubtype } from '../../types/ThreadSubtype'
-import { getThreadSubtype } from '../../utils/threadSubtype'
+} from '../../utils/mapNames';
+import { ThreadSubtype } from '../../types/ThreadSubtype';
+import { getThreadSubtype } from '../../utils/threadSubtype';
 
 /**
  * Props for PlaceForm when creating a new place.
  */
 export interface PlaceFormCreateProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'create'
+  mode: 'create';
   /** Game ID the place belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Called after successful create. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
@@ -33,19 +33,19 @@ export interface PlaceFormCreateProps {
  */
 export interface PlaceFormEditProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'edit'
+  mode: 'edit';
   /** The place to edit. */
-  place: Place
+  place: Place;
   /** Called after successful update. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
  * Props for PlaceForm.
  */
-export type PlaceFormProps = PlaceFormCreateProps | PlaceFormEditProps
+export type PlaceFormProps = PlaceFormCreateProps | PlaceFormEditProps;
 
 /**
  * Form to create or edit a place. In create mode requires gameId;
@@ -59,42 +59,42 @@ export type PlaceFormProps = PlaceFormCreateProps | PlaceFormEditProps
 export function PlaceForm(props: PlaceFormProps): JSX.Element {
   const [name, setName] = useState(
     props.mode === 'edit' ? props.place.name : ''
-  )
+  );
   const [notes, setNotes] = useState(
     props.mode === 'edit' ? props.place.notes : ''
-  )
+  );
   const [mapId, setMapId] = useState<MapId | ''>(
     props.mode === 'edit' && props.place.map ? props.place.map : ''
-  )
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isTopLevelPlaceForMap, setIsTopLevelPlaceForMap] = useState(false)
-  const hasInitializedTopLevelNameRef = useRef(false)
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isTopLevelPlaceForMap, setIsTopLevelPlaceForMap] = useState(false);
+  const hasInitializedTopLevelNameRef = useRef(false);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     async function load() {
       if (props.mode === 'edit' && props.place.map) {
-        const map = await mapRepository.getById(props.place.map)
+        const map = await mapRepository.getById(props.place.map);
         if (!cancelled) {
           const isTopLevel = Boolean(
             map && map.topLevelPlaceId === props.place.id
-          )
-          setIsTopLevelPlaceForMap(isTopLevel)
+          );
+          setIsTopLevelPlaceForMap(isTopLevel);
           if (isTopLevel && !hasInitializedTopLevelNameRef.current) {
-            hasInitializedTopLevelNameRef.current = true
-            setName(deriveMapNameFromTopLevelPlaceName(props.place.name))
+            hasInitializedTopLevelNameRef.current = true;
+            setName(deriveMapNameFromTopLevelPlaceName(props.place.name));
           }
         }
       } else if (!cancelled) {
-        setIsTopLevelPlaceForMap(false)
+        setIsTopLevelPlaceForMap(false);
       }
     }
-    load()
+    load();
     return () => {
-      cancelled = true
-    }
-  }, [props])
+      cancelled = true;
+    };
+  }, [props]);
 
   /**
    * Syncs the representative map thread for a place: ensures there is a single
@@ -107,19 +107,19 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         gameId,
         placeId,
         null
-      )
+      );
       const mapThreads = existing.filter(
         (t) => getThreadSubtype(t) === ThreadSubtype.MAP
-      )
-      await Promise.all(mapThreads.map((t) => threadRepository.delete(t.id)))
+      );
+      await Promise.all(mapThreads.map((t) => threadRepository.delete(t.id)));
 
       if (!mapValue) {
-        return
+        return;
       }
 
-      const map = await mapRepository.getById(mapValue)
+      const map = await mapRepository.getById(mapValue);
       if (!map || !map.topLevelPlaceId || map.topLevelPlaceId === placeId) {
-        return
+        return;
       }
 
       await threadRepository.create({
@@ -127,87 +127,87 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         sourceId: placeId,
         targetId: map.topLevelPlaceId,
         subtype: ThreadSubtype.MAP,
-      })
+      });
     },
     []
-  )
+  );
 
   /**
    * Handles the submission of the place form.
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmedName = name.trim()
+      e.preventDefault();
+      const trimmedName = name.trim();
       if (!trimmedName) {
-        setError('Enter a name.')
-        return
+        setError('Enter a name.');
+        return;
       }
-      setError(null)
-      setIsSubmitting(true)
+      setError(null);
+      setIsSubmitting(true);
       try {
-        const mapValue = mapId === '' ? undefined : mapId
+        const mapValue = mapId === '' ? undefined : mapId;
         if (props.mode === 'create') {
           const created = await placeRepository.create({
             gameId: props.gameId,
             name: trimmedName,
             notes: notes.trim() || undefined,
             map: mapValue,
-          })
+          });
           if (mapValue) {
             await syncMapRepresentativeThread(
               props.gameId,
               created.id,
               mapValue
-            )
+            );
           }
         } else {
-          const existingMapId = props.place.map
+          const existingMapId = props.place.map;
           const map =
             existingMapId != null
               ? await mapRepository.getById(existingMapId)
-              : null
+              : null;
           const isTopLevel =
-            map != null && map.topLevelPlaceId === props.place.id
+            map != null && map.topLevelPlaceId === props.place.id;
 
           const effectivePlaceName = isTopLevel
             ? formatTopLevelPlaceName(trimmedName)
-            : trimmedName
+            : trimmedName;
 
           const updatedPlace: Place = {
             ...props.place,
             name: effectivePlaceName,
             notes: notes.trim(),
             map: isTopLevel ? existingMapId : mapValue,
-          }
-          await placeRepository.update(updatedPlace)
+          };
+          await placeRepository.update(updatedPlace);
 
           if (!isTopLevel) {
             await syncMapRepresentativeThread(
               updatedPlace.gameId,
               updatedPlace.id,
               mapValue
-            )
+            );
           }
 
           if (isTopLevel && map) {
             const mapName =
-              deriveMapNameFromTopLevelPlaceName(effectivePlaceName)
+              deriveMapNameFromTopLevelPlaceName(effectivePlaceName);
             await mapRepository.update({
               ...map,
               name: mapName,
-            })
+            });
           }
         }
-        props.onSaved()
+        props.onSaved();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save place.')
+        setError(err instanceof Error ? err.message : 'Failed to save place.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [name, notes, mapId, props, syncMapRepresentativeThread]
-  )
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -296,5 +296,5 @@ export function PlaceForm(props: PlaceFormProps): JSX.Element {
         </button>
       </div>
     </form>
-  )
+  );
 }

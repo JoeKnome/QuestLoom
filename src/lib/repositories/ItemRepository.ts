@@ -3,31 +3,31 @@
  * Use this instead of Dexie directly; implements IItemRepository against IndexedDB.
  */
 
-import type { Item } from '../../types/Item'
-import type { ItemState } from '../../types/ItemState'
-import { EntityType } from '../../types/EntityType'
-import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
-import { generateId, generateEntityId } from '../../utils/generateId'
-import { db, type ItemStateRow } from '../db'
-import { deleteThreadsForEntity } from './cascadeDeleteThreads'
-import { mapMarkerRepository } from './MapMarkerRepository'
-import type { CreateItemInput } from './CreateItemInput'
-import type { IItemRepository } from './IItemRepository'
+import type { Item } from '../../types/Item';
+import type { ItemState } from '../../types/ItemState';
+import { EntityType } from '../../types/EntityType';
+import type { GameId, ItemId, PlaythroughId } from '../../types/ids';
+import { generateId, generateEntityId } from '../../utils/generateId';
+import { db, type ItemStateRow } from '../db';
+import { deleteThreadsForEntity } from './cascadeDeleteThreads';
+import { mapMarkerRepository } from './MapMarkerRepository';
+import type { CreateItemInput } from './CreateItemInput';
+import type { IItemRepository } from './IItemRepository';
 
 /**
  * Dexie-backed implementation of IItemRepository.
  */
 class ItemRepositoryImpl implements IItemRepository {
   async getByGameId(gameId: GameId): Promise<Item[]> {
-    return db.items.where('gameId').equals(gameId).toArray()
+    return db.items.where('gameId').equals(gameId).toArray();
   }
 
   async getById(id: ItemId): Promise<Item | undefined> {
-    return db.items.get(id)
+    return db.items.get(id);
   }
 
   async create(input: CreateItemInput): Promise<Item> {
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     const item: Item = {
       id: generateEntityId(EntityType.ITEM) as ItemId,
       gameId: input.gameId,
@@ -35,30 +35,34 @@ class ItemRepositoryImpl implements IItemRepository {
       description: input.description ?? '',
       createdAt: now,
       updatedAt: now,
-    }
-    await db.items.add(item)
-    return item
+    };
+    await db.items.add(item);
+    return item;
   }
 
   async update(item: Item): Promise<void> {
     const updated: Item = {
       ...item,
       updatedAt: new Date().toISOString(),
-    }
-    await db.items.put(updated)
+    };
+    await db.items.put(updated);
   }
 
   async delete(id: ItemId): Promise<void> {
-    const item = await db.items.get(id)
+    const item = await db.items.get(id);
     if (item) {
-      await deleteThreadsForEntity(item.gameId, id)
-      await mapMarkerRepository.deleteByEntity(item.gameId, EntityType.ITEM, id)
+      await deleteThreadsForEntity(item.gameId, id);
+      await mapMarkerRepository.deleteByEntity(
+        item.gameId,
+        EntityType.ITEM,
+        id
+      );
     }
-    await db.items.delete(id)
+    await db.items.delete(id);
   }
 
   async deleteByGameId(gameId: GameId): Promise<void> {
-    await db.items.where('gameId').equals(gameId).delete()
+    await db.items.where('gameId').equals(gameId).delete();
   }
 
   async getState(
@@ -68,8 +72,8 @@ class ItemRepositoryImpl implements IItemRepository {
     const row = await db.itemState
       .where('[playthroughId+itemId]')
       .equals([playthroughId, itemId])
-      .first()
-    return row ? toItemState(row) : undefined
+      .first();
+    return row ? toItemState(row) : undefined;
   }
 
   async getAllStateForPlaythrough(
@@ -78,8 +82,8 @@ class ItemRepositoryImpl implements IItemRepository {
     const rows = await db.itemState
       .where('playthroughId')
       .equals(playthroughId)
-      .toArray()
-    return rows.map(toItemState)
+      .toArray();
+    return rows.map(toItemState);
   }
 
   async upsertState(state: ItemState): Promise<void> {
@@ -89,14 +93,14 @@ class ItemRepositoryImpl implements IItemRepository {
       itemId: state.itemId,
       status: state.status,
       notes: state.notes,
-    }
-    await db.itemState.put(row)
+    };
+    await db.itemState.put(row);
   }
 
   async deleteStateByPlaythroughId(
     playthroughId: PlaythroughId
   ): Promise<void> {
-    await db.itemState.where('playthroughId').equals(playthroughId).delete()
+    await db.itemState.where('playthroughId').equals(playthroughId).delete();
   }
 }
 
@@ -113,8 +117,8 @@ function toItemState(row: ItemStateRow): ItemState {
     itemId: row.itemId,
     status: row.status,
     notes: row.notes,
-  }
+  };
 }
 
 /** Single item repository instance. */
-export const itemRepository: IItemRepository = new ItemRepositoryImpl()
+export const itemRepository: IItemRepository = new ItemRepositoryImpl();

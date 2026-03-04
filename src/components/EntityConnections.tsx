@@ -1,22 +1,22 @@
-import { useCallback, useEffect, useState } from 'react'
-import { threadRepository } from '../lib/repositories'
-import type { GameId, PlaythroughId } from '../types/ids'
-import type { Thread } from '../types/Thread'
-import { getEntityDisplayName } from '../utils/getEntityDisplayName'
-import { getThreadDisplayLabel } from '../utils/threadSubtype'
+import { useCallback, useEffect, useState } from 'react';
+import { threadRepository } from '../lib/repositories';
+import type { GameId, PlaythroughId } from '../types/ids';
+import type { Thread } from '../types/Thread';
+import { getEntityDisplayName } from '../utils/getEntityDisplayName';
+import { getThreadDisplayLabel } from '../utils/threadSubtype';
 
 /**
  * Props for the EntityConnections component.
  */
 export interface EntityConnectionsProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
   /** Typed entity ID (source or target of threads). */
-  entityId: string
+  entityId: string;
   /** Optional. Null = game-level threads only; set = game-level + that playthrough. */
-  playthroughId?: PlaythroughId | null
+  playthroughId?: PlaythroughId | null;
   /** Optional heading (e.g. entity name) for the connections block. */
-  entityDisplayName?: string
+  entityDisplayName?: string;
 }
 
 /**
@@ -36,45 +36,45 @@ export function EntityConnections({
   playthroughId = null,
   entityDisplayName,
 }: EntityConnectionsProps): JSX.Element {
-  const [threads, setThreads] = useState<Thread[]>([])
-  const [labels, setLabels] = useState<Record<string, string>>({})
-  const [isLoading, setIsLoading] = useState(true)
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [labels, setLabels] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   /**
    * Loads the threads for the given entity.
    */
   const load = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const list = await threadRepository.getThreadsFromEntity(
         gameId,
         entityId,
         playthroughId
-      )
-      setThreads(list)
-      const nextLabels: Record<string, string> = {}
+      );
+      setThreads(list);
+      const nextLabels: Record<string, string> = {};
       await Promise.all(
         list.map(async (t) => {
-          const otherId = t.sourceId === entityId ? t.targetId : t.sourceId
-          nextLabels[t.id] = await getEntityDisplayName(otherId)
+          const otherId = t.sourceId === entityId ? t.targetId : t.sourceId;
+          nextLabels[t.id] = await getEntityDisplayName(otherId);
         })
-      )
-      setLabels(nextLabels)
+      );
+      setLabels(nextLabels);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId, entityId, playthroughId])
+  }, [gameId, entityId, playthroughId]);
 
   useEffect(() => {
-    load()
-  }, [load])
+    load();
+  }, [load]);
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">Loading connections…</p>
+    return <p className="text-sm text-slate-500">Loading connections…</p>;
   }
 
   if (threads.length === 0) {
-    return <p className="text-sm text-slate-500">No connections.</p>
+    return <p className="text-sm text-slate-500">No connections.</p>;
   }
 
   return (
@@ -88,7 +88,7 @@ export function EntityConnections({
         {threads.map((thread) => {
           const otherLabel =
             labels[thread.id] ??
-            (thread.sourceId === entityId ? thread.targetId : thread.sourceId)
+            (thread.sourceId === entityId ? thread.targetId : thread.sourceId);
           return (
             <li key={thread.id}>
               → {otherLabel}
@@ -96,9 +96,9 @@ export function EntityConnections({
                 ? ` (${getThreadDisplayLabel(thread)})`
                 : ''}
             </li>
-          )
+          );
         })}
       </ul>
     </div>
-  )
+  );
 }

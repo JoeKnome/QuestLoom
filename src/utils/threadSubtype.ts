@@ -1,5 +1,5 @@
-import type { Thread } from '../types/Thread'
-import { ThreadSubtype } from '../types/ThreadSubtype'
+import type { Thread } from '../types/Thread';
+import { ThreadSubtype } from '../types/ThreadSubtype';
 
 /**
  * User-facing display label for each thread subtype (reserved types only).
@@ -15,23 +15,23 @@ export function getThreadSubtypeDisplayLabel(
 ): string {
   switch (subtype) {
     case ThreadSubtype.CUSTOM:
-      return customLabel?.trim() ?? ''
+      return customLabel?.trim() ?? '';
     case ThreadSubtype.GIVER:
-      return 'Giver'
+      return 'Giver';
     case ThreadSubtype.LOCATION:
-      return 'Location'
+      return 'Location';
     case ThreadSubtype.MAP:
-      return 'Map'
+      return 'Map';
     case ThreadSubtype.REQUIRES:
-      return 'Requires'
+      return 'Requires';
     case ThreadSubtype.OBJECTIVE_REQUIRES:
-      return 'Objective'
+      return 'Objective';
     case ThreadSubtype.CONNECTS_PATH:
-      return 'Path'
+      return 'Path';
     case ThreadSubtype.DIRECT_PLACE_LINK:
-      return 'Direct link'
+      return 'Direct link';
     default:
-      return ''
+      return '';
   }
 }
 
@@ -42,7 +42,7 @@ export function getThreadSubtypeDisplayLabel(
  * @returns ThreadSubtype for logic and filtering.
  */
 export function getThreadSubtype(thread: Thread): ThreadSubtype {
-  return thread.subtype
+  return thread.subtype;
 }
 
 /**
@@ -52,5 +52,5 @@ export function getThreadSubtype(thread: Thread): ThreadSubtype {
  * @returns Label to show in the loom and elsewhere.
  */
 export function getThreadDisplayLabel(thread: Thread): string {
-  return getThreadSubtypeDisplayLabel(thread.subtype, thread.label)
+  return getThreadSubtypeDisplayLabel(thread.subtype, thread.label);
 }

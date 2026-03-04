@@ -1,4 +1,4 @@
-import type { GameId, PersonId } from './ids'
+import type { GameId, PersonId } from './ids';
 
 /**
  * Person (character/NPC) definition (game-scoped).
@@ -13,15 +13,15 @@ import type { GameId, PersonId } from './ids'
  */
 export interface Person {
   /** Unique identifier. */
-  id: PersonId
+  id: PersonId;
   /** ID of the game this person belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Character name. */
-  name: string
+  name: string;
   /** Optional author notes. */
-  notes: string
+  notes: string;
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601). */
-  updatedAt: string
+  updatedAt: string;
 }

@@ -1,4 +1,4 @@
-import type { MapMarker } from '../../types/MapMarker'
+import type { MapMarker } from '../../types/MapMarker';
 import type {
   EntityType,
   GameId,
@@ -10,14 +10,14 @@ import type {
   PersonId,
   PlaceId,
   PathId,
-} from '../../types'
-import { THREAD_ENDPOINT_ENTITY_TYPES } from '../../types/EntityType'
-import { generateId } from '../../utils/generateId'
-import { db } from '../db'
+} from '../../types';
+import { THREAD_ENDPOINT_ENTITY_TYPES } from '../../types/EntityType';
+import { generateId } from '../../utils/generateId';
+import { db } from '../db';
 import type {
   CreateMapMarkerInput,
   IMapMarkerRepository,
-} from './IMapMarkerRepository'
+} from './IMapMarkerRepository';
 
 /**
  * Ensures that a value is a finite number; throws otherwise.
@@ -27,7 +27,7 @@ import type {
  */
 function assertFiniteNumber(value: number, fieldName: string): void {
   if (!Number.isFinite(value)) {
-    throw new Error(`${fieldName} must be a finite number`)
+    throw new Error(`${fieldName} must be a finite number`);
   }
 }
 
@@ -43,14 +43,14 @@ class MapMarkerRepositoryImpl implements IMapMarkerRepository {
     const collection = db.mapMarkers
       .where('gameId')
       .equals(gameId)
-      .and((row) => row.mapId === mapId)
+      .and((row) => row.mapId === mapId);
 
     // For now, always return all markers for the map; callers can filter by
     // playthroughId as needed. The parameter is reserved for future indexing.
-    const markers = await collection.toArray()
+    const markers = await collection.toArray();
 
     if (!playthroughId) {
-      return markers
+      return markers;
     }
 
     return markers.filter(
@@ -58,20 +58,20 @@ class MapMarkerRepositoryImpl implements IMapMarkerRepository {
         marker.playthroughId === undefined ||
         marker.playthroughId === null ||
         marker.playthroughId === playthroughId
-    )
+    );
   }
 
   async create(input: CreateMapMarkerInput): Promise<MapMarker> {
     if (!THREAD_ENDPOINT_ENTITY_TYPES.includes(input.entityType)) {
       throw new Error(
         'Map markers can only reference eligible endpoint entities'
-      )
+      );
     }
 
-    assertFiniteNumber(input.position.x, 'position.x')
-    assertFiniteNumber(input.position.y, 'position.y')
+    assertFiniteNumber(input.position.x, 'position.x');
+    assertFiniteNumber(input.position.y, 'position.y');
 
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     const marker: MapMarker = {
       id: generateId(),
       gameId: input.gameId,
@@ -86,25 +86,25 @@ class MapMarkerRepositoryImpl implements IMapMarkerRepository {
       },
       createdAt: now,
       updatedAt: now,
-    }
+    };
 
-    await db.mapMarkers.add(marker)
-    return marker
+    await db.mapMarkers.add(marker);
+    return marker;
   }
 
   async update(marker: MapMarker): Promise<void> {
-    assertFiniteNumber(marker.position.x, 'position.x')
-    assertFiniteNumber(marker.position.y, 'position.y')
+    assertFiniteNumber(marker.position.x, 'position.x');
+    assertFiniteNumber(marker.position.y, 'position.y');
 
     const updated: MapMarker = {
       ...marker,
       updatedAt: new Date().toISOString(),
-    }
-    await db.mapMarkers.put(updated)
+    };
+    await db.mapMarkers.put(updated);
   }
 
   async delete(id: string): Promise<void> {
-    await db.mapMarkers.delete(id)
+    await db.mapMarkers.delete(id);
   }
 
   async deleteByMapId(gameId: GameId, mapId: MapId): Promise<void> {
@@ -112,7 +112,7 @@ class MapMarkerRepositoryImpl implements IMapMarkerRepository {
       .where('gameId')
       .equals(gameId)
       .and((row) => row.mapId === mapId)
-      .delete()
+      .delete();
   }
 
   async deleteByEntity(
@@ -127,10 +127,10 @@ class MapMarkerRepositoryImpl implements IMapMarkerRepository {
         (row) =>
           row.entityType === entityType && (row.entityId as string) === entityId
       )
-      .delete()
+      .delete();
   }
 }
 
 /** Single map marker repository instance. */
 export const mapMarkerRepository: IMapMarkerRepository =
-  new MapMarkerRepositoryImpl()
+  new MapMarkerRepositoryImpl();

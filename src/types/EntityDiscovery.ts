@@ -1,5 +1,5 @@
-import type { PlaythroughId } from './ids'
-import type { DiscoveryEntityType } from './DiscoveryEntityType'
+import type { PlaythroughId } from './ids';
+import type { DiscoveryEntityType } from './DiscoveryEntityType';
 
 /**
  * Entity discovery state (playthrough-scoped).
@@ -15,13 +15,13 @@ import type { DiscoveryEntityType } from './DiscoveryEntityType'
  */
 export interface EntityDiscovery {
   /** Optional unique identifier (for Dexie primary key). */
-  id?: string
+  id?: string;
   /** ID of the playthrough. */
-  playthroughId: PlaythroughId
+  playthroughId: PlaythroughId;
   /** Type of entity (person, place, map). */
-  entityType: DiscoveryEntityType
+  entityType: DiscoveryEntityType;
   /** ID of the person, place, or map. */
-  entityId: string
+  entityId: string;
   /** Whether the entity has been discovered in this playthrough. */
-  discovered: boolean
+  discovered: boolean;
 }

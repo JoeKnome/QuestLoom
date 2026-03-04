@@ -27,7 +27,7 @@ export const THREAD_ENDPOINT_ENTITY_TYPES: readonly EntityType[] = [
   EntityType.PERSON,
   EntityType.PLACE,
   EntityType.PATH,
-]
+];
 
 /**
  * Entity types that can be the target of an entity-level requirement (thread subtype Requires).
@@ -39,4 +39,4 @@ export const REQUIREMENT_TARGET_ENTITY_TYPES: readonly EntityType[] = [
   EntityType.INSIGHT,
   EntityType.ITEM,
   EntityType.PERSON,
-]
+];

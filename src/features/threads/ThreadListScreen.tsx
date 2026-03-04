@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { threadRepository } from '../../lib/repositories'
-import type { GameId, PlaythroughId, ThreadId } from '../../types/ids'
-import type { Thread } from '../../types/Thread'
-import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
-import { getThreadDisplayLabel } from '../../utils/threadSubtype'
-import { ThreadForm } from './ThreadForm'
+import { useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { threadRepository } from '../../lib/repositories';
+import type { GameId, PlaythroughId, ThreadId } from '../../types/ids';
+import type { Thread } from '../../types/Thread';
+import { getEntityDisplayName } from '../../utils/getEntityDisplayName';
+import { getThreadDisplayLabel } from '../../utils/threadSubtype';
+import { ThreadForm } from './ThreadForm';
 
 /**
  * Props for the ThreadListScreen component.
  */
 export interface ThreadListScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
   /** Current playthrough ID (for playthrough-scoped threads; may be null). */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 }
 
 /**
@@ -28,56 +28,56 @@ export function ThreadListScreen({
   gameId,
   playthroughId,
 }: ThreadListScreenProps): JSX.Element {
-  const [threads, setThreads] = useState<Thread[]>([])
+  const [threads, setThreads] = useState<Thread[]>([]);
   const [labels, setLabels] = useState<
     Record<string, { source: string; target: string }>
-  >({})
-  const [isLoading, setIsLoading] = useState(true)
+  >({});
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; thread: Thread } | null
-  >(null)
-  const [deleteTarget, setDeleteTarget] = useState<ThreadId | null>(null)
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<ThreadId | null>(null);
 
   /**
    * Loads the threads for the current game (game-level plus current playthrough only).
    */
   const loadThreads = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const list = await threadRepository.getByGameId(gameId, playthroughId)
-      setThreads(list)
-      const nextLabels: Record<string, { source: string; target: string }> = {}
+      const list = await threadRepository.getByGameId(gameId, playthroughId);
+      setThreads(list);
+      const nextLabels: Record<string, { source: string; target: string }> = {};
       await Promise.all(
         list.map(async (t) => {
           const [source, target] = await Promise.all([
             getEntityDisplayName(t.sourceId),
             getEntityDisplayName(t.targetId),
-          ])
-          nextLabels[t.id] = { source, target }
+          ]);
+          nextLabels[t.id] = { source, target };
         })
-      )
-      setLabels(nextLabels)
+      );
+      setLabels(nextLabels);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId, playthroughId])
+  }, [gameId, playthroughId]);
 
   useEffect(() => {
-    loadThreads()
-  }, [loadThreads])
+    loadThreads();
+  }, [loadThreads]);
 
   /**
    * Handles the confirmation of deleting a thread.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return
-    await threadRepository.delete(deleteTarget)
-    setDeleteTarget(null)
-    loadThreads()
-  }, [deleteTarget, loadThreads])
+    if (deleteTarget === null) return;
+    await threadRepository.delete(deleteTarget);
+    setDeleteTarget(null);
+    loadThreads();
+  }, [deleteTarget, loadThreads]);
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading threads…</p>
+    return <p className="text-slate-500">Loading threads…</p>;
   }
 
   return (
@@ -101,8 +101,8 @@ export function ThreadListScreen({
               gameId={gameId}
               playthroughId={playthroughId}
               onSaved={() => {
-                setFormState(null)
-                loadThreads()
+                setFormState(null);
+                loadThreads();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -111,8 +111,8 @@ export function ThreadListScreen({
               mode="edit"
               thread={formState.thread}
               onSaved={() => {
-                setFormState(null)
-                loadThreads()
+                setFormState(null);
+                loadThreads();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -127,7 +127,7 @@ export function ThreadListScreen({
       ) : (
         <ul className="space-y-2">
           {threads.map((thread) => {
-            const l = labels[thread.id]
+            const l = labels[thread.id];
             return (
               <li
                 key={thread.id}
@@ -167,7 +167,7 @@ export function ThreadListScreen({
                   </button>
                 </div>
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -182,5 +182,5 @@ export function ThreadListScreen({
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
-  )
+  );
 }

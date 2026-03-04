@@ -4,26 +4,26 @@
  * an individual map view, and remembers the last viewed map.
  */
 
-import { create } from 'zustand'
-import type { MapId } from '../types/ids'
+import { create } from 'zustand';
+import type { MapId } from '../types/ids';
 
 /**
  * Possible UI modes for the Maps section in the game view.
  * - 'selection' shows the grid of maps to choose from.
  * - 'view' shows a single selected map.
  */
-export type MapUiMode = 'selection' | 'view'
+export type MapUiMode = 'selection' | 'view';
 
 /**
  * Stored zoom/pan transform for a map view (scale and translation in px).
  */
 export interface MapViewTransform {
   /** Scale factor (e.g. 1 = fit, 2 = 2x zoom). */
-  scale: number
+  scale: number;
   /** Horizontal translation in pixels. */
-  x: number
+  x: number;
   /** Vertical translation in pixels. */
-  y: number
+  y: number;
 }
 
 /**
@@ -36,33 +36,33 @@ interface GameViewState {
    * When 'selection', the grid of maps is shown.
    * When 'view', a single map is shown.
    */
-  mapUiMode: MapUiMode
+  mapUiMode: MapUiMode;
 
   /**
    * ID of the last viewed map in the Maps section, or null if none.
    * Used so that returning to the Maps tab can restore the last map view.
    */
-  lastViewedMapId: MapId | null
+  lastViewedMapId: MapId | null;
 
   /**
    * Per-map zoom/pan transform so returning to a map restores the same view.
    * Keyed by MapId.
    */
-  mapViewTransform: Record<string, MapViewTransform>
+  mapViewTransform: Record<string, MapViewTransform>;
 
   /**
    * Sets the current map UI mode.
    *
    * @param mode - Next UI mode for the Maps section.
    */
-  setMapUiMode: (mode: MapUiMode) => void
+  setMapUiMode: (mode: MapUiMode) => void;
 
   /**
    * Sets the last viewed map ID.
    *
    * @param mapId - Map ID to remember, or null to clear.
    */
-  setLastViewedMapId: (mapId: MapId | null) => void
+  setLastViewedMapId: (mapId: MapId | null) => void;
 
   /**
    * Stores the zoom/pan transform for a map so it can be restored when
@@ -71,13 +71,13 @@ interface GameViewState {
    * @param mapId - The map to store the transform for.
    * @param transform - Scale and translation (x, y in px).
    */
-  setMapViewTransform: (mapId: MapId, transform: MapViewTransform) => void
+  setMapViewTransform: (mapId: MapId, transform: MapViewTransform) => void;
 
   /**
    * Opens the map selection grid in the Maps section and
    * leaves the last viewed map ID unchanged.
    */
-  openMapSelection: () => void
+  openMapSelection: () => void;
 
   /**
    * Opens the map view for the given map ID and remembers it
@@ -85,7 +85,7 @@ interface GameViewState {
    *
    * @param mapId - Map ID to view.
    */
-  openMapView: (mapId: MapId) => void
+  openMapView: (mapId: MapId) => void;
 }
 
 /**
@@ -99,11 +99,11 @@ export const useGameViewStore = create<GameViewState>((set) => ({
   mapViewTransform: {},
 
   setMapUiMode: (mode) => {
-    set({ mapUiMode: mode })
+    set({ mapUiMode: mode });
   },
 
   setLastViewedMapId: (mapId) => {
-    set({ lastViewedMapId: mapId })
+    set({ lastViewedMapId: mapId });
   },
 
   setMapViewTransform: (mapId, transform) => {
@@ -112,14 +112,14 @@ export const useGameViewStore = create<GameViewState>((set) => ({
         ...state.mapViewTransform,
         [mapId]: transform,
       },
-    }))
+    }));
   },
 
   openMapSelection: () => {
-    set({ mapUiMode: 'selection' })
+    set({ mapUiMode: 'selection' });
   },
 
   openMapView: (mapId) => {
-    set({ mapUiMode: 'view', lastViewedMapId: mapId })
+    set({ mapUiMode: 'view', lastViewedMapId: mapId });
   },
-}))
+}));

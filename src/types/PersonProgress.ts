@@ -1,5 +1,5 @@
-import type { PlaythroughId, PersonId } from './ids'
-import type { PersonStatus } from './PersonStatus'
+import type { PlaythroughId, PersonId } from './ids';
+import type { PersonStatus } from './PersonStatus';
 
 /**
  * Person progress (playthrough-scoped).
@@ -14,13 +14,13 @@ import type { PersonStatus } from './PersonStatus'
  */
 export interface PersonProgress {
   /** Optional unique identifier (for Dexie primary key). */
-  id?: string
+  id?: string;
   /** ID of the playthrough. */
-  playthroughId: PlaythroughId
+  playthroughId: PlaythroughId;
   /** ID of the person. */
-  personId: PersonId
+  personId: PersonId;
   /** Person status. */
-  status: PersonStatus
+  status: PersonStatus;
   /** Optional user notes. */
-  notes: string
+  notes: string;
 }

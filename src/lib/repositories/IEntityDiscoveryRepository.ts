@@ -1,6 +1,6 @@
-import type { EntityDiscovery } from '../../types/EntityDiscovery'
-import type { DiscoveryEntityType } from '../../types/DiscoveryEntityType'
-import type { PlaythroughId } from '../../types/ids'
+import type { EntityDiscovery } from '../../types/EntityDiscovery';
+import type { DiscoveryEntityType } from '../../types/DiscoveryEntityType';
+import type { PlaythroughId } from '../../types/ids';
 
 /**
  * Contract for entity discovery state (playthrough-scoped).
@@ -19,7 +19,7 @@ export interface IEntityDiscoveryRepository {
     playthroughId: PlaythroughId,
     entityType: DiscoveryEntityType,
     entityId: string
-  ): Promise<EntityDiscovery | undefined>
+  ): Promise<EntityDiscovery | undefined>;
 
   /**
    * Returns all discovery records for a playthrough.
@@ -27,19 +27,21 @@ export interface IEntityDiscoveryRepository {
    * @param playthroughId - The playthrough ID.
    * @returns All discovery records for the playthrough.
    */
-  getAllForPlaythrough(playthroughId: PlaythroughId): Promise<EntityDiscovery[]>
+  getAllForPlaythrough(
+    playthroughId: PlaythroughId
+  ): Promise<EntityDiscovery[]>;
 
   /**
    * Inserts or updates a discovery record; id is generated if missing.
    *
    * @param discovery - The discovery record to upsert.
    */
-  upsert(discovery: EntityDiscovery): Promise<void>
+  upsert(discovery: EntityDiscovery): Promise<void>;
 
   /**
    * Deletes all discovery records for a playthrough (cascade when deleting playthrough).
    *
    * @param playthroughId - The playthrough ID.
    */
-  deleteByPlaythroughId(playthroughId: PlaythroughId): Promise<void>
+  deleteByPlaythroughId(playthroughId: PlaythroughId): Promise<void>;
 }

@@ -1,25 +1,25 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { EntityConnections } from '../../components/EntityConnections'
-import { RequirementList } from '../../components/RequirementList'
-import { getEntityLocationPlaceIds } from '../../lib/location'
-import { checkEntityAvailability } from '../../lib/requirements'
-import { itemRepository, placeRepository } from '../../lib/repositories'
-import type { GameId, ItemId, PlaceId, PlaythroughId } from '../../types/ids'
-import type { Item } from '../../types/Item'
-import type { ItemState } from '../../types/ItemState'
-import { ItemStatus } from '../../types/ItemStatus'
-import { getEntityDisplayName } from '../../utils/getEntityDisplayName'
-import { ItemForm } from './ItemForm'
+import { useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { EntityConnections } from '../../components/EntityConnections';
+import { RequirementList } from '../../components/RequirementList';
+import { getEntityLocationPlaceIds } from '../../lib/location';
+import { checkEntityAvailability } from '../../lib/requirements';
+import { itemRepository, placeRepository } from '../../lib/repositories';
+import type { GameId, ItemId, PlaceId, PlaythroughId } from '../../types/ids';
+import type { Item } from '../../types/Item';
+import type { ItemState } from '../../types/ItemState';
+import { ItemStatus } from '../../types/ItemStatus';
+import { getEntityDisplayName } from '../../utils/getEntityDisplayName';
+import { ItemForm } from './ItemForm';
 
 /**
  * Props for the ItemListScreen component.
  */
 export interface ItemListScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
   /** Current playthrough ID (for state; may be null). */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 }
 
 const ITEM_STATUS_LABELS: Record<ItemStatus, string> = {
@@ -27,7 +27,7 @@ const ITEM_STATUS_LABELS: Record<ItemStatus, string> = {
   [ItemStatus.ACQUIRED]: 'Acquired',
   [ItemStatus.USED]: 'Used',
   [ItemStatus.LOST]: 'Lost',
-}
+};
 
 /**
  * List and CRUD screen for items in the current game.
@@ -41,30 +41,30 @@ export function ItemListScreen({
   gameId,
   playthroughId,
 }: ItemListScreenProps): JSX.Element {
-  const [items, setItems] = useState<Item[]>([])
-  const [placeNames, setPlaceNames] = useState<Record<string, string>>({})
+  const [items, setItems] = useState<Item[]>([]);
+  const [placeNames, setPlaceNames] = useState<Record<string, string>>({});
   const [locationPlaceIdsByItem, setLocationPlaceIdsByItem] = useState<
     Record<string, PlaceId[]>
-  >({})
-  const [stateByItem, setStateByItem] = useState<Record<string, ItemState>>({})
+  >({});
+  const [stateByItem, setStateByItem] = useState<Record<string, ItemState>>({});
   const [availabilityByItem, setAvailabilityByItem] = useState<
     Record<string, { available: boolean; unmetRequirementTargetIds: string[] }>
-  >({})
+  >({});
   const [unmetRequirementNames, setUnmetRequirementNames] = useState<
     Record<string, string>
-  >({})
-  const [isLoading, setIsLoading] = useState(true)
+  >({});
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; item: Item } | null
-  >(null)
-  const [deleteTarget, setDeleteTarget] = useState<ItemId | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<ItemId | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   /**
    * Loads the items for the current game.
    */
   const loadItems = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const [list, places, stateList] = await Promise.all([
         itemRepository.getByGameId(gameId),
@@ -72,27 +72,27 @@ export function ItemListScreen({
         playthroughId
           ? itemRepository.getAllStateForPlaythrough(playthroughId)
           : Promise.resolve([]),
-      ])
-      setItems(list)
-      const names: Record<string, string> = {}
+      ]);
+      setItems(list);
+      const names: Record<string, string> = {};
       places.forEach((p) => {
-        names[p.id] = p.name
-      })
-      setPlaceNames(names)
-      const byItem: Record<string, ItemState> = {}
+        names[p.id] = p.name;
+      });
+      setPlaceNames(names);
+      const byItem: Record<string, ItemState> = {};
       stateList.forEach((s) => {
-        byItem[s.itemId] = s
-      })
-      setStateByItem(byItem)
+        byItem[s.itemId] = s;
+      });
+      setStateByItem(byItem);
 
-      const locationByItem: Record<string, PlaceId[]> = {}
+      const locationByItem: Record<string, PlaceId[]> = {};
       await Promise.all(
         list.map(async (item) => {
-          const ids = await getEntityLocationPlaceIds(gameId, item.id)
-          locationByItem[item.id] = ids
+          const ids = await getEntityLocationPlaceIds(gameId, item.id);
+          locationByItem[item.id] = ids;
         })
-      )
-      setLocationPlaceIdsByItem(locationByItem)
+      );
+      setLocationPlaceIdsByItem(locationByItem);
 
       // Check availability of items based on current playthrough.
       if (playthroughId && list.length > 0) {
@@ -102,83 +102,83 @@ export function ItemListScreen({
               gameId,
               playthroughId,
               item.id
-            )
-            return { itemId: item.id, ...result }
+            );
+            return { itemId: item.id, ...result };
           })
-        )
+        );
 
         const byItemId: Record<
           string,
           { available: boolean; unmetRequirementTargetIds: string[] }
-        > = {}
-        const allUnmetIds = new Set<string>()
+        > = {};
+        const allUnmetIds = new Set<string>();
 
         // Group results by item ID.
         results.forEach((r) => {
           byItemId[r.itemId] = {
             available: r.available,
             unmetRequirementTargetIds: r.unmetRequirementTargetIds,
-          }
-          r.unmetRequirementTargetIds.forEach((id) => allUnmetIds.add(id))
-        })
+          };
+          r.unmetRequirementTargetIds.forEach((id) => allUnmetIds.add(id));
+        });
 
         // Set availability by item ID.
-        setAvailabilityByItem(byItemId)
+        setAvailabilityByItem(byItemId);
 
         // Get names of unmet requirement targets.
         const nameEntries = await Promise.all(
           Array.from(allUnmetIds).map(async (id) => {
-            const name = await getEntityDisplayName(id)
-            return [id, name] as const
+            const name = await getEntityDisplayName(id);
+            return [id, name] as const;
           })
-        )
+        );
 
         // Set names of unmet requirement targets.
-        setUnmetRequirementNames(Object.fromEntries(nameEntries))
+        setUnmetRequirementNames(Object.fromEntries(nameEntries));
       } else {
         // No playthrough selected, so no availability to check.
-        setAvailabilityByItem({})
-        setUnmetRequirementNames({})
+        setAvailabilityByItem({});
+        setUnmetRequirementNames({});
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId, playthroughId])
+  }, [gameId, playthroughId]);
 
   useEffect(() => {
-    loadItems()
-  }, [loadItems])
+    loadItems();
+  }, [loadItems]);
 
   /**
    * Handles the confirmation of deleting an item.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return
-    await itemRepository.delete(deleteTarget)
-    setDeleteTarget(null)
-    loadItems()
-  }, [deleteTarget, loadItems])
+    if (deleteTarget === null) return;
+    await itemRepository.delete(deleteTarget);
+    setDeleteTarget(null);
+    loadItems();
+  }, [deleteTarget, loadItems]);
 
   /**
    * Handles the change of status for an item.
    */
   const handleStatusChange = useCallback(
     async (itemId: ItemId, newStatus: ItemStatus) => {
-      if (playthroughId === null) return
-      const existing = stateByItem[itemId]
+      if (playthroughId === null) return;
+      const existing = stateByItem[itemId];
       await itemRepository.upsertState({
         playthroughId,
         itemId,
         status: newStatus,
         notes: existing?.notes ?? '',
-      })
-      loadItems()
+      });
+      loadItems();
     },
     [playthroughId, stateByItem, loadItems]
-  )
+  );
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading items…</p>
+    return <p className="text-slate-500">Loading items…</p>;
   }
 
   return (
@@ -201,8 +201,8 @@ export function ItemListScreen({
               mode="create"
               gameId={gameId}
               onSaved={() => {
-                setFormState(null)
-                loadItems()
+                setFormState(null);
+                loadItems();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -211,8 +211,8 @@ export function ItemListScreen({
               mode="edit"
               item={formState.item}
               onSaved={() => {
-                setFormState(null)
-                loadItems()
+                setFormState(null);
+                loadItems();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -225,9 +225,9 @@ export function ItemListScreen({
       ) : (
         <ul className="space-y-2">
           {items.map((item) => {
-            const state = stateByItem[item.id]
-            const status = state?.status ?? ItemStatus.NOT_ACQUIRED
-            const isExpanded = expandedId === item.id
+            const state = stateByItem[item.id];
+            const status = state?.status ?? ItemStatus.NOT_ACQUIRED;
+            const isExpanded = expandedId === item.id;
             return (
               <li
                 key={item.id}
@@ -338,7 +338,7 @@ export function ItemListScreen({
                   </div>
                 ) : null}
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -353,5 +353,5 @@ export function ItemListScreen({
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
-  )
+  );
 }

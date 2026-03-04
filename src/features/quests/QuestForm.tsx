@@ -1,30 +1,30 @@
-import { useCallback, useState } from 'react'
-import { EntityPicker } from '../../components/EntityPicker'
-import { GiverPicker } from '../../components/GiverPicker'
-import { LocationPlacesEditor } from '../../components/LocationPlacesEditor'
-import { syncLocationThreads } from '../../lib/location'
-import { questRepository, threadRepository } from '../../lib/repositories'
-import { EntityType } from '../../types/EntityType'
-import { ThreadSubtype } from '../../types/ThreadSubtype'
-import { getThreadSubtype } from '../../utils/threadSubtype'
-import type { GameId, PlaceId } from '../../types/ids'
-import type { Quest } from '../../types/Quest'
-import type { QuestObjective } from '../../types/QuestObjective'
-import { getEntityTypeFromId } from '../../utils/parseEntityId'
-import { STATUS_OPTIONS } from '../../utils/requirementStatusOptions'
+import { useCallback, useState } from 'react';
+import { EntityPicker } from '../../components/EntityPicker';
+import { GiverPicker } from '../../components/GiverPicker';
+import { LocationPlacesEditor } from '../../components/LocationPlacesEditor';
+import { syncLocationThreads } from '../../lib/location';
+import { questRepository, threadRepository } from '../../lib/repositories';
+import { EntityType } from '../../types/EntityType';
+import { ThreadSubtype } from '../../types/ThreadSubtype';
+import { getThreadSubtype } from '../../utils/threadSubtype';
+import type { GameId, PlaceId } from '../../types/ids';
+import type { Quest } from '../../types/Quest';
+import type { QuestObjective } from '../../types/QuestObjective';
+import { getEntityTypeFromId } from '../../utils/parseEntityId';
+import { STATUS_OPTIONS } from '../../utils/requirementStatusOptions';
 
 /**
  * Props for QuestForm when creating a new quest.
  */
 export interface QuestFormCreateProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'create'
+  mode: 'create';
   /** Game ID the quest belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Called after successful create. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
@@ -32,19 +32,19 @@ export interface QuestFormCreateProps {
  */
 export interface QuestFormEditProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'edit'
+  mode: 'edit';
   /** The quest to edit. */
-  quest: Quest
+  quest: Quest;
   /** Called after successful update. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
  * Props for QuestForm.
  */
-export type QuestFormProps = QuestFormCreateProps | QuestFormEditProps
+export type QuestFormProps = QuestFormCreateProps | QuestFormEditProps;
 
 /**
  * Form to create or edit a quest. Uses questRepository only.
@@ -55,23 +55,23 @@ export type QuestFormProps = QuestFormCreateProps | QuestFormEditProps
 export function QuestForm(props: QuestFormProps): JSX.Element {
   const [title, setTitle] = useState(
     props.mode === 'edit' ? props.quest.title : ''
-  )
+  );
   const [giver, setGiver] = useState(
     props.mode === 'edit' ? props.quest.giver : ''
-  )
+  );
   const [objectives, setObjectives] = useState<QuestObjective[]>(
     props.mode === 'edit' ? props.quest.objectives : []
-  )
+  );
   const [linkingObjectiveIndex, setLinkingObjectiveIndex] = useState<
     number | null
-  >(null)
+  >(null);
   const [linkEntityType, setLinkEntityType] = useState<EntityType>(
     EntityType.ITEM
-  )
-  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const gameId = props.mode === 'create' ? props.gameId : props.quest.gameId
+  );
+  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const gameId = props.mode === 'create' ? props.gameId : props.quest.gameId;
 
   /**
    * Syncs objective-dependency threads for the Loom: one thread per objective that has entityId.
@@ -88,20 +88,20 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
         gameId,
         questId,
         null
-      )
+      );
 
       // Get all objective_requires threads to delete.
       const toDelete = existing.filter(
         (t) => getThreadSubtype(t) === ThreadSubtype.OBJECTIVE_REQUIRES
-      )
+      );
 
       // Delete all objective_requires threads.
-      await Promise.all(toDelete.map((t) => threadRepository.delete(t.id)))
+      await Promise.all(toDelete.map((t) => threadRepository.delete(t.id)));
 
       // Create new objective_requires threads for each objective that has an entityId.
       for (let i = 0; i < objectives.length; i++) {
-        const obj = objectives[i]
-        if (!obj.entityId) continue
+        const obj = objectives[i];
+        if (!obj.entityId) continue;
         await threadRepository.create({
           gameId,
           sourceId: questId,
@@ -112,11 +112,11 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
             obj.allowedStatuses && obj.allowedStatuses.length > 0
               ? obj.allowedStatuses
               : undefined,
-        })
+        });
       }
     },
     []
-  )
+  );
 
   /**
    * Syncs the "giver" representative thread for a quest: create/update if giver set, delete if cleared.
@@ -127,80 +127,80 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
         gameId,
         questId,
         null
-      )
+      );
       const giverThread = threads.find(
         (t) => getThreadSubtype(t) === ThreadSubtype.GIVER
-      )
+      );
       if (giverValue.trim()) {
         if (giverThread) {
           await threadRepository.update({
             ...giverThread,
             targetId: giverValue.trim(),
-          })
+          });
         } else {
           await threadRepository.create({
             gameId,
             sourceId: questId,
             targetId: giverValue.trim(),
             subtype: ThreadSubtype.GIVER,
-          })
+          });
         }
       } else if (giverThread) {
-        await threadRepository.delete(giverThread.id)
+        await threadRepository.delete(giverThread.id);
       }
     },
     []
-  )
+  );
 
   /**
    * Handles the submission of the quest form.
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmedTitle = title.trim()
+      e.preventDefault();
+      const trimmedTitle = title.trim();
       if (!trimmedTitle) {
-        setError('Enter a title.')
-        return
+        setError('Enter a title.');
+        return;
       }
-      setError(null)
-      setIsSubmitting(true)
+      setError(null);
+      setIsSubmitting(true);
       try {
-        const giverValue = giver.trim()
+        const giverValue = giver.trim();
         if (props.mode === 'create') {
           const quest = await questRepository.create({
             gameId: props.gameId,
             title: trimmedTitle,
             giver: giverValue,
             objectives: objectives.length > 0 ? objectives : undefined,
-          })
-          await syncGiverThread(props.gameId, quest.id, giverValue)
-          await syncObjectiveThreads(props.gameId, quest.id, objectives)
-          await syncLocationThreads(props.gameId, quest.id, locationPlaceIds)
+          });
+          await syncGiverThread(props.gameId, quest.id, giverValue);
+          await syncObjectiveThreads(props.gameId, quest.id, objectives);
+          await syncLocationThreads(props.gameId, quest.id, locationPlaceIds);
         } else {
-          await syncGiverThread(props.quest.gameId, props.quest.id, giverValue)
+          await syncGiverThread(props.quest.gameId, props.quest.id, giverValue);
           await questRepository.update({
             ...props.quest,
             title: trimmedTitle,
             giver: giverValue,
             objectives,
-          })
+          });
           await syncObjectiveThreads(
             props.quest.gameId,
             props.quest.id,
             objectives
-          )
+          );
           await syncLocationThreads(
             props.quest.gameId,
             props.quest.id,
             locationPlaceIds
-          )
+          );
         }
-        props.onSaved()
+        props.onSaved();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save quest.')
+        setError(err instanceof Error ? err.message : 'Failed to save quest.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [
@@ -212,36 +212,36 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
       syncGiverThread,
       syncObjectiveThreads,
     ]
-  )
+  );
 
   /**
    * Adds an objective to the quest.
    */
   const addObjective = useCallback(() => {
-    setObjectives((prev) => [...prev, { label: '' }])
-  }, [])
+    setObjectives((prev) => [...prev, { label: '' }]);
+  }, []);
 
   /**
    * Updates an objective of the quest.
    */
   const updateObjective = useCallback((index: number, label: string) => {
     setObjectives((prev) => {
-      const next = [...prev]
-      next[index] = { ...next[index], label }
-      return next
-    })
-  }, [])
+      const next = [...prev];
+      next[index] = { ...next[index], label };
+      return next;
+    });
+  }, []);
 
   /**
    * Removes an objective from the quest.
    */
   const removeObjective = useCallback(
     (index: number) => {
-      setObjectives((prev) => prev.filter((_, i) => i !== index))
-      if (linkingObjectiveIndex === index) setLinkingObjectiveIndex(null)
+      setObjectives((prev) => prev.filter((_, i) => i !== index));
+      if (linkingObjectiveIndex === index) setLinkingObjectiveIndex(null);
     },
     [linkingObjectiveIndex]
-  )
+  );
 
   /**
    * Sets entity link for an objective (entityId and optional allowedStatuses).
@@ -249,18 +249,18 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
   const setObjectiveEntityLink = useCallback(
     (index: number, entityId: string, allowedStatuses?: number[]) => {
       setObjectives((prev) => {
-        const next = [...prev]
+        const next = [...prev];
         next[index] = {
           ...next[index],
           entityId: entityId || undefined,
           allowedStatuses: allowedStatuses ?? undefined,
-        }
-        return next
-      })
-      setLinkingObjectiveIndex(null)
+        };
+        return next;
+      });
+      setLinkingObjectiveIndex(null);
     },
     []
-  )
+  );
 
   /**
    * Toggles the allowed status for an objective.
@@ -268,20 +268,20 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
   const toggleObjectiveAllowedStatus = useCallback(
     (index: number, statusValue: number, checked: boolean) => {
       setObjectives((prev) => {
-        const next = [...prev]
-        const obj = next[index]
-        const current = obj.allowedStatuses ?? []
+        const next = [...prev];
+        const obj = next[index];
+        const current = obj.allowedStatuses ?? [];
         next[index] = {
           ...obj,
           allowedStatuses: checked
             ? [...current, statusValue]
             : current.filter((v) => v !== statusValue),
-        }
-        return next
-      })
+        };
+        return next;
+      });
     },
     []
-  )
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -340,10 +340,10 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
           {objectives.map((objective, index) => {
             const entityType = objective.entityId
               ? getEntityTypeFromId(objective.entityId)
-              : null
+              : null;
             const statusOptions =
-              entityType !== null ? STATUS_OPTIONS[entityType] : []
-            const isLinking = linkingObjectiveIndex === index
+              entityType !== null ? STATUS_OPTIONS[entityType] : [];
+            const isLinking = linkingObjectiveIndex === index;
             return (
               <li key={index} className="rounded border border-slate-200 p-2">
                 <div className="flex flex-wrap items-center gap-2">
@@ -482,7 +482,7 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
                   </div>
                 )}
               </li>
-            )
+            );
           })}
         </ul>
       </div>
@@ -520,5 +520,5 @@ export function QuestForm(props: QuestFormProps): JSX.Element {
         </button>
       </div>
     </form>
-  )
+  );
 }

@@ -4,19 +4,19 @@
  * at the middle of each node (omni-directional); they are invisible and for connection only.
  */
 
-import type { Node, NodeProps } from '@xyflow/react'
-import { Handle, Position } from '@xyflow/react'
-import { memo } from 'react'
-import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels'
+import type { Node, NodeProps } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react';
+import { memo } from 'react';
+import { ENTITY_TYPE_LABELS } from '../../utils/entityTypeLabels';
 import {
   getEntityTypeColorClasses,
   getUnavailableEntityTypeColorClasses,
   getSpoilerHiddenColorClasses,
-} from '../../utils/entityTypeColors'
-import type { EntityNodeData } from './useLoomGraph'
+} from '../../utils/entityTypeColors';
+import type { EntityNodeData } from './useLoomGraph';
 
 /** Entity node type for Loom (custom data). */
-type EntityNodeType = Node<EntityNodeData>
+type EntityNodeType = Node<EntityNodeData>;
 
 /** Invisible, centered handle so edges connect to node center (no Position.Center in API). */
 const centerHandleStyle: React.CSSProperties = {
@@ -31,7 +31,7 @@ const centerHandleStyle: React.CSSProperties = {
   minHeight: 1,
   border: 'none',
   padding: 0,
-}
+};
 
 /**
  * Renders a single entity as a Loom node: type badge + label.
@@ -51,33 +51,32 @@ function EntityNodeComponent({
     actionable = false,
     completed = false,
     spoilerHidden = false,
-  } = data
+  } = data;
 
   const typeLabel = spoilerHidden
     ? '???'
-    : ENTITY_TYPE_LABELS[entityType] ?? 'Entity'
+    : (ENTITY_TYPE_LABELS[entityType] ?? 'Entity');
 
-  const displayLabel = spoilerHidden ? '???' : label
+  const displayLabel = spoilerHidden ? '???' : label;
 
   const baseColorClasses = spoilerHidden
     ? getSpoilerHiddenColorClasses()
     : available
       ? getEntityTypeColorClasses(entityType)
-      : getUnavailableEntityTypeColorClasses(entityType)
+      : getUnavailableEntityTypeColorClasses(entityType);
 
-  const isEmphasized =
-    actionable && available && !spoilerHidden && !completed
-  const borderClasses = isEmphasized ? 'border-4 border-teal-500' : 'border-0'
-  const selectionClasses = selected ? 'scale-110' : ''
+  const isEmphasized = actionable && available && !spoilerHidden && !completed;
+  const borderClasses = isEmphasized ? 'border-4 border-teal-500' : 'border-0';
+  const selectionClasses = selected ? 'scale-110' : '';
 
   // Opacity is lowered for completed entities so they visually recede. Unavailable
   // entities use desaturated type colors instead of opacity changes. Spoiler-hidden
   // nodes use neutral grey and ignore availability/completion styling to avoid
   // leaking type.
-  let opacityClass = ''
+  let opacityClass = '';
   if (!spoilerHidden) {
     if (completed) {
-      opacityClass = 'opacity-60'
+      opacityClass = 'opacity-60';
     }
   }
 
@@ -106,7 +105,7 @@ function EntityNodeComponent({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export const EntityNode = memo(EntityNodeComponent)
+export const EntityNode = memo(EntityNodeComponent);

@@ -1,4 +1,4 @@
-export { DEFAULT_ALLOWED_STATUSES } from './defaultAllowedStatuses'
+export { DEFAULT_ALLOWED_STATUSES } from './defaultAllowedStatuses';
 export {
   checkEntityAvailability,
   checkEntityAvailabilityWithReachability,
@@ -6,4 +6,4 @@ export {
   getPlaythroughStatusForEntity,
   isRequirementSatisfied,
   type AvailabilityResult,
-} from './requirementEvaluation'
+} from './requirementEvaluation';

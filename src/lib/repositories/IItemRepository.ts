@@ -1,7 +1,7 @@
-import type { Item } from '../../types/Item'
-import type { ItemState } from '../../types/ItemState'
-import type { GameId, ItemId, PlaythroughId } from '../../types/ids'
-import type { CreateItemInput } from './CreateItemInput'
+import type { Item } from '../../types/Item';
+import type { ItemState } from '../../types/ItemState';
+import type { GameId, ItemId, PlaythroughId } from '../../types/ids';
+import type { CreateItemInput } from './CreateItemInput';
 
 /**
  * Contract for item and item state data access.
@@ -14,7 +14,7 @@ export interface IItemRepository {
    * @param gameId - The game ID.
    * @returns All items for the game.
    */
-  getByGameId(gameId: GameId): Promise<Item[]>
+  getByGameId(gameId: GameId): Promise<Item[]>;
 
   /**
    * Returns an item by ID.
@@ -22,7 +22,7 @@ export interface IItemRepository {
    * @param id - The ID of the item.
    * @returns The item, or undefined if not found.
    */
-  getById(id: ItemId): Promise<Item | undefined>
+  getById(id: ItemId): Promise<Item | undefined>;
 
   /**
    * Creates an item; ID and timestamps are set by the repository.
@@ -30,28 +30,28 @@ export interface IItemRepository {
    * @param input - The input to create the item.
    * @returns The created item.
    */
-  create(input: CreateItemInput): Promise<Item>
+  create(input: CreateItemInput): Promise<Item>;
 
   /**
    * Updates an existing item; updatedAt is set by the repository.
    *
    * @param item - The item to update.
    */
-  update(item: Item): Promise<void>
+  update(item: Item): Promise<void>;
 
   /**
    * Deletes an item by ID.
    *
    * @param id - The ID of the item to delete.
    */
-  delete(id: ItemId): Promise<void>
+  delete(id: ItemId): Promise<void>;
 
   /**
    * Deletes all items for a game (cascade when deleting game).
    *
    * @param gameId - The ID of the game to delete.
    */
-  deleteByGameId(gameId: GameId): Promise<void>
+  deleteByGameId(gameId: GameId): Promise<void>;
 
   /**
    * Returns state for a single item in a playthrough, or undefined.
@@ -63,7 +63,7 @@ export interface IItemRepository {
   getState(
     playthroughId: PlaythroughId,
     itemId: ItemId
-  ): Promise<ItemState | undefined>
+  ): Promise<ItemState | undefined>;
 
   /**
    * Returns all item state for a playthrough.
@@ -71,19 +71,19 @@ export interface IItemRepository {
    * @param playthroughId - The playthrough ID.
    * @returns All item state for the playthrough.
    */
-  getAllStateForPlaythrough(playthroughId: PlaythroughId): Promise<ItemState[]>
+  getAllStateForPlaythrough(playthroughId: PlaythroughId): Promise<ItemState[]>;
 
   /**
    * Inserts or updates item state; id is generated if missing.
    *
    * @param state - The item state to upsert.
    */
-  upsertState(state: ItemState): Promise<void>
+  upsertState(state: ItemState): Promise<void>;
 
   /**
    * Deletes all item state for a playthrough (cascade when deleting playthrough).
    *
    * @param playthroughId - The playthrough ID.
    */
-  deleteStateByPlaythroughId(playthroughId: PlaythroughId): Promise<void>
+  deleteStateByPlaythroughId(playthroughId: PlaythroughId): Promise<void>;
 }

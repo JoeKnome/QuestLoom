@@ -3,31 +3,31 @@
  * Use this instead of Dexie directly; implements IQuestRepository against IndexedDB.
  */
 
-import type { Quest } from '../../types/Quest'
-import type { QuestProgress } from '../../types/QuestProgress'
-import { EntityType } from '../../types/EntityType'
-import type { GameId, PlaythroughId, QuestId } from '../../types/ids'
-import { generateId, generateEntityId } from '../../utils/generateId'
-import { db, type QuestProgressRow } from '../db'
-import { deleteThreadsForEntity } from './cascadeDeleteThreads'
-import { mapMarkerRepository } from './MapMarkerRepository'
-import type { CreateQuestInput } from './CreateQuestInput'
-import type { IQuestRepository } from './IQuestRepository'
+import type { Quest } from '../../types/Quest';
+import type { QuestProgress } from '../../types/QuestProgress';
+import { EntityType } from '../../types/EntityType';
+import type { GameId, PlaythroughId, QuestId } from '../../types/ids';
+import { generateId, generateEntityId } from '../../utils/generateId';
+import { db, type QuestProgressRow } from '../db';
+import { deleteThreadsForEntity } from './cascadeDeleteThreads';
+import { mapMarkerRepository } from './MapMarkerRepository';
+import type { CreateQuestInput } from './CreateQuestInput';
+import type { IQuestRepository } from './IQuestRepository';
 
 /**
  * Dexie-backed implementation of IQuestRepository.
  */
 class QuestRepositoryImpl implements IQuestRepository {
   async getByGameId(gameId: GameId): Promise<Quest[]> {
-    return db.quests.where('gameId').equals(gameId).toArray()
+    return db.quests.where('gameId').equals(gameId).toArray();
   }
 
   async getById(id: QuestId): Promise<Quest | undefined> {
-    return db.quests.get(id)
+    return db.quests.get(id);
   }
 
   async create(input: CreateQuestInput): Promise<Quest> {
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     const quest: Quest = {
       id: generateEntityId(EntityType.QUEST) as QuestId,
       gameId: input.gameId,
@@ -36,34 +36,34 @@ class QuestRepositoryImpl implements IQuestRepository {
       objectives: input.objectives ?? [],
       createdAt: now,
       updatedAt: now,
-    }
-    await db.quests.add(quest)
-    return quest
+    };
+    await db.quests.add(quest);
+    return quest;
   }
 
   async update(quest: Quest): Promise<void> {
     const updated: Quest = {
       ...quest,
       updatedAt: new Date().toISOString(),
-    }
-    await db.quests.put(updated)
+    };
+    await db.quests.put(updated);
   }
 
   async delete(id: QuestId): Promise<void> {
-    const quest = await db.quests.get(id)
+    const quest = await db.quests.get(id);
     if (quest) {
-      await deleteThreadsForEntity(quest.gameId, id)
+      await deleteThreadsForEntity(quest.gameId, id);
       await mapMarkerRepository.deleteByEntity(
         quest.gameId,
         EntityType.QUEST,
         id
-      )
+      );
     }
-    await db.quests.delete(id)
+    await db.quests.delete(id);
   }
 
   async deleteByGameId(gameId: GameId): Promise<void> {
-    await db.quests.where('gameId').equals(gameId).delete()
+    await db.quests.where('gameId').equals(gameId).delete();
   }
 
   async getProgress(
@@ -73,8 +73,8 @@ class QuestRepositoryImpl implements IQuestRepository {
     const row = await db.questProgress
       .where('[playthroughId+questId]')
       .equals([playthroughId, questId])
-      .first()
-    return row ? toQuestProgress(row) : undefined
+      .first();
+    return row ? toQuestProgress(row) : undefined;
   }
 
   async getAllProgressForPlaythrough(
@@ -83,8 +83,8 @@ class QuestRepositoryImpl implements IQuestRepository {
     const rows = await db.questProgress
       .where('playthroughId')
       .equals(playthroughId)
-      .toArray()
-    return rows.map(toQuestProgress)
+      .toArray();
+    return rows.map(toQuestProgress);
   }
 
   async upsertProgress(progress: QuestProgress): Promise<void> {
@@ -95,14 +95,17 @@ class QuestRepositoryImpl implements IQuestRepository {
       completedObjectiveIndexes: progress.completedObjectiveIndexes ?? [],
       status: progress.status,
       notes: progress.notes,
-    }
-    await db.questProgress.put(row)
+    };
+    await db.questProgress.put(row);
   }
 
   async deleteProgressByPlaythroughId(
     playthroughId: PlaythroughId
   ): Promise<void> {
-    await db.questProgress.where('playthroughId').equals(playthroughId).delete()
+    await db.questProgress
+      .where('playthroughId')
+      .equals(playthroughId)
+      .delete();
   }
 }
 
@@ -120,8 +123,8 @@ function toQuestProgress(row: QuestProgressRow): QuestProgress {
     completedObjectiveIndexes: row.completedObjectiveIndexes ?? [],
     status: row.status,
     notes: row.notes,
-  }
+  };
 }
 
 /** Single quest repository instance. */
-export const questRepository: IQuestRepository = new QuestRepositoryImpl()
+export const questRepository: IQuestRepository = new QuestRepositoryImpl();

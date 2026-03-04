@@ -1,35 +1,35 @@
-import { useCallback, useState } from 'react'
-import { EntityPicker } from './EntityPicker'
-import { threadRepository } from '../lib/repositories'
+import { useCallback, useState } from 'react';
+import { EntityPicker } from './EntityPicker';
+import { threadRepository } from '../lib/repositories';
 import {
   EntityType,
   REQUIREMENT_TARGET_ENTITY_TYPES,
-} from '../types/EntityType'
-import type { GameId } from '../types/ids'
-import type { Thread } from '../types/Thread'
-import { ThreadSubtype } from '../types/ThreadSubtype'
-import { getEntityTypeFromId } from '../utils/parseEntityId'
-import { ENTITY_TYPE_LABELS } from '../utils/entityTypeLabels'
-import { STATUS_OPTIONS } from '../utils/requirementStatusOptions'
+} from '../types/EntityType';
+import type { GameId } from '../types/ids';
+import type { Thread } from '../types/Thread';
+import { ThreadSubtype } from '../types/ThreadSubtype';
+import { getEntityTypeFromId } from '../utils/parseEntityId';
+import { ENTITY_TYPE_LABELS } from '../utils/entityTypeLabels';
+import { STATUS_OPTIONS } from '../utils/requirementStatusOptions';
 
 /**
  * Props for RequirementForm when creating a new requirement.
  */
 export interface RequirementFormCreateProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'create'
+  mode: 'create';
 
   /** Game ID the requirement thread belongs to. */
-  gameId: GameId
+  gameId: GameId;
 
   /** Entity ID that has the requirement (source of the thread). */
-  sourceId: string
+  sourceId: string;
 
   /** Called after successful create. */
-  onSaved: () => void
+  onSaved: () => void;
 
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
@@ -37,22 +37,22 @@ export interface RequirementFormCreateProps {
  */
 export interface RequirementFormEditProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'edit'
+  mode: 'edit';
 
   /** The requirement thread to edit (subtype Requires). */
-  thread: Thread
+  thread: Thread;
 
   /** Called after successful update. */
-  onSaved: () => void
+  onSaved: () => void;
 
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /** Union of RequirementForm props. */
 export type RequirementFormProps =
   | RequirementFormCreateProps
-  | RequirementFormEditProps
+  | RequirementFormEditProps;
 
 /**
  * Form to create or edit a single entity-level requirement (thread subtype Requires).
@@ -63,25 +63,25 @@ export type RequirementFormProps =
  * @returns A JSX element representing the RequirementForm component.
  */
 export function RequirementForm(props: RequirementFormProps): JSX.Element {
-  const isCreate = props.mode === 'create'
-  const gameId = isCreate ? props.gameId : props.thread.gameId
-  const sourceId = isCreate ? props.sourceId : props.thread.sourceId
+  const isCreate = props.mode === 'create';
+  const gameId = isCreate ? props.gameId : props.thread.gameId;
+  const sourceId = isCreate ? props.sourceId : props.thread.sourceId;
 
   const [targetType, setTargetType] = useState<EntityType>(() =>
     isCreate
       ? EntityType.ITEM
       : (getEntityTypeFromId(props.thread.targetId) ?? EntityType.ITEM)
-  )
+  );
   const [targetId, setTargetId] = useState(
     isCreate ? '' : props.thread.targetId
-  )
+  );
   const [requirementAllowedStatuses, setRequirementAllowedStatuses] = useState<
     number[]
-  >(() => (isCreate ? [] : (props.thread.requirementAllowedStatuses ?? [])))
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  >(() => (isCreate ? [] : (props.thread.requirementAllowedStatuses ?? [])));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const statusOptions = STATUS_OPTIONS[targetType]
+  const statusOptions = STATUS_OPTIONS[targetType];
 
   /**
    * Toggles an allowed status for the requirement.
@@ -92,8 +92,8 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
   const toggleAllowedStatus = useCallback((value: number, checked: boolean) => {
     setRequirementAllowedStatuses((prev) =>
       checked ? [...prev, value] : prev.filter((v) => v !== value)
-    )
-  }, [])
+    );
+  }, []);
 
   /**
    * Handles the submission of the requirement form.
@@ -102,22 +102,22 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
+      e.preventDefault();
 
       // Validate that a target entity has been selected.
       if (!targetId.trim()) {
-        setError('Select a target entity.')
-        return
+        setError('Select a target entity.');
+        return;
       }
 
       // Validate that the source and target are different.
       if (targetId === sourceId) {
-        setError('Source and target must be different.')
-        return
+        setError('Source and target must be different.');
+        return;
       }
 
-      setError(null)
-      setIsSubmitting(true)
+      setError(null);
+      setIsSubmitting(true);
 
       try {
         // Create a new requirement thread if the form is in create mode.
@@ -132,7 +132,7 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
               requirementAllowedStatuses.length > 0
                 ? requirementAllowedStatuses
                 : undefined,
-          })
+          });
         } else {
           // Update an existing requirement thread if the form is in edit mode.
           await threadRepository.update({
@@ -142,21 +142,21 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
               requirementAllowedStatuses.length > 0
                 ? requirementAllowedStatuses
                 : undefined,
-          })
+          });
         }
 
         // Call the onSaved callback to notify the parent component that the requirement has been saved.
-        props.onSaved()
+        props.onSaved();
       } catch (err) {
         setError(
           err instanceof Error ? err.message : 'Failed to save requirement.'
-        )
+        );
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [targetId, sourceId, requirementAllowedStatuses, isCreate, gameId, props]
-  )
+  );
 
   return (
     // Render the form with the required fields and buttons.
@@ -176,8 +176,8 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
           id="requirement-target-type"
           value={targetType}
           onChange={(e) => {
-            setTargetType(Number(e.target.value) as EntityType)
-            setTargetId('')
+            setTargetType(Number(e.target.value) as EntityType);
+            setTargetId('');
           }}
           disabled={isSubmitting}
           className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-100"
@@ -272,5 +272,5 @@ export function RequirementForm(props: RequirementFormProps): JSX.Element {
         </button>
       </div>
     </form>
-  )
+  );
 }

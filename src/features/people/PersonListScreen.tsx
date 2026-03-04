@@ -1,29 +1,29 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { EntityConnections } from '../../components/EntityConnections'
-import { RequirementList } from '../../components/RequirementList'
-import { personRepository } from '../../lib/repositories'
-import type { GameId, PersonId, PlaythroughId } from '../../types/ids'
-import type { Person } from '../../types/Person'
-import type { PersonProgress } from '../../types/PersonProgress'
-import { PersonStatus } from '../../types/PersonStatus'
-import { PersonForm } from './PersonForm'
+import { useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { EntityConnections } from '../../components/EntityConnections';
+import { RequirementList } from '../../components/RequirementList';
+import { personRepository } from '../../lib/repositories';
+import type { GameId, PersonId, PlaythroughId } from '../../types/ids';
+import type { Person } from '../../types/Person';
+import type { PersonProgress } from '../../types/PersonProgress';
+import { PersonStatus } from '../../types/PersonStatus';
+import { PersonForm } from './PersonForm';
 
 /**
  * Props for the PersonListScreen component.
  */
 export interface PersonListScreenProps {
   /** Current game ID. */
-  gameId: GameId
+  gameId: GameId;
   /** Current playthrough ID (for progress/status; may be null). */
-  playthroughId: PlaythroughId | null
+  playthroughId: PlaythroughId | null;
 }
 
 const PERSON_STATUS_LABELS: Record<PersonStatus, string> = {
   [PersonStatus.ALIVE]: 'Alive',
   [PersonStatus.DEAD]: 'Dead',
   [PersonStatus.UNKNOWN]: 'Unknown',
-}
+};
 
 /**
  * List and CRUD screen for people (characters) in the current game.
@@ -37,75 +37,75 @@ export function PersonListScreen({
   gameId,
   playthroughId,
 }: PersonListScreenProps): JSX.Element {
-  const [persons, setPersons] = useState<Person[]>([])
+  const [persons, setPersons] = useState<Person[]>([]);
   const [progressByPerson, setProgressByPerson] = useState<
     Record<string, PersonProgress>
-  >({})
-  const [isLoading, setIsLoading] = useState(true)
+  >({});
+  const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState<
     { type: 'create' } | { type: 'edit'; person: Person } | null
-  >(null)
-  const [deleteTarget, setDeleteTarget] = useState<PersonId | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<PersonId | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   /**
    * Loads the people and (when playthrough is selected) progress for the current game.
    */
   const loadPersons = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const [list, progressList] = await Promise.all([
         personRepository.getByGameId(gameId),
         playthroughId
           ? personRepository.getAllProgressForPlaythrough(playthroughId)
           : Promise.resolve([]),
-      ])
-      setPersons(list)
-      const byPerson: Record<string, PersonProgress> = {}
+      ]);
+      setPersons(list);
+      const byPerson: Record<string, PersonProgress> = {};
       progressList.forEach((p) => {
-        byPerson[p.personId] = p
-      })
-      setProgressByPerson(byPerson)
+        byPerson[p.personId] = p;
+      });
+      setProgressByPerson(byPerson);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [gameId, playthroughId])
+  }, [gameId, playthroughId]);
 
   useEffect(() => {
-    loadPersons()
-  }, [loadPersons])
+    loadPersons();
+  }, [loadPersons]);
 
   /**
    * Handles the confirmation of deleting a person.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return
-    await personRepository.delete(deleteTarget)
-    setDeleteTarget(null)
-    loadPersons()
-  }, [deleteTarget, loadPersons])
+    if (deleteTarget === null) return;
+    await personRepository.delete(deleteTarget);
+    setDeleteTarget(null);
+    loadPersons();
+  }, [deleteTarget, loadPersons]);
 
   /**
    * Handles the change of status for a person.
    */
   const handleStatusChange = useCallback(
     async (personId: PersonId, newStatus: PersonStatus) => {
-      if (playthroughId === null) return
-      const existing = progressByPerson[personId]
+      if (playthroughId === null) return;
+      const existing = progressByPerson[personId];
       await personRepository.upsertProgress({
         id: existing?.id,
         playthroughId,
         personId,
         status: newStatus,
         notes: existing?.notes ?? '',
-      })
-      loadPersons()
+      });
+      loadPersons();
     },
     [playthroughId, progressByPerson, loadPersons]
-  )
+  );
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading people…</p>
+    return <p className="text-slate-500">Loading people…</p>;
   }
 
   return (
@@ -128,8 +128,8 @@ export function PersonListScreen({
               mode="create"
               gameId={gameId}
               onSaved={() => {
-                setFormState(null)
-                loadPersons()
+                setFormState(null);
+                loadPersons();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -138,8 +138,8 @@ export function PersonListScreen({
               mode="edit"
               person={formState.person}
               onSaved={() => {
-                setFormState(null)
-                loadPersons()
+                setFormState(null);
+                loadPersons();
               }}
               onCancel={() => setFormState(null)}
             />
@@ -152,9 +152,9 @@ export function PersonListScreen({
       ) : (
         <ul className="space-y-2">
           {persons.map((person) => {
-            const progress = progressByPerson[person.id]
-            const status = progress?.status ?? PersonStatus.ALIVE
-            const isExpanded = expandedId === person.id
+            const progress = progressByPerson[person.id];
+            const status = progress?.status ?? PersonStatus.ALIVE;
+            const isExpanded = expandedId === person.id;
             return (
               <li
                 key={person.id}
@@ -236,7 +236,7 @@ export function PersonListScreen({
                   </div>
                 ) : null}
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -251,5 +251,5 @@ export function PersonListScreen({
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
-  )
+  );
 }

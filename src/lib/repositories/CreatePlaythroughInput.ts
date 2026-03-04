@@ -1,4 +1,4 @@
-import type { GameId } from '../../types/ids'
+import type { GameId } from '../../types/ids';
 
 /**
  * Input for creating a playthrough.
@@ -6,7 +6,7 @@ import type { GameId } from '../../types/ids'
  */
 export interface CreatePlaythroughInput {
   /** ID of the game this playthrough belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Optional playthrough name. */
-  name?: string
+  name?: string;
 }

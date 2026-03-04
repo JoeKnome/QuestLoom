@@ -1,4 +1,4 @@
-import { EntityType } from '../types/EntityType'
+import { EntityType } from '../types/EntityType';
 
 /**
  * Returns Tailwind classes for the default background and text color of an
@@ -12,19 +12,19 @@ import { EntityType } from '../types/EntityType'
 export function getEntityTypeColorClasses(entityType: EntityType): string {
   switch (entityType) {
     case EntityType.QUEST:
-      return 'bg-sky-600 text-white'
+      return 'bg-sky-600 text-white';
     case EntityType.INSIGHT:
-      return 'bg-violet-600 text-white'
+      return 'bg-violet-600 text-white';
     case EntityType.ITEM:
-      return 'bg-amber-600 text-white'
+      return 'bg-amber-600 text-white';
     case EntityType.PERSON:
-      return 'bg-emerald-600 text-white'
+      return 'bg-emerald-600 text-white';
     case EntityType.PLACE:
-      return 'bg-rose-600 text-white'
+      return 'bg-rose-600 text-white';
     case EntityType.PATH:
-      return 'bg-teal-600 text-white'
+      return 'bg-teal-600 text-white';
     default:
-      return 'bg-slate-600 text-white'
+      return 'bg-slate-600 text-white';
   }
 }
 
@@ -43,19 +43,19 @@ export function getUnavailableEntityTypeColorClasses(
 ): string {
   switch (entityType) {
     case EntityType.QUEST:
-      return 'bg-sky-950 text-gray-400'
+      return 'bg-sky-950 text-gray-400';
     case EntityType.INSIGHT:
-      return 'bg-violet-950 text-gray-400'
+      return 'bg-violet-950 text-gray-400';
     case EntityType.ITEM:
-      return 'bg-amber-950 text-gray-400'
+      return 'bg-amber-950 text-gray-400';
     case EntityType.PERSON:
-      return 'bg-emerald-950 text-gray-400'
+      return 'bg-emerald-950 text-gray-400';
     case EntityType.PLACE:
-      return 'bg-rose-950 text-gray-400'
+      return 'bg-rose-950 text-gray-400';
     case EntityType.PATH:
-      return 'bg-teal-950 text-gray-400'
+      return 'bg-teal-950 text-gray-400';
     default:
-      return 'bg-slate-950 text-gray-400'
+      return 'bg-slate-950 text-gray-400';
   }
 }
 
@@ -67,5 +67,5 @@ export function getUnavailableEntityTypeColorClasses(
  * @returns A string of Tailwind classes for background and text color.
  */
 export function getSpoilerHiddenColorClasses(): string {
-  return 'bg-slate-300 text-slate-700'
+  return 'bg-slate-300 text-slate-700';
 }

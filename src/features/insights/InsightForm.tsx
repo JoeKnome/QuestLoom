@@ -1,22 +1,22 @@
-import { useCallback, useState } from 'react'
-import { LocationPlacesEditor } from '../../components/LocationPlacesEditor'
-import { syncLocationThreads } from '../../lib/location'
-import { insightRepository } from '../../lib/repositories'
-import type { GameId, PlaceId } from '../../types/ids'
-import type { Insight } from '../../types/Insight'
+import { useCallback, useState } from 'react';
+import { LocationPlacesEditor } from '../../components/LocationPlacesEditor';
+import { syncLocationThreads } from '../../lib/location';
+import { insightRepository } from '../../lib/repositories';
+import type { GameId, PlaceId } from '../../types/ids';
+import type { Insight } from '../../types/Insight';
 
 /**
  * Props for InsightForm when creating a new insight.
  */
 export interface InsightFormCreateProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'create'
+  mode: 'create';
   /** Game ID the insight belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Called after successful create. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
@@ -24,19 +24,19 @@ export interface InsightFormCreateProps {
  */
 export interface InsightFormEditProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'edit'
+  mode: 'edit';
   /** The insight to edit. */
-  insight: Insight
+  insight: Insight;
   /** Called after successful update. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
  * Props for InsightForm.
  */
-export type InsightFormProps = InsightFormCreateProps | InsightFormEditProps
+export type InsightFormProps = InsightFormCreateProps | InsightFormEditProps;
 
 /**
  * Form to create or edit an insight. Uses insightRepository only.
@@ -47,57 +47,59 @@ export type InsightFormProps = InsightFormCreateProps | InsightFormEditProps
 export function InsightForm(props: InsightFormProps): JSX.Element {
   const [title, setTitle] = useState(
     props.mode === 'edit' ? props.insight.title : ''
-  )
+  );
   const [content, setContent] = useState(
     props.mode === 'edit' ? props.insight.content : ''
-  )
-  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const gameId = props.mode === 'create' ? props.gameId : props.insight.gameId
+  );
+  const [locationPlaceIds, setLocationPlaceIds] = useState<PlaceId[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const gameId = props.mode === 'create' ? props.gameId : props.insight.gameId;
 
   /**
    * Handles the submission of the insight form.
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmedTitle = title.trim()
+      e.preventDefault();
+      const trimmedTitle = title.trim();
       if (!trimmedTitle) {
-        setError('Enter a title.')
-        return
+        setError('Enter a title.');
+        return;
       }
-      setError(null)
-      setIsSubmitting(true)
+      setError(null);
+      setIsSubmitting(true);
       try {
         if (props.mode === 'create') {
           const insight = await insightRepository.create({
             gameId: props.gameId,
             title: trimmedTitle,
             content: content.trim(),
-          })
-          await syncLocationThreads(props.gameId, insight.id, locationPlaceIds)
+          });
+          await syncLocationThreads(props.gameId, insight.id, locationPlaceIds);
         } else {
           await insightRepository.update({
             ...props.insight,
             title: trimmedTitle,
             content: content.trim(),
-          })
+          });
           await syncLocationThreads(
             props.insight.gameId,
             props.insight.id,
             locationPlaceIds
-          )
+          );
         }
-        props.onSaved()
+        props.onSaved();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save insight.')
+        setError(
+          err instanceof Error ? err.message : 'Failed to save insight.'
+        );
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [title, content, locationPlaceIds, props]
-  )
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -175,5 +177,5 @@ export function InsightForm(props: InsightFormProps): JSX.Element {
         </button>
       </div>
     </form>
-  )
+  );
 }

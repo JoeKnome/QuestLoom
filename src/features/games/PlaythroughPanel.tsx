@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { playthroughRepository } from '../../lib/repositories'
-import { useAppStore } from '../../stores/appStore'
-import type { Playthrough } from '../../types/Playthrough'
-import type { PlaythroughPanelProps } from './PlaythroughPanel.types'
+import { useCallback, useState } from 'react';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { playthroughRepository } from '../../lib/repositories';
+import { useAppStore } from '../../stores/appStore';
+import type { Playthrough } from '../../types/Playthrough';
+import type { PlaythroughPanelProps } from './PlaythroughPanel.types';
 
 /**
  * Panel to manage playthroughs for the current game: list, select, rename, create, delete.
@@ -17,18 +17,18 @@ export function PlaythroughPanel({
   onClose,
   onPlaythroughsChange,
 }: PlaythroughPanelProps): JSX.Element {
-  const setCurrentPlaythrough = useAppStore((s) => s.setCurrentPlaythrough)
+  const setCurrentPlaythrough = useAppStore((s) => s.setCurrentPlaythrough);
   const setCurrentGameAndPlaythrough = useAppStore(
     (s) => s.setCurrentGameAndPlaythrough
-  )
+  );
 
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editingName, setEditingName] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
   const [deleteConfirmPlaythrough, setDeleteConfirmPlaythrough] =
-    useState<Playthrough | null>(null)
-  const [newName, setNewName] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
-  const [createError, setCreateError] = useState<string | null>(null)
+    useState<Playthrough | null>(null);
+  const [newName, setNewName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   /**
    * Selects a playthrough and sets it as the current playthrough.
@@ -39,12 +39,12 @@ export function PlaythroughPanel({
   const handleSelect = useCallback(
     (id: string) => {
       if (id !== currentPlaythroughId) {
-        setCurrentPlaythrough(id as Playthrough['id'])
-        onClose()
+        setCurrentPlaythrough(id as Playthrough['id']);
+        onClose();
       }
     },
     [currentPlaythroughId, setCurrentPlaythrough, onClose]
-  )
+  );
 
   /**
    * Starts the process of renaming a playthrough.
@@ -52,17 +52,17 @@ export function PlaythroughPanel({
    * @param p - The playthrough to rename
    */
   const startRename = useCallback((p: Playthrough) => {
-    setEditingId(p.id)
-    setEditingName(p.name || '')
-  }, [])
+    setEditingId(p.id);
+    setEditingName(p.name || '');
+  }, []);
 
   /**
    * Cancels the process of renaming a playthrough.
    */
   const cancelRename = useCallback(() => {
-    setEditingId(null)
-    setEditingName('')
-  }, [])
+    setEditingId(null);
+    setEditingName('');
+  }, []);
 
   /**
    * Submits the renaming of a playthrough.
@@ -71,18 +71,18 @@ export function PlaythroughPanel({
    */
   const submitRename = useCallback(
     async (p: Playthrough) => {
-      const trimmed = editingName.trim()
+      const trimmed = editingName.trim();
       if (trimmed === (p.name || '')) {
-        cancelRename()
-        return
+        cancelRename();
+        return;
       }
-      await playthroughRepository.update({ ...p, name: trimmed })
-      setEditingId(null)
-      setEditingName('')
-      onPlaythroughsChange()
+      await playthroughRepository.update({ ...p, name: trimmed });
+      setEditingId(null);
+      setEditingName('');
+      onPlaythroughsChange();
     },
     [editingName, cancelRename, onPlaythroughsChange]
-  )
+  );
 
   /**
    * Handles the click event for deleting a playthrough.
@@ -90,31 +90,31 @@ export function PlaythroughPanel({
    * @param p - The playthrough to delete
    */
   const handleDeleteClick = useCallback((p: Playthrough) => {
-    setDeleteConfirmPlaythrough(p)
-  }, [])
+    setDeleteConfirmPlaythrough(p);
+  }, []);
 
   /**
    * Handles the confirmation event for deleting a playthrough.
    */
   const handleDeleteConfirm = useCallback(async () => {
-    if (!deleteConfirmPlaythrough) return
-    const id = deleteConfirmPlaythrough.id
-    const wasCurrent = id === currentPlaythroughId
-    await playthroughRepository.delete(id)
-    const remaining = playthroughs.filter((p) => p.id !== id)
+    if (!deleteConfirmPlaythrough) return;
+    const id = deleteConfirmPlaythrough.id;
+    const wasCurrent = id === currentPlaythroughId;
+    await playthroughRepository.delete(id);
+    const remaining = playthroughs.filter((p) => p.id !== id);
     if (wasCurrent) {
       if (remaining.length > 0) {
-        setCurrentPlaythrough(remaining[0].id)
+        setCurrentPlaythrough(remaining[0].id);
       } else {
         const created = await playthroughRepository.create({
           gameId,
           name: 'Default',
-        })
-        setCurrentGameAndPlaythrough(gameId, created.id)
+        });
+        setCurrentGameAndPlaythrough(gameId, created.id);
       }
     }
-    setDeleteConfirmPlaythrough(null)
-    onPlaythroughsChange()
+    setDeleteConfirmPlaythrough(null);
+    onPlaythroughsChange();
   }, [
     deleteConfirmPlaythrough,
     currentPlaythroughId,
@@ -123,7 +123,7 @@ export function PlaythroughPanel({
     setCurrentPlaythrough,
     setCurrentGameAndPlaythrough,
     onPlaythroughsChange,
-  ])
+  ]);
 
   /**
    * Handles the submission event for creating a new playthrough.
@@ -132,32 +132,32 @@ export function PlaythroughPanel({
    */
   const handleCreateSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmed = newName.trim()
+      e.preventDefault();
+      const trimmed = newName.trim();
       if (!trimmed) {
-        setCreateError('Enter a name.')
-        return
+        setCreateError('Enter a name.');
+        return;
       }
-      setCreateError(null)
-      setIsCreating(true)
+      setCreateError(null);
+      setIsCreating(true);
       try {
         const created = await playthroughRepository.create({
           gameId,
           name: trimmed,
-        })
-        setCurrentPlaythrough(created.id)
-        setNewName('')
-        onPlaythroughsChange()
+        });
+        setCurrentPlaythrough(created.id);
+        setNewName('');
+        onPlaythroughsChange();
       } catch (err) {
         setCreateError(
           err instanceof Error ? err.message : 'Failed to create playthrough.'
-        )
+        );
       } finally {
-        setIsCreating(false)
+        setIsCreating(false);
       }
     },
     [gameId, newName, setCurrentPlaythrough, onPlaythroughsChange]
-  )
+  );
 
   return (
     <>
@@ -198,8 +198,8 @@ export function PlaythroughPanel({
                       value={editingName}
                       onChange={(e) => setEditingName(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') void submitRename(p)
-                        if (e.key === 'Escape') cancelRename()
+                        if (e.key === 'Enter') void submitRename(p);
+                        if (e.key === 'Escape') cancelRename();
                       }}
                       className="min-w-0 flex-1 rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
                       autoFocus
@@ -315,5 +315,5 @@ export function PlaythroughPanel({
         />
       ) : null}
     </>
-  )
+  );
 }

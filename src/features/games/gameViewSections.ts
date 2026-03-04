@@ -1,4 +1,4 @@
-import { MainViewType } from '../../types/MainViewType'
+import { MainViewType } from '../../types/MainViewType';
 
 /**
  * Sections of the game view sidebar in display order.
@@ -15,4 +15,4 @@ export const SECTIONS: MainViewType[] = [
   MainViewType.PEOPLE,
   MainViewType.INSIGHTS,
   MainViewType.THREADS,
-]
+];

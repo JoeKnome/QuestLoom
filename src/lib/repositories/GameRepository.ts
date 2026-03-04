@@ -3,20 +3,20 @@
  * Use this instead of Dexie directly; implements IGameRepository against IndexedDB.
  */
 
-import type { Game } from '../../types/Game'
-import type { GameId } from '../../types/ids'
-import { generateId } from '../../utils/generateId'
-import { db } from '../db'
-import type { CreateGameInput } from './CreateGameInput'
-import type { IGameRepository } from './IGameRepository'
-import { insightRepository } from './InsightRepository'
-import { itemRepository } from './ItemRepository'
-import { mapRepository } from './MapRepository'
-import { personRepository } from './PersonRepository'
-import { placeRepository } from './PlaceRepository'
-import { playthroughRepository } from './PlaythroughRepository'
-import { questRepository } from './QuestRepository'
-import { threadRepository } from './ThreadRepository'
+import type { Game } from '../../types/Game';
+import type { GameId } from '../../types/ids';
+import { generateId } from '../../utils/generateId';
+import { db } from '../db';
+import type { CreateGameInput } from './CreateGameInput';
+import type { IGameRepository } from './IGameRepository';
+import { insightRepository } from './InsightRepository';
+import { itemRepository } from './ItemRepository';
+import { mapRepository } from './MapRepository';
+import { personRepository } from './PersonRepository';
+import { placeRepository } from './PlaceRepository';
+import { playthroughRepository } from './PlaythroughRepository';
+import { questRepository } from './QuestRepository';
+import { threadRepository } from './ThreadRepository';
 
 /**
  * Dexie-backed implementation of IGameRepository.
@@ -24,45 +24,45 @@ import { threadRepository } from './ThreadRepository'
  */
 class GameRepositoryImpl implements IGameRepository {
   async getAll(): Promise<Game[]> {
-    return db.games.toArray()
+    return db.games.toArray();
   }
 
   async getById(id: GameId): Promise<Game | undefined> {
-    return db.games.get(id)
+    return db.games.get(id);
   }
 
   async create(input: CreateGameInput): Promise<Game> {
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     const game: Game = {
       id: generateId() as GameId,
       name: input.name,
       createdAt: now,
       updatedAt: now,
-    }
-    await db.games.add(game)
-    return game
+    };
+    await db.games.add(game);
+    return game;
   }
 
   async update(game: Game): Promise<void> {
     const updated: Game = {
       ...game,
       updatedAt: new Date().toISOString(),
-    }
-    await db.games.put(updated)
+    };
+    await db.games.put(updated);
   }
 
   async delete(id: GameId): Promise<void> {
-    await playthroughRepository.deleteByGameId(id)
-    await questRepository.deleteByGameId(id)
-    await insightRepository.deleteByGameId(id)
-    await itemRepository.deleteByGameId(id)
-    await personRepository.deleteByGameId(id)
-    await placeRepository.deleteByGameId(id)
-    await mapRepository.deleteByGameId(id)
-    await threadRepository.deleteByGameId(id)
-    await db.games.delete(id)
+    await playthroughRepository.deleteByGameId(id);
+    await questRepository.deleteByGameId(id);
+    await insightRepository.deleteByGameId(id);
+    await itemRepository.deleteByGameId(id);
+    await personRepository.deleteByGameId(id);
+    await placeRepository.deleteByGameId(id);
+    await mapRepository.deleteByGameId(id);
+    await threadRepository.deleteByGameId(id);
+    await db.games.delete(id);
   }
 }
 
 /** Single game repository instance. Use this instead of Dexie directly. */
-export const gameRepository: IGameRepository = new GameRepositoryImpl()
+export const gameRepository: IGameRepository = new GameRepositoryImpl();

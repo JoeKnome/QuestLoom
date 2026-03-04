@@ -1,30 +1,30 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { mapRepository, placeRepository } from '../../lib/repositories'
-import type { GameId } from '../../types/ids'
-import type { Map } from '../../types/Map'
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { mapRepository, placeRepository } from '../../lib/repositories';
+import type { GameId } from '../../types/ids';
+import type { Map } from '../../types/Map';
 import {
   formatTopLevelPlaceName,
   deriveMapNameFromTopLevelPlaceName,
-} from '../../utils/mapNames'
+} from '../../utils/mapNames';
 
 /** UI-only image source; 'none' means no image. */
-type ImageSourceUi = 'none' | 'url' | 'upload'
+type ImageSourceUi = 'none' | 'url' | 'upload';
 
-const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
+const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 /**
  * Props for MapForm when creating a new map.
  */
 export interface MapFormCreateProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'create'
+  mode: 'create';
   /** Game ID the map belongs to. */
-  gameId: GameId
+  gameId: GameId;
   /** Called after successful create. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
@@ -32,19 +32,19 @@ export interface MapFormCreateProps {
  */
 export interface MapFormEditProps {
   /** Whether this form is for creating (true) or editing (false). */
-  mode: 'edit'
+  mode: 'edit';
   /** The map to edit. */
-  map: Map
+  map: Map;
   /** Called after successful update. */
-  onSaved: () => void
+  onSaved: () => void;
   /** Called when the user cancels. */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
  * Props for MapForm.
  */
-export type MapFormProps = MapFormCreateProps | MapFormEditProps
+export type MapFormProps = MapFormCreateProps | MapFormEditProps;
 
 /**
  * Checks if a file is a valid image file.
@@ -53,7 +53,7 @@ export type MapFormProps = MapFormCreateProps | MapFormEditProps
  * @returns True if the file is a valid image file, false otherwise.
  */
 function isValidImageFile(file: File): boolean {
-  return ACCEPTED_IMAGE_TYPES.includes(file.type)
+  return ACCEPTED_IMAGE_TYPES.includes(file.type);
 }
 
 /**
@@ -63,16 +63,16 @@ function isValidImageFile(file: File): boolean {
  * @returns The error message if the URL is invalid, null otherwise.
  */
 function validateUrl(url: string): string | null {
-  const trimmed = url.trim()
-  if (!trimmed) return 'Enter a valid http(s) URL.'
+  const trimmed = url.trim();
+  if (!trimmed) return 'Enter a valid http(s) URL.';
   try {
-    const url = new URL(trimmed)
+    const url = new URL(trimmed);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      return 'Enter a valid http(s) URL.'
+      return 'Enter a valid http(s) URL.';
     }
-    return null
+    return null;
   } catch {
-    return 'Enter a valid http(s) URL.'
+    return 'Enter a valid http(s) URL.';
   }
 }
 
@@ -86,43 +86,43 @@ function validateUrl(url: string): string | null {
  * @returns A JSX element representing the MapForm component.
  */
 export function MapForm(props: MapFormProps): JSX.Element {
-  const [name, setName] = useState(props.mode === 'edit' ? props.map.name : '')
+  const [name, setName] = useState(props.mode === 'edit' ? props.map.name : '');
   const [imageSourceUi, setImageSourceUi] = useState<ImageSourceUi>(() => {
-    if (props.mode === 'create') return 'none'
-    const m = props.map
-    if (m.imageSourceType === 'upload' || m.imageBlobId) return 'upload'
+    if (props.mode === 'create') return 'none';
+    const m = props.map;
+    if (m.imageSourceType === 'upload' || m.imageBlobId) return 'upload';
     if (m.imageSourceType === 'url' || (m.imageUrl && m.imageUrl.trim() !== ''))
-      return 'url'
-    return 'none'
-  })
+      return 'url';
+    return 'none';
+  });
   const [imageUrlInput, setImageUrlInput] = useState(
     props.mode === 'edit' && props.map.imageUrl ? props.map.imageUrl : ''
-  )
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [urlPreviewError, setUrlPreviewError] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [urlPreviewError, setUrlPreviewError] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Revoke object URL when it changes or on unmount
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   /**
    * Clears the upload state.
    */
   const clearUploadState = useCallback(() => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setPreviewUrl(null)
-    setSelectedFile(null)
-    setUploadError(null)
-  }, [previewUrl])
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setSelectedFile(null);
+    setUploadError(null);
+  }, [previewUrl]);
 
   /**
    * Handles the selection of a file.
@@ -131,21 +131,21 @@ export function MapForm(props: MapFormProps): JSX.Element {
    */
   const handleFileSelect = useCallback(
     (file: File) => {
-      setUploadError(null)
+      setUploadError(null);
       if (!isValidImageFile(file)) {
-        setUploadError('Please choose a PNG, JPEG, or WebP image.')
-        return
+        setUploadError('Please choose a PNG, JPEG, or WebP image.');
+        return;
       }
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        setUploadError('Image is too large (max 10 MB).')
-        return
+        setUploadError('Image is too large (max 10 MB).');
+        return;
       }
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-      setSelectedFile(file)
-      setPreviewUrl(URL.createObjectURL(file))
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
     },
     [previewUrl]
-  )
+  );
 
   /**
    * Handles the change of the file input.
@@ -154,12 +154,12 @@ export function MapForm(props: MapFormProps): JSX.Element {
    */
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const f = e.target.files?.[0]
-      if (f) handleFileSelect(f)
-      e.target.value = ''
+      const f = e.target.files?.[0];
+      if (f) handleFileSelect(f);
+      e.target.value = '';
     },
     [handleFileSelect]
-  )
+  );
 
   /**
    * Handles the drag over event.
@@ -167,10 +167,10 @@ export function MapForm(props: MapFormProps): JSX.Element {
    * @param e - The drag event.
    */
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(true)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
 
   /**
    * Handles the drag leave event.
@@ -178,10 +178,10 @@ export function MapForm(props: MapFormProps): JSX.Element {
    * @param e - The drag event.
    */
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
 
   /**
    * Handles the drop event.
@@ -190,23 +190,23 @@ export function MapForm(props: MapFormProps): JSX.Element {
    */
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setIsDragging(false)
-      const files = e.dataTransfer.files
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      const files = e.dataTransfer.files;
       for (let i = 0; i < files.length; i++) {
-        const f = files[i]
+        const f = files[i];
         if (isValidImageFile(f)) {
-          handleFileSelect(f)
-          return
+          handleFileSelect(f);
+          return;
         }
       }
       if (files.length > 0) {
-        setUploadError('Please drop a PNG, JPEG, or WebP image.')
+        setUploadError('Please drop a PNG, JPEG, or WebP image.');
       }
     },
     [handleFileSelect]
-  )
+  );
 
   /**
    * Handles the submission of the form.
@@ -215,19 +215,19 @@ export function MapForm(props: MapFormProps): JSX.Element {
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmedName = name.trim()
+      e.preventDefault();
+      const trimmedName = name.trim();
       if (!trimmedName) {
-        setError('Enter a name.')
-        return
+        setError('Enter a name.');
+        return;
       }
-      setError(null)
+      setError(null);
 
       if (imageSourceUi === 'url') {
-        const urlErr = validateUrl(imageUrlInput)
+        const urlErr = validateUrl(imageUrlInput);
         if (urlErr) {
-          setError(urlErr)
-          return
+          setError(urlErr);
+          return;
         }
       }
 
@@ -236,13 +236,13 @@ export function MapForm(props: MapFormProps): JSX.Element {
         props.mode === 'create' &&
         !selectedFile
       ) {
-        setError('Choose an image file or switch to URL / None.')
-        return
+        setError('Choose an image file or switch to URL / None.');
+        return;
       }
 
-      setIsSubmitting(true)
+      setIsSubmitting(true);
       try {
-        const baseMapName = deriveMapNameFromTopLevelPlaceName(trimmedName)
+        const baseMapName = deriveMapNameFromTopLevelPlaceName(trimmedName);
 
         if (props.mode === 'create') {
           let created = await mapRepository.create({
@@ -254,65 +254,65 @@ export function MapForm(props: MapFormProps): JSX.Element {
                   imageUrl: imageUrlInput.trim(),
                 }
               : {}),
-          })
+          });
 
           const topLevelPlace = await placeRepository.create({
             gameId: props.gameId,
             name: formatTopLevelPlaceName(baseMapName),
             notes: '',
             map: created.id,
-          })
+          });
 
           created = {
             ...created,
             topLevelPlaceId: topLevelPlace.id,
-          }
-          await mapRepository.update(created)
+          };
+          await mapRepository.update(created);
 
           if (imageSourceUi === 'upload' && selectedFile) {
-            await mapRepository.setImageFromUpload(created.id, selectedFile)
+            await mapRepository.setImageFromUpload(created.id, selectedFile);
           }
         } else {
-          const mapId = props.map.id
+          const mapId = props.map.id;
           const updatedMap: Map = {
             ...props.map,
             name: baseMapName,
-          }
-          await mapRepository.update(updatedMap)
+          };
+          await mapRepository.update(updatedMap);
 
           if (updatedMap.topLevelPlaceId) {
             const place = await placeRepository.getById(
               updatedMap.topLevelPlaceId
-            )
+            );
             if (place) {
               await placeRepository.update({
                 ...place,
                 name: formatTopLevelPlaceName(trimmedName),
-              })
+              });
             }
           }
           if (imageSourceUi === 'none') {
-            await mapRepository.clearImage(mapId)
+            await mapRepository.clearImage(mapId);
           } else if (imageSourceUi === 'url') {
-            await mapRepository.setImageFromUrl(mapId, imageUrlInput.trim())
+            await mapRepository.setImageFromUrl(mapId, imageUrlInput.trim());
           } else if (selectedFile) {
-            await mapRepository.setImageFromUpload(mapId, selectedFile)
+            await mapRepository.setImageFromUpload(mapId, selectedFile);
           }
         }
-        props.onSaved()
+        props.onSaved();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save map.')
+        setError(err instanceof Error ? err.message : 'Failed to save map.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [name, imageSourceUi, imageUrlInput, selectedFile, props]
-  )
+  );
 
   const hasExistingUpload =
     props.mode === 'edit' &&
     props.map.imageSourceType === 'upload' &&
-    props.map.imageBlobId
+    props.map.imageBlobId;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -347,11 +347,11 @@ export function MapForm(props: MapFormProps): JSX.Element {
               name="imageSource"
               checked={imageSourceUi === 'none'}
               onChange={() => {
-                setImageSourceUi('none')
-                clearUploadState()
-                setImageUrlInput('')
-                setError(null)
-                setUploadError(null)
+                setImageSourceUi('none');
+                clearUploadState();
+                setImageUrlInput('');
+                setError(null);
+                setUploadError(null);
               }}
               disabled={isSubmitting}
               className="rounded border-slate-300 text-slate-800 focus:ring-slate-500"
@@ -364,9 +364,9 @@ export function MapForm(props: MapFormProps): JSX.Element {
               name="imageSource"
               checked={imageSourceUi === 'url'}
               onChange={() => {
-                setImageSourceUi('url')
-                clearUploadState()
-                setUploadError(null)
+                setImageSourceUi('url');
+                clearUploadState();
+                setUploadError(null);
               }}
               disabled={isSubmitting}
               className="rounded border-slate-300 text-slate-800 focus:ring-slate-500"
@@ -379,9 +379,9 @@ export function MapForm(props: MapFormProps): JSX.Element {
               name="imageSource"
               checked={imageSourceUi === 'upload'}
               onChange={() => {
-                setImageSourceUi('upload')
-                setImageUrlInput('')
-                setError(null)
+                setImageSourceUi('upload');
+                setImageUrlInput('');
+                setError(null);
               }}
               disabled={isSubmitting}
               className="rounded border-slate-300 text-slate-800 focus:ring-slate-500"
@@ -404,8 +404,8 @@ export function MapForm(props: MapFormProps): JSX.Element {
             type="url"
             value={imageUrlInput}
             onChange={(e) => {
-              setImageUrlInput(e.target.value)
-              setUrlPreviewError(false)
+              setImageUrlInput(e.target.value);
+              setUrlPreviewError(false);
             }}
             placeholder="https://…"
             disabled={isSubmitting}
@@ -525,5 +525,5 @@ export function MapForm(props: MapFormProps): JSX.Element {
         </button>
       </div>
     </form>
-  )
+  );
 }

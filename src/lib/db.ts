@@ -3,52 +3,52 @@
  * Schema enforces gameId / playthroughId separation; consumption is via repositories (Phase 1.2).
  */
 
-import Dexie, { type Table } from 'dexie'
-import type { GameId, MapId } from '../types/ids'
-import type { Game } from '../types/Game'
-import type { Playthrough } from '../types/Playthrough'
-import type { Quest } from '../types/Quest'
-import type { Insight } from '../types/Insight'
-import type { Item } from '../types/Item'
-import type { Person } from '../types/Person'
-import type { Place } from '../types/Place'
-import type { Path } from '../types/Path'
-import type { PathProgress } from '../types/PathProgress'
-import type { Map } from '../types/Map'
-import type { MapMarker } from '../types/MapMarker'
-import type { Thread } from '../types/Thread'
-import type { QuestProgress } from '../types/QuestProgress'
-import type { InsightProgress } from '../types/InsightProgress'
-import type { ItemState } from '../types/ItemState'
-import type { PersonProgress } from '../types/PersonProgress'
-import type { EntityDiscovery } from '../types/EntityDiscovery'
+import Dexie, { type Table } from 'dexie';
+import type { GameId, MapId } from '../types/ids';
+import type { Game } from '../types/Game';
+import type { Playthrough } from '../types/Playthrough';
+import type { Quest } from '../types/Quest';
+import type { Insight } from '../types/Insight';
+import type { Item } from '../types/Item';
+import type { Person } from '../types/Person';
+import type { Place } from '../types/Place';
+import type { Path } from '../types/Path';
+import type { PathProgress } from '../types/PathProgress';
+import type { Map } from '../types/Map';
+import type { MapMarker } from '../types/MapMarker';
+import type { Thread } from '../types/Thread';
+import type { QuestProgress } from '../types/QuestProgress';
+import type { InsightProgress } from '../types/InsightProgress';
+import type { ItemState } from '../types/ItemState';
+import type { PersonProgress } from '../types/PersonProgress';
+import type { EntityDiscovery } from '../types/EntityDiscovery';
 
 /**
  * Stored row types: progress/discovery tables use string id (generated on insert).
  * Game/playthrough/entity tables use their existing id as primary key.
  */
 export interface QuestProgressRow extends QuestProgress {
-  id: string
+  id: string;
 }
 
 export interface InsightProgressRow extends InsightProgress {
-  id: string
+  id: string;
 }
 
 export interface ItemStateRow extends ItemState {
-  id: string
+  id: string;
 }
 
 export interface PersonProgressRow extends PersonProgress {
-  id: string
+  id: string;
 }
 
 export interface PathProgressRow extends PathProgress {
-  id: string
+  id: string;
 }
 
 export interface EntityDiscoveryRow extends EntityDiscovery {
-  id: string
+  id: string;
 }
 
 /**
@@ -57,7 +57,7 @@ export interface EntityDiscoveryRow extends EntityDiscovery {
  */
 export interface MapMarkerRow extends MapMarker {
   /** Primary key for Dexie; same as MapMarker.id. */
-  id: string
+  id: string;
 }
 
 /**
@@ -66,15 +66,15 @@ export interface MapMarkerRow extends MapMarker {
  */
 export interface MapImageBlobRow {
   /** Unique identifier (same as Map.imageBlobId). */
-  id: string
+  id: string;
   /** Game this blob belongs to (for cascade delete). */
-  gameId: GameId
+  gameId: GameId;
   /** Map this blob is attached to (for cleanup on source change). */
-  mapId: MapId
+  mapId: MapId;
   /** The image binary. */
-  blob: Blob
+  blob: Blob;
   /** Creation timestamp (ISO 8601). */
-  createdAt: string
+  createdAt: string;
 }
 
 /**
@@ -82,27 +82,27 @@ export interface MapImageBlobRow {
  * Do not call Dexie from components/stores; use repositories (Phase 1.2).
  */
 export class QuestLoomDB extends Dexie {
-  games!: Table<Game, string>
-  playthroughs!: Table<Playthrough, string>
-  quests!: Table<Quest, string>
-  insights!: Table<Insight, string>
-  items!: Table<Item, string>
-  persons!: Table<Person, string>
-  places!: Table<Place, string>
-  maps!: Table<Map, string>
-  paths!: Table<Path, string>
-  threads!: Table<Thread, string>
-  questProgress!: Table<QuestProgressRow, string>
-  pathProgress!: Table<PathProgressRow, string>
-  insightProgress!: Table<InsightProgressRow, string>
-  itemState!: Table<ItemStateRow, string>
-  personProgress!: Table<PersonProgressRow, string>
-  entityDiscovery!: Table<EntityDiscoveryRow, string>
-  mapImages!: Table<MapImageBlobRow, string>
-  mapMarkers!: Table<MapMarkerRow, string>
+  games!: Table<Game, string>;
+  playthroughs!: Table<Playthrough, string>;
+  quests!: Table<Quest, string>;
+  insights!: Table<Insight, string>;
+  items!: Table<Item, string>;
+  persons!: Table<Person, string>;
+  places!: Table<Place, string>;
+  maps!: Table<Map, string>;
+  paths!: Table<Path, string>;
+  threads!: Table<Thread, string>;
+  questProgress!: Table<QuestProgressRow, string>;
+  pathProgress!: Table<PathProgressRow, string>;
+  insightProgress!: Table<InsightProgressRow, string>;
+  itemState!: Table<ItemStateRow, string>;
+  personProgress!: Table<PersonProgressRow, string>;
+  entityDiscovery!: Table<EntityDiscoveryRow, string>;
+  mapImages!: Table<MapImageBlobRow, string>;
+  mapMarkers!: Table<MapMarkerRow, string>;
 
   constructor() {
-    super('QuestLoomDB')
+    super('QuestLoomDB');
     this.version(1).stores({
       games: 'id',
       playthroughs: 'id, gameId',
@@ -119,7 +119,7 @@ export class QuestLoomDB extends Dexie {
       itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
       entityDiscovery:
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
-    })
+    });
     // v2: type-in-ID; clear entity and progress tables so all new data uses typed IDs
     this.version(2).stores({
       games: 'id',
@@ -137,7 +137,7 @@ export class QuestLoomDB extends Dexie {
       itemState: 'id, playthroughId, itemId, [playthroughId+itemId]',
       entityDiscovery:
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
-    })
+    });
     // v3: map image blobs for upload source
     this.version(3).stores({
       games: 'id',
@@ -156,7 +156,7 @@ export class QuestLoomDB extends Dexie {
       entityDiscovery:
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
       mapImages: 'id, gameId, mapId',
-    })
+    });
     // v4: top-level place per map (topLevelPlaceId index)
     this.version(4).stores({
       games: 'id',
@@ -175,7 +175,7 @@ export class QuestLoomDB extends Dexie {
       entityDiscovery:
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
       mapImages: 'id, gameId, mapId',
-    })
+    });
     // v5: map markers table (game/map/playthrough-scoped markers)
     this.version(5).stores({
       games: 'id',
@@ -195,7 +195,7 @@ export class QuestLoomDB extends Dexie {
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
       mapImages: 'id, gameId, mapId',
       mapMarkers: 'id, gameId, mapId, playthroughId, [gameId+mapId]',
-    })
+    });
     // v6: person progress (playthrough-scoped person status)
     this.version(6).stores({
       games: 'id',
@@ -216,7 +216,7 @@ export class QuestLoomDB extends Dexie {
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
       mapImages: 'id, gameId, mapId',
       mapMarkers: 'id, gameId, mapId, playthroughId, [gameId+mapId]',
-    })
+    });
     // v7: paths (game-scoped) and path progress (playthrough-scoped)
     this.version(7).stores({
       games: 'id',
@@ -239,9 +239,9 @@ export class QuestLoomDB extends Dexie {
         'id, playthroughId, entityType, entityId, [playthroughId+entityType+entityId]',
       mapImages: 'id, gameId, mapId',
       mapMarkers: 'id, gameId, mapId, playthroughId, [gameId+mapId]',
-    })
+    });
   }
 }
 
 /** Single Dexie instance for the app. Use via repositories, not directly from UI. */
-export const db = new QuestLoomDB()
+export const db = new QuestLoomDB();

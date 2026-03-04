@@ -4,5 +4,5 @@
  */
 export interface CreateGameInput {
   /** Game name. */
-  name: string
+  name: string;
 }
